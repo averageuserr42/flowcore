@@ -412,6 +412,8 @@
       flex-direction: column;
       gap: 10px;
       padding-right: 4px;
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
     }
     .log-row {
       background: var(--bg-card-inner);
@@ -480,7 +482,7 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: rgba(3, 7, 4, 0.94);
+      background: #030704;
       backdrop-filter: blur(6px);
     }
     .lock-error {
@@ -508,6 +510,22 @@
       display: block;
       width: 100%;
       height: 64px;
+    }
+    .spark-labels {
+      position: relative;
+      height: 14px;
+      margin-top: 2px;
+    }
+    .spark-labels span {
+      position: absolute;
+      transform: translateX(-50%);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .spark-labels span.now {
+      color: var(--green-title);
+      font-weight: 600;
     }
     /* Доступность */
     .timer-orb:focus-visible,
@@ -910,9 +928,9 @@
         <hr class="green-divider" />
         <!-- 4. E2EE Passphrase & Backup Export -->
         <div>
-          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;">Локальный бэкап и шифрование (AES-256-GCM)</div>
+          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;">Локальный бэкап</div>
           <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-            Все записи автоматически шифруются в памяти браузера. Ты можешь скачать их файлом на ПК.
+            Без замка записи лежат открыто в этом браузере. Бэкап — обычный JSON: единственный путь назад, если пароль забудешь.
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
             <button class="action-btn-secondary" onclick="exportBackupJson()">Скачать бэкап (.json)</button>
@@ -2250,8 +2268,8 @@ ${rawText}` }] }]
         .filter(w => (Number(w.points) || 0) > 0 || (w.logs || []).length)
         .slice(0, 8)
         .reverse()
-        .map(w => ({ pts: Number(w.points) || 0, goal: Number(w.goal) || 1 }));
-      const series = past.concat([{ pts: Number(state.points) || 0, goal: Number(state.goal) || 1 }]);
+        .map(w => ({ pts: Number(w.points) || 0, goal: Number(w.goal) || 1, label: weekLabel(w.weekKey), now: false }));
+      const series = past.concat([{ pts: Number(state.points) || 0, goal: Number(state.goal) || 1, label: weekLabel(state.weekKey), now: true }]);
       wrap.classList.toggle('hidden', series.length < 2);
       const host = document.getElementById('sparkline');
       if (series.length < 2) { host.innerHTML = ''; return; }
@@ -2266,7 +2284,17 @@ ${rawText}` }] }]
         return `<rect x="${x.toFixed(1)}" y="${H - h}" width="${barW.toFixed(1)}" height="${h}" rx="2" fill="${fill}"></rect>`
           + `<line x1="${x.toFixed(1)}" x2="${(x + barW).toFixed(1)}" y1="${H - gh}" y2="${H - gh}" stroke="rgba(244,248,245,0.35)" stroke-width="1"></line>`;
       }).join('');
-      host.innerHTML = `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Очки по неделям, последние ${series.length} недель">${parts}</svg>`;
+      const labels = series.map((s, i) => {
+        const x = i * (barW + gap) + barW / 2;
+        return `<span class="${s.now ? 'now' : ''}" style="left: ${((x / W) * 100).toFixed(2)}%;">${escapeHtml(s.label)}</span>`;
+      }).join('');
+      host.innerHTML = `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Очки по неделям, последние ${series.length} недель">${parts}</svg>`
+        + `<div class="spark-labels" aria-hidden="true">${labels}</div>`;
+    }
+    // Короткая подпись недели для графика: номер ISO-недели
+    function weekLabel(weekKey) {
+      const m = /W(\d+)$/.exec(String(weekKey || ''));
+      return m ? m[1] : '';
     }
     function renderAll() {
       renderHeaderQuota();
