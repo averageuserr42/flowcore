@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Сеть ограничена одним адресом: ИИ-сводка. Инлайн скрипт и стили нужны
        потому, что весь проект — один файл без сборки. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src https://generativelanguage.googleapis.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>FlowCore | Личная панель регуляции и фокуса</title>
+  <meta name="theme-color" content="#030704">
+  <meta name="description" content="Личный дневник регуляции: таймер фокуса, сигналы тела и недельный зачёт без давления.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="FlowCore">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     /* Orbitron (латиница и цифры) вшит в файл: без внешних запросов.
        Кириллицы в нём нет, русский текст рисует системный шрифт. */
@@ -151,6 +158,14 @@
       display: flex;
       align-items: center;
       gap: 14px;
+      /* длинный тост не должен выдавливать навигацию на вторую строку */
+      min-width: 0;
+    }
+    #flashToast {
+      max-width: 420px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .brand-title {
       font-family: var(--font-heading);
@@ -415,6 +430,23 @@
       .top-header.compact {
         padding: 6px 12px;
       }
+      /* На телефоне тост всплывает поверх, а не растягивает шапку на три строки */
+      #flashToast {
+        position: fixed;
+        left: 50%;
+        top: 96px;
+        transform: translateX(-50%);
+        max-width: calc(100vw - 24px);
+        padding: 6px 14px;
+        background: rgba(9, 17, 11, 0.97);
+        border: 1px solid var(--green-neon);
+        border-radius: 999px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        z-index: 35;
+      }
+      #flashToast:empty {
+        display: none;
+      }
       .top-header.compact .nav-btn {
         padding: 4px 8px;
         font-size: 12px;
@@ -469,6 +501,233 @@
       font-size: 11px;
       color: var(--green-title);
       margin-top: 2px;
+    }
+    /* Пресеты и свой размер таймера */
+    .timer-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .timer-presets .pill-btn {
+      padding: 3px 10px;
+      font-size: 12px;
+    }
+    .custom-timer {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .custom-min-input {
+      width: 64px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text-white);
+      background: rgba(6, 12, 8, 0.9);
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      outline: none;
+    }
+    .custom-min-input::-webkit-outer-spin-button,
+    .custom-min-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .custom-min-input:focus {
+      border-color: var(--green-neon);
+      box-shadow: 0 0 10px rgba(44, 230, 102, 0.22);
+    }
+    .custom-min-input::placeholder {
+      color: var(--text-muted);
+    }
+    .timer-controls {
+      margin-top: 2px;
+      margin-bottom: 16px;
+    }
+    .today-line {
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+    /* Отрезок отработан — это шаг, а не финиш задачи */
+    .continue-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--green-neon);
+      background: rgba(20, 48, 28, 0.55);
+    }
+    .continue-text {
+      font-size: 13px;
+      color: var(--text-white);
+    }
+    .continue-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pill-btn.tiny {
+      padding: 1px 7px;
+      font-size: 11px;
+    }
+    .steps-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .steps-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .steps-row .pill-btn {
+      padding: 3px 9px;
+      font-size: 11.5px;
+    }
+    /* Тепловая карта прогресса */
+    .progress-card {
+      grid-column: 1 / -1;
+    }
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .progress-tag {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .progress-body {
+      display: flex;
+      gap: 26px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .progress-heat {
+      flex: 0 0 auto;
+    }
+    .progress-side {
+      flex: 1 1 240px;
+      min-width: 220px;
+    }
+    .progress-delta {
+      font-size: 14px;
+      color: var(--text-soft);
+    }
+    .heatmap {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-rows: repeat(7, 14px);
+      grid-auto-columns: 14px;
+      gap: 4px;
+      justify-content: start;
+      align-content: start;
+      margin-bottom: 10px;
+    }
+    .heatmap .heat-cell {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .heatmap .heat-cell.l1 {
+      background: rgba(44, 230, 102, 0.28);
+    }
+    .heatmap .heat-cell.l2 {
+      background: rgba(44, 230, 102, 0.5);
+    }
+    .heatmap .heat-cell.l3 {
+      background: rgba(44, 230, 102, 0.75);
+    }
+    .heatmap .heat-cell.l4 {
+      background: var(--green-neon);
+      box-shadow: 0 0 8px rgba(44, 230, 102, 0.45);
+    }
+    .heatmap .heat-cell.today {
+      outline: 1px solid var(--green-title);
+      outline-offset: 1px;
+    }
+    .heatmap .heat-cell.future {
+      opacity: 0.35;
+    }
+    .heat-legend {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .heat-legend .heat-cell {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .heat-legend .heat-cell.l1 { background: rgba(44, 230, 102, 0.28); }
+    .heat-legend .heat-cell.l2 { background: rgba(44, 230, 102, 0.5); }
+    .heat-legend .heat-cell.l3 { background: rgba(44, 230, 102, 0.75); }
+    .heat-legend .heat-cell.l4 { background: var(--green-neon); }
+    .progress-stats {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+    @media (max-width: 600px) {
+      .heatmap {
+        grid-template-rows: repeat(7, 12px);
+        grid-auto-columns: 12px;
+        gap: 3px;
+      }
+      .heatmap .heat-cell {
+        width: 12px;
+        height: 12px;
+      }
+      .progress-body {
+        gap: 16px;
+      }
+      .progress-side {
+        flex-basis: 100%;
+      }
+    }
+    /* Напоминание о бэкапе */
+    .nudge {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 196, 87, 0.45);
+      background: rgba(38, 29, 10, 0.55);
+    }
+    .nudge-title {
+      font-weight: 600;
+      color: #ffd479;
+      font-size: 14px;
+    }
+    .nudge-text {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+    .nudge-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     /* Inputs & Textareas */
     .clean-input {
@@ -793,12 +1052,38 @@
               <div id="activeTaskNote" style="font-size: 13.5px; color: var(--text-muted);">
                 Правило 5 минут: если не пошло после сигнала, можно спокойно закрыть задачу.
               </div>
-              <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
-                <button class="pill-btn" style="padding: 3px 10px; font-size: 12px;" onclick="setTimerMinutes(5)">5 мин</button>
-                <button class="pill-btn" style="padding: 3px 10px; font-size: 12px;" onclick="setTimerMinutes(15)">15 мин</button>
-                <button class="pill-btn" style="padding: 3px 10px; font-size: 12px;" onclick="setTimerMinutes(45)">Стоп-кран 45 мин</button>
+            </div>
+          </div>
+          <div class="timer-controls">
+            <div class="timer-presets" role="group" aria-label="Длительность таймера">
+              <button class="pill-btn" data-min="5" onclick="setTimerMinutes(5)">5 мин</button>
+              <button class="pill-btn" data-min="15" onclick="setTimerMinutes(15)">15 мин</button>
+              <button class="pill-btn" data-min="30" onclick="setTimerMinutes(30)">30 мин</button>
+              <span class="custom-timer">
+                <input
+                  id="customMinutes"
+                  class="custom-min-input"
+                  type="number"
+                  min="1"
+                  max="180"
+                  inputmode="numeric"
+                  placeholder="свои"
+                  aria-label="Свои минуты таймера"
+                  onkeydown="if(event.key === 'Enter') applyCustomMinutes()"
+                />
+                <button class="pill-btn" onclick="applyCustomMinutes()" aria-label="Поставить свои минуты">ОК</button>
+              </span>
+            </div>
+            <div id="todayLine" class="today-line"></div>
+            <div id="continueRow" class="continue-row hidden">
+              <div id="continueText" class="continue-text"></div>
+              <div class="continue-actions">
+                <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="continueTimer(15)">Ещё 15</button>
+                <button class="pill-btn" onclick="continueTimer(30)">Ещё 30</button>
+                <button class="pill-btn" onclick="resetTimer()">Закончить</button>
               </div>
             </div>
+            <div id="firstStepRow" class="steps-row" role="group" aria-label="Первый шаг"></div>
           </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
@@ -843,6 +1128,41 @@
               Записать симптом (+1)
             </button>
           </div>
+        </div>
+      </div>
+      <!-- ПРОГРЕСС: тепловая карта за 12 недель -->
+      <div class="glow-card progress-card">
+        <div class="progress-head">
+          <h2 class="card-heading" style="margin-bottom: 0;">Прогресс</h2>
+          <span class="progress-tag">12 недель</span>
+        </div>
+        <div class="progress-body">
+          <div class="progress-heat">
+            <div id="heatmap" class="heatmap" role="img" aria-label="Активность по дням за последние 12 недель"></div>
+            <div class="heat-legend">
+              меньше
+              <span class="heat-cell l1"></span>
+              <span class="heat-cell l2"></span>
+              <span class="heat-cell l3"></span>
+              <span class="heat-cell l4"></span>
+              больше
+            </div>
+          </div>
+          <div class="progress-side">
+            <div id="progressDelta" class="progress-delta"></div>
+            <div id="progressStats" class="progress-stats"></div>
+          </div>
+        </div>
+      </div>
+      <!-- НАПОМИНАНИЕ О БЭКАПЕ -->
+      <div id="backupNudge" class="nudge hidden">
+        <div>
+          <div class="nudge-title">Копия дневника давно не скачивалась</div>
+          <div id="backupNudgeText" class="nudge-text"></div>
+        </div>
+        <div class="nudge-actions">
+          <button class="action-btn" onclick="exportBackupJson()">Скачать бэкап</button>
+          <button class="action-btn-secondary" onclick="snoozeBackupNudge()">Позже</button>
         </div>
       </div>
     </section>
@@ -1062,8 +1382,13 @@
         tasks: {
           micro: 'Открыть среду разработки или прочитать 1 короткий блок конспекта без цели запомнить все (2-5 мин)',
           draft: 'Подучиться 5-15 минут или поковырять черновик кода чисто из любопытства, без оценки',
-          wave: 'Поток кода под Стоп-кран 45 минут: остановиться до того, как появится усталость'
+          wave: 'Поток кода под Стоп-кран 30 минут: остановиться до того, как появится усталость'
         },
+        steps: [
+          'Открыть проект и вчерашний файл',
+          'Выписать три вопроса по теме',
+          'Запустить тест, даже если он упадёт'
+        ],
         notes: {
           micro: 'Нулевое давление: сейчас задача просто коснуться темы на пару минут.',
           draft: 'Правило 5 минут: если не пошло после сигнала, можно спокойно закрыть задачу.',
@@ -1076,8 +1401,13 @@
         tasks: {
           micro: 'Выпить стакан воды, достать готовую еду или убрать 3 вещи со стола (2 мин)',
           draft: 'Приготовить простую базу (крупа, мясо, яйца) или освежить рабочее место (15 мин)',
-          wave: 'Сделать запас простой еды в контейнеры на 2-3 дня вперед под таймер (40 мин)'
+          wave: 'Сделать запас простой еды в контейнеры на 2-3 дня вперед под таймер (30 мин)'
         },
+        steps: [
+          'Налить воды и поставить рядом',
+          'Достать готовую еду из холодильника',
+          'Убрать три предмета со стола'
+        ],
         notes: {
           micro: 'Телу нужна базовая поддержка без сложных кулинарных задач.',
           draft: 'Спокойный бытовой шаг в своем темпе.',
@@ -1090,8 +1420,13 @@
         tasks: {
           micro: 'Открыть окно, опустить плечи и сделать 5 спокойных выдохов (2 мин)',
           draft: 'Пауза 15 минут без экранов: размять шею, умыться или полежать в тишине',
-          wave: 'Полная разгрузка нервной системы: прогулка или отдых без инфошума (45 мин)'
+          wave: 'Полная разгрузка нервной системы: прогулка или отдых без инфошума (30 мин)'
         },
+        steps: [
+          'Опустить плечи и выдохнуть',
+          'Открыть окно на минуту',
+          'Отойти от экрана на десять шагов'
+        ],
         notes: {
           micro: 'Выход из телесной скованности важнее любой галочки.',
           draft: 'Восстановление идет в общий зачет недели.',
@@ -1100,7 +1435,9 @@
       }
     ];
     const modePoints = { micro: 1, draft: 2, wave: 3 };
-    const modeTimers = { micro: 5, draft: 5, wave: 45 };
+    // 45 минут вызывали отторжение — теперь верхняя граница 30
+    const modeTimers = { micro: 5, draft: 5, wave: 30 };
+    const TIMER_MAX_MINUTES = 180;
     let logIdSeq = 0;
     let state = null;                               // появляется после загрузки или разблокировки
     let appStarted = false;
@@ -1191,6 +1528,8 @@
         startedAt: Number(raw && raw.startedAt) || 0
       };
       if (timer.running && timer.endsAt <= Date.now()) {
+        // Сессия истекла, пока вкладка была закрыта: дочитываем отработанное время
+        if (timer.startedAt) timer.ranMs += Math.max(0, timer.endsAt - timer.startedAt);
         timer.running = false;
         timer.endsAt = 0;
         timer.remainingMs = 0;
@@ -1210,6 +1549,8 @@
         requireTimer: false,
         notifyEnabled: false,
         lastExportAt: 0,
+        nudgeSnoozeUntil: 0,
+        firstStep: '',
         weeks: [],
         timer: defaultTimer(modeTimers.draft * 60000),
         points: 2,
@@ -1245,7 +1586,8 @@
         kind,
         text,
         pts: Number(raw && raw.pts) || 0,
-        type: (raw && raw.type) || inferLogType(kind, text)
+        type: (raw && raw.type) || inferLogType(kind, text),
+        spentMs: Math.max(0, Number(raw && raw.spentMs) || 0)
       };
     }
     function normalizeWeekBucket(raw, fallbackDate) {
@@ -1333,6 +1675,8 @@
         requireTimer: !!raw.requireTimer,
         notifyEnabled: !!raw.notifyEnabled,
         lastExportAt: Number(raw.lastExportAt) || 0,
+        nudgeSnoozeUntil: Number(raw.nudgeSnoozeUntil) || 0,
+        firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
         weeks: dedupeWeeks(weeks),
         timer: normalizeTimer(raw.timer)
       };
@@ -1621,10 +1965,25 @@
       }
       const sp = spheres[state.sphereIndex];
       const pts = modePoints[state.mode];
-      const text = sp.tasks[state.mode];
+      const spentMs = Number(state.timer.ranMs) || 0;
+      const spentMin = Math.round(spentMs / 60000);
+      const step = state.firstStep ? ` — первый шаг: ${state.firstStep}` : '';
+      const text = sp.tasks[state.mode] + step + (spentMin >= 1 ? ` (отрезок ${spentMin} мин)` : '');
       state.timer.ranMs = 0;
-      addLogEntry(sp.name, text, pts, 'action');
+      state.firstStep = '';
+      addLogEntry(sp.name, text, pts, 'action', spentMs);
+      renderMain();
       flashMessage(`+${pts} в зачет недели`);
+    }
+    // Первый шаг: конкретное физическое действие вместо «сесть и поработать»
+    // Повторный клик по выбранному шагу снимает его
+    function pickFirstStep(index) {
+      const sp = spheres[state.sphereIndex];
+      const step = sp.steps && sp.steps[index];
+      if (!step) return;
+      state.firstStep = state.firstStep === step ? '' : step;
+      saveState();
+      renderMain();
     }
     // --- TIMER ORB (считает по абсолютному времени: не плывет в фоне и переживает перезагрузку) ---
     function timerRemainingMs() {
@@ -1644,11 +2003,82 @@
       else if (t.finished || ms <= 0) hint.textContent = 'Готово!';
       else if (ms < t.totalMs) hint.textContent = 'Продолжить';
       else hint.textContent = 'Старт';
+      renderTimerPresets();
+      renderContinueRow();
+    }
+    function renderContinueRow() {
+      const row = document.getElementById('continueRow');
+      if (!row) return;
+      const show = !!(state.timer && state.timer.finished);
+      row.classList.toggle('hidden', !show);
+      if (!show) return;
+      const mins = Math.max(1, Math.round((Number(state.timer.ranMs) || 0) / 60000));
+      const text = document.getElementById('continueText');
+      if (text) text.textContent = `Отрезок ${mins} мин отработан. Задача не закрыта — это шаг, а не финиш.`;
+    }
+    // Сколько отметок и минут таймера набралось за сегодня
+    function todayStats() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const todayLogs = (state.logs || []).filter(l => Number(l.ts) >= start);
+      const ms = todayLogs.reduce((sum, l) => sum + (Number(l.spentMs) || 0), 0);
+      return { count: todayLogs.length, ms };
+    }
+    function pluralMarks(n) {
+      const mod10 = n % 10;
+      const mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return 'отметка';
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'отметки';
+      return 'отметок';
+    }
+    function renderTodayLine() {
+      const box = document.getElementById('todayLine');
+      if (!box) return;
+      const { count, ms } = todayStats();
+      const mins = Math.round(ms / 60000);
+      if (!count) {
+        box.textContent = 'Сегодня пока пусто — таймер начнёт первый отрезок.';
+        return;
+      }
+      box.textContent = `Сегодня: ${count} ${pluralMarks(count)}${mins ? ` · ${mins} мин в таймере` : ''}`;
+    }
+    // Активный пресет подсвечивается, свой размер показывается в поле
+    function renderTimerPresets() {
+      const minutes = Math.round((Number(state.timer.totalMs) || 0) / 60000);
+      document.querySelectorAll('.timer-presets [data-min]').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.min) === minutes);
+      });
     }
     function setTimerMinutes(mins) {
-      state.timer = defaultTimer(mins * 60000);
+      const safe = clampMinutes(mins);
+      state.timer = defaultTimer(safe * 60000);
       saveState();
       renderTimer();
+    }
+    function clampMinutes(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n) || n <= 0) return modeTimers.draft;
+      return Math.max(1, Math.min(TIMER_MAX_MINUTES, Math.round(n)));
+    }
+    // Свой размер таймера: 7, 25, 90 — ограничение только 1..180
+    function applyCustomMinutes() {
+      const input = document.getElementById('customMinutes');
+      const raw = input.value.trim().replace(',', '.');
+      const n = Number(raw);
+      if (!raw || !Number.isFinite(n) || n <= 0) {
+        flashMessage('Введи минуты числом, например 25');
+        return;
+      }
+      setTimerMinutes(n);
+      input.value = '';
+      const applied = Math.round(state.timer.totalMs / 60000);
+      flashMessage(`Таймер: ${applied} мин`);
+    }
+    // Продолжение отрезка: после сигнала — ещё один, без решений и настроек
+    function continueTimer(minutes) {
+      setTimerMinutes(minutes);
+      toggleTimer();
+      flashMessage(`Ещё ${minutes} мин. Отрезок в копилку, задача не закрыта.`);
     }
     function toggleTimer() {
       const t = state.timer;
@@ -1827,7 +2257,7 @@
       }
     }
     // --- LOGS & DIARY ---
-    function addLogEntry(kind, text, pts, type) {
+    function addLogEntry(kind, text, pts, type, spentMs) {
       checkWeekRollover();
       const now = new Date();
       const points = Number(pts) || 0;
@@ -1839,7 +2269,8 @@
         kind,
         text,
         pts: points,
-        type: type || 'note'
+        type: type || 'note',
+        spentMs: Math.max(0, Number(spentMs) || 0)
       });
       saveState();
       renderAll();
@@ -2140,6 +2571,7 @@ ${rawText}` }] }]
         state.lastExportAt = Date.now();
         saveState();
         renderSystem();
+        renderBackupNudge();
       }
     }
     function exportBackupJson() {
@@ -2229,6 +2661,11 @@ ${rawText}` }] }]
       document.getElementById('activeTaskTitle').textContent = sp.tasks[state.mode];
       document.getElementById('activeTaskNote').textContent = sp.notes[state.mode];
       document.getElementById('completeTaskBtn').textContent = `Выполнено (+${pts} в зачет)`;
+      const stepsRow = document.getElementById('firstStepRow');
+      if (stepsRow) {
+        stepsRow.innerHTML = '<span class="steps-label">Первый шаг:</span>' +
+          (sp.steps || []).map((step, i) => `<button class="pill-btn${state.firstStep === step ? ' active' : ''}" onclick="pickFirstStep(${i})" aria-pressed="${state.firstStep === step}">${escapeHtml(step)}</button>`).join('');
+      }
     }
     function renderDiary() {
       const list = document.getElementById('logList');
@@ -2406,12 +2843,139 @@ ${rawText}` }] }]
       const m = /W(\d+)$/.exec(String(weekKey || ''));
       return m ? m[1] : '';
     }
+    // --- ПРОГРЕСС: тепловая карта по дням за 12 недель ---
+    const HEAT_WEEKS = 12;
+    function heatLevel(pts) {
+      if (!pts) return 0;
+      if (pts <= 2) return 1;
+      if (pts <= 5) return 2;
+      if (pts <= 8) return 3;
+      return 4;
+    }
+    // Очки по дням: текущие записи плюс все архивные недели
+    function collectDayPoints() {
+      const map = new Map();
+      const add = log => {
+        if (!log || !Number.isFinite(Number(log.ts))) return;
+        const key = dayKey(new Date(Number(log.ts)));
+        const cell = map.get(key) || { pts: 0, count: 0 };
+        cell.pts += Number(log.pts) || 0;
+        cell.count += 1;
+        map.set(key, cell);
+      };
+      (state.logs || []).forEach(add);
+      (state.weeks || []).forEach(week => (week.logs || []).forEach(add));
+      return map;
+    }
+    function endOfDay(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999).getTime();
+    }
+    function heatTitle(date, stat) {
+      const day = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+      if (!stat.count) return `${day}: пусто`;
+      const words = stat.count === 1 ? 'запись' : (stat.count < 5 ? 'записи' : 'записей');
+      return `${day}: ${stat.pts} очк. · ${stat.count} ${words}`;
+    }
+    function renderProgress() {
+      const host = document.getElementById('heatmap');
+      if (!host) return;
+      const byDay = collectDayPoints();
+      const today = new Date();
+      const todayKey = dayKey(today);
+      const lastDay = endOfDay(today);
+      const start = addDays(mondayOf(today), -7 * (HEAT_WEEKS - 1));
+      const cells = [];
+      let activeDays = 0;
+      for (let w = 0; w < HEAT_WEEKS; w++) {
+        for (let d = 0; d < 7; d++) {
+          const date = addDays(start, w * 7 + d);
+          const key = dayKey(date);
+          const stat = byDay.get(key) || { pts: 0, count: 0 };
+          const future = date.getTime() > lastDay;
+          if (stat.count > 0 && !future) activeDays += 1;
+          const cls = ['heat-cell', heatLevel(stat.pts) ? 'l' + heatLevel(stat.pts) : '', future ? 'future' : '', key === todayKey ? 'today' : ''].filter(Boolean).join(' ');
+          cells.push(`<span class="${cls}" title="${escapeHtml(heatTitle(date, stat))}"></span>`);
+        }
+      }
+      host.innerHTML = cells.join('');
+
+      const prevStart = weekStartKey(addDays(today, -7));
+      const prev = (state.weeks || []).find(w => w.weekStart === prevStart || w.weekKey === isoWeekKey(addDays(today, -7)));
+      const prevPts = prev ? Number(prev.points) || 0 : null;
+      const nowPts = Number(state.points) || 0;
+      const deltaBox = document.getElementById('progressDelta');
+      if (deltaBox) {
+        if (prevPts === null) {
+          deltaBox.textContent = nowPts ? `${nowPts} из ${state.goal} на этой неделе` : 'Первая неделя с данными';
+        } else {
+          const diff = nowPts - prevPts;
+          const tail = diff > 0 ? ` (+${diff})` : diff < 0 ? ` (−${Math.abs(diff)})` : ' (столько же)';
+          deltaBox.textContent = `Сейчас ${nowPts} из ${state.goal}. На прошлой неделе было ${prevPts}${tail}`;
+        }
+      }
+
+      const statsBox = document.getElementById('progressStats');
+      if (statsBox) {
+        const allWeeks = (state.weeks || []).slice();
+        allWeeks.push({ points: nowPts, goal: Number(state.goal) || 1 });
+        const best = allWeeks.reduce((acc, w) => Math.max(acc, Number(w.points) || 0), 0);
+        if (!activeDays && !best) {
+          statsBox.textContent = 'Пока пусто: первый зелёный день появится здесь после первой записи.';
+        } else {
+          statsBox.textContent = `Дней с записями за ${HEAT_WEEKS} недель: ${activeDays} · Лучшая неделя: ${best} очк.`;
+        }
+      }
+    }
+
+    // --- НАПОМИНАНИЕ О БЭКАПЕ ---
+    const BACKUP_EVERY_DAYS = 7;
+    function pluralDays(n) {
+      const mod10 = n % 10;
+      const mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return 'день';
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'дня';
+      return 'дней';
+    }
+    function backupAgeDays() {
+      if (!state.lastExportAt) return null;
+      return Math.floor((Date.now() - Number(state.lastExportAt)) / DAY_MS);
+    }
+    function backupDue() {
+      const hasData = (state.logs && state.logs.length) || (state.weeks && state.weeks.length);
+      if (!hasData) return false;
+      if (Number(state.nudgeSnoozeUntil) > Date.now()) return false;
+      const age = backupAgeDays();
+      return age === null || age >= BACKUP_EVERY_DAYS;
+    }
+    function renderBackupNudge() {
+      const box = document.getElementById('backupNudge');
+      if (!box) return;
+      const due = backupDue();
+      box.classList.toggle('hidden', !due);
+      if (!due) return;
+      const age = backupAgeDays();
+      const text = document.getElementById('backupNudgeText');
+      if (text) {
+        text.textContent = age === null
+          ? 'Бэкап ещё ни разу не скачивался. Один клик — и копия на диске.'
+          : `Последний бэкап — ${age} ${pluralDays(age)} назад. Один клик — и копия на диске.`;
+      }
+    }
+    function snoozeBackupNudge() {
+      state.nudgeSnoozeUntil = Date.now() + 7 * DAY_MS;
+      saveState();
+      renderBackupNudge();
+      flashMessage('Напомню через неделю');
+    }
     function renderAll() {
       renderHeaderQuota();
       renderMain();
       renderDiary();
       renderArchive();
       renderSparkline();
+      renderProgress();
+      renderBackupNudge();
+      renderTodayLine();
       renderSystem();
       renderTimer();
       renderBreathe();
@@ -2450,6 +3014,13 @@ ${rawText}` }] }]
     document.addEventListener('pointerdown', () => {
       if (state && state.soundEnabled !== false) getAudioContext();
     }, { once: true });
+    // PWA: офлайн-оболочка и установка на главный экран.
+    // На file:// сервис-воркер недоступен — там всё работает и без него.
+    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>

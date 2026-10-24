@@ -1,0 +1,355 @@
+// FlowCore: проверки логики без браузера.
+// Запуск: node tests/run.js   (из папки projects/flowcore)
+// Скрипт приложения вырезается из flowcore.html, поэтому тесты всегда
+// проверяют настоящий файл, а не отдельную копию.
+
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const HTML_PATH = path.join(__dirname, '..', 'flowcore.html');
+const html = fs.readFileSync(HTML_PATH, 'utf8');
+
+function extractAppScript(source) {
+  const blocks = [];
+  const re = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = re.exec(source))) blocks.push(m[1]);
+  if (!blocks.length) throw new Error('В flowcore.html не найден <script>');
+  // Приложение — самый большой инлайновый блок
+  return blocks.sort((a, b) => b.length - a.length)[0];
+}
+
+const src = extractAppScript(html);
+
+function makeContext(fixedTs, seed) {
+  const store = {};
+  if (seed !== undefined) store['flowCorePortfolioV5'] = JSON.stringify(seed);
+
+  const el = () => ({
+    textContent: '', innerHTML: '', value: '', className: '', style: {},
+    classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } },
+    appendChild() {}, focus() {}, addEventListener() {}, getAttribute() { return null; },
+    setAttribute() {}, querySelector() { return null; }, querySelectorAll() { return []; },
+  });
+
+  class FakeDate extends Date {
+    constructor(...a) { if (a.length === 0) super(fixedTs); else super(...a); }
+    static now() { return fixedTs; }
+  }
+
+  const ctx = {
+    Date: FakeDate, Math, JSON, Map, Set, Number, String, Array, Object, RegExp, Intl, console,
+    document: (() => {
+      const els = new Map();
+      const getEl = id => { if (!els.has(id)) els.set(id, el()); return els.get(id); };
+      return {
+        getElementById: getEl, addEventListener() {}, createElement: () => el(), hidden: false,
+        querySelector() { return null; }, querySelectorAll() { return []; },
+      };
+    })(),
+    localStorage: {
+      getItem: k => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v); },
+      removeItem: k => { delete store[k]; },
+    },
+    crypto: {
+      subtle: {
+        importKey: async () => ({}),
+        deriveKey: async () => ({}),
+        encrypt: async () => new ArrayBuffer(8),
+        getRandomValues: a => a,
+      },
+    },
+    btoa: s => Buffer.from(s, 'binary').toString('base64'),
+    TextEncoder,
+    setTimeout: () => 0, setInterval: () => 0, clearInterval: () => {},
+    alert: () => {}, confirm: () => true, prompt: () => null,
+    navigator: { clipboard: { writeText: async () => {} } },
+    Blob: function () {}, URL: { createObjectURL: () => '', revokeObjectURL: () => {} },
+    fetch: async () => ({ ok: true, json: async () => ({}) }),
+  };
+  ctx.window = ctx;
+  ctx.globalThis = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(src, ctx);
+  return { ctx, store };
+}
+
+const results = [];
+function check(name, actual, expected) {
+  const a = JSON.stringify(actual);
+  const e = JSON.stringify(expected);
+  results.push({ name, ok: a === e, actual: a, expected: e });
+}
+
+// Фиксированное "сейчас": суббота 24 окт 2026, полдень (локальное время)
+const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
+
+// --- 1. Границы ISO-недели ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('01.01.2026 -> W01', q('isoWeekKey(new Date(2026,0,1))'), '2026-W01');
+  check('29.12.2025 (пн) -> W01 2026', q('isoWeekKey(new Date(2025,11,29))'), '2026-W01');
+  check('28.12.2025 (вс) -> W52 2025', q('isoWeekKey(new Date(2025,11,28))'), '2025-W52');
+  check('01.01.2027 (пт) -> W53 2026', q('isoWeekKey(new Date(2027,0,1))'), '2026-W53');
+  check('24.10.2026 -> W43', q('isoWeekKey(new Date(2026,9,24))'), '2026-W43');
+  check('25.10.2026 (вс) та же неделя', q('isoWeekKey(new Date(2026,9,25))'), '2026-W43');
+  check('26.10.2026 (пн) новая неделя', q('isoWeekKey(new Date(2026,9,26))'), '2026-W44');
+  check('понедельник для 24.10', q('weekStartKey(new Date(2026,9,24))'), '2026-10-19');
+  check('диапазон недели', q("formatWeekRange('2026-10-19')"), '19 окт – 25 окт');
+}
+
+// --- 2. Миграция v5, записи в текущей неделе ---
+{
+  const legacy = {
+    points: 5, goal: 12, mode: 'wave', sphereIndex: 1, heartActive: true, soundEnabled: false,
+    logs: [
+      { id: 11, time: '24.10 09:00', kind: 'Заметка', text: 'свежая', pts: 2 },
+      { id: 12, time: '22.10 10:00', kind: 'Заметка', text: 'тоже эта неделя', pts: 3 },
+    ],
+  };
+  const { ctx } = makeContext(NOW, legacy);
+  check('v5: очки сохранены', vm.runInContext('state.points', ctx), 5);
+  check('v5: записи остались текущими', vm.runInContext('state.logs.length', ctx), 2);
+  check('v5: архив пуст', vm.runInContext('state.weeks.length', ctx), 0);
+  check('v5: ключ недели', vm.runInContext('state.weekKey', ctx), '2026-W43');
+  check('v5: режим сохранен', vm.runInContext('state.mode', ctx), 'wave');
+  check('v5: звук сохранен', vm.runInContext('state.soundEnabled', ctx), false);
+  check('v5: ts восстановлен из строки', vm.runInContext('state.logs[0].ts', ctx),
+    new Date(2026, 9, 24, 9, 0).getTime());
+}
+
+// --- 3. Миграция v5, записи из прошлой недели -> архив ---
+{
+  const legacy = {
+    points: 5, goal: 20, mode: 'draft', sphereIndex: 0, heartActive: true,
+    logs: [
+      { id: 21, time: '11.10 12:00', kind: 'Заметка', text: 'прошлая неделя', pts: 5 },
+    ],
+  };
+  const { ctx } = makeContext(NOW, legacy);
+  check('старая неделя: текущие очки 0', vm.runInContext('state.points', ctx), 0);
+  check('старая неделя: текущий журнал пуст', vm.runInContext('state.logs.length', ctx), 0);
+  check('старая неделя: в архиве 1 бакет', vm.runInContext('state.weeks.length', ctx), 1);
+  check('старая неделя: ключ архива', vm.runInContext('state.weeks[0].weekKey', ctx), '2026-W41');
+  check('старая неделя: очки архивные', vm.runInContext('state.weeks[0].points', ctx), 5);
+  check('старая неделя: запись в архиве', vm.runInContext('state.weeks[0].logs.length', ctx), 1);
+  check('старая неделя: текущий ключ', vm.runInContext('state.weekKey', ctx), '2026-W43');
+}
+
+// --- 3b. Миграция v5 со смешанными неделями ---
+{
+  const legacy = {
+    points: 7, goal: 12, mode: 'draft', sphereIndex: 0, heartActive: true,
+    logs: [
+      { id: 41, time: '24.10 09:00', kind: 'k', text: 'сегодня', pts: 2 },
+      { id: 42, time: '11.10 10:00', kind: 'k', text: 'давно', pts: 5 },
+    ],
+  };
+  const { ctx } = makeContext(NOW, legacy);
+  check('смешанные недели: текущие очки только за эту неделю', vm.runInContext('state.points', ctx), 2);
+  check('смешанные недели: в текущей неделе 1 запись', vm.runInContext('state.logs.length', ctx), 1);
+  check('смешанные недели: старый бакет в архиве', vm.runInContext('state.weeks.length', ctx), 1);
+  check('смешанные недели: ключ архива', vm.runInContext('state.weeks[0].weekKey', ctx), '2026-W41');
+  check('смешанные недели: очки архива', vm.runInContext('state.weeks[0].points', ctx), 5);
+  check('смешанные недели: сумма очков сохранена', vm.runInContext('state.points + state.weeks[0].points', ctx), 7);
+}
+
+// --- 3c. Типы записей и строгий режим очков ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('тип: остановился -> stop', q("inferLogType('Вовремя остановился', '')"), 'stop');
+  check('тип: ком в груди -> signal', q("inferLogType('Заметка', 'слабый ком в груди')"), 'signal');
+  check('тип: дыхание -> action', q("inferLogType('Дыхательная разгрузка', '60 секунд')"), 'action');
+  check('тип: код -> action', q("inferLogType('Код и учеба', 'Подучиться 5 минут')"), 'action');
+  q("state.requireTimer = true; state.timer.ranMs = 0; state.points = 0; state.logs = [];");
+  q("completeActiveTask();");
+  check('строгий режим: без таймера очков нет', q('state.points'), 0);
+  check('строгий режим: запись не появилась', q('state.logs.length'), 0);
+  q("state.timer.ranMs = 5 * 60000;");
+  q("completeActiveTask();");
+  check('строгий режим: после 5 минут очки есть', q('state.points'), 2);
+  check('строгий режим: запись появилась', q('state.logs.length'), 1);
+  check('строгий режим: счетчик времени сброшен', q('state.timer.ranMs'), 0);
+  check('тип у новой записи', q('state.logs[0].type'), 'action');
+}
+
+// --- 4. Ролловер v6: состояние прошлой недели ---
+{
+  const v6 = {
+    version: 6, weekKey: '2026-W42', weekStart: '2026-10-12',
+    points: 7, goal: 30, mode: 'draft', sphereIndex: 0,
+    heartActive: true, soundEnabled: true, weeks: [],
+    timer: { running: false, endsAt: 0, remainingMs: 300000, totalMs: 300000, finished: false },
+    logs: [{ id: 31, ts: new Date(2026, 9, 18, 20, 0).getTime(), time: '18.10 20:00', kind: 'k', text: 't', pts: 7 }],
+  };
+  const { ctx } = makeContext(NOW, v6);
+  check('ролловер: очки обнулились', vm.runInContext('state.points', ctx), 0);
+  check('ролловер: журнал пуст', vm.runInContext('state.logs.length', ctx), 0);
+  check('ролловер: архив 1', vm.runInContext('state.weeks.length', ctx), 1);
+  check('ролловер: ключ архива W42', vm.runInContext('state.weeks[0].weekKey', ctx), '2026-W42');
+  check('ролловер: очки архива', vm.runInContext('state.weeks[0].points', ctx), 7);
+  check('ролловер: цель архива 30', vm.runInContext('state.weeks[0].goal', ctx), 30);
+  check('ролловер: новый ключ W43', vm.runInContext('state.weekKey', ctx), '2026-W43');
+  check('ролловер: таймер сброшен', vm.runInContext('state.timer.running', ctx), false);
+}
+
+// --- 5. Кап и минимум цели ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('кап: 58+2 -> 60', q('clampGoal(58 + 2)'), 60);
+  check('кап: 60+2 -> 60', q('clampGoal(60 + 2)'), 60);
+  check('кап: 24+2 -> 26 (прежний потолок снят)', q('clampGoal(24 + 2)'), 26);
+  check('кап: 4+2 -> 6', q('clampGoal(4 + 2)'), 6);
+  check('кап: мусор -> 12', q('clampGoal("abc")'), 12);
+  check('adjustGoal поднимает выше 24', (q('state.goal = 24; adjustGoal(2); state.goal')), 26);
+}
+
+// --- 6. Ручное закрытие недели ничего не теряет ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.points = 9; state.logs = [{ id: 1, ts: Date.now(), time: '24.10 12:00', kind: 'k', text: 'x', pts: 9 }]; archiveCurrentWeek();");
+  check('закрытие: журнал пуст', q('state.logs.length'), 0);
+  check('закрытие: очки 0', q('state.points'), 0);
+  check('закрытие: архив 1', q('state.weeks.length'), 1);
+  check('закрытие: сумма в архиве', q('state.weeks[0].points'), 9);
+  check('закрытие: запись цела', q('state.weeks[0].logs.length'), 1);
+  q("state.points = 3; state.logs = [{ id: 2, ts: Date.now(), time: '24.10 13:00', kind: 'k', text: 'y', pts: 3 }]; archiveCurrentWeek();");
+  check('закрытие дважды: один бакет на неделю', q('state.weeks.length'), 1);
+  check('закрытие дважды: очки суммируются', q('state.weeks[0].points'), 12);
+  check('закрытие дважды: записи на месте', q('state.weeks[0].logs.length'), 2);
+}
+
+// --- 7. Таймер: пауза/возобновление и завершение без минуса ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('таймер: старт', q("setTimerMinutes(5); toggleTimer(); state.timer.running"), true);
+  check('таймер: остаток 300с', q('Math.round(timerRemainingMs() / 1000)'), 300);
+  q('toggleTimer();');
+  check('таймер: пауза', q('state.timer.running'), false);
+  check('таймер: остаток сохранен', q('state.timer.remainingMs'), 300000);
+  check('таймер: пауза на полном остатке = Старт', q("renderTimer(); document.getElementById('timerActionHint').textContent"), 'Старт');
+  q('state.timer.remainingMs = 200000; renderTimer();');
+  check('таймер: подсказка после паузы', q("document.getElementById('timerActionHint').textContent"), 'Продолжить');
+  check('таймер: отсчет 03:20', q("document.getElementById('timerReadout').textContent"), '03:20');
+  q('state.timer.endsAt = Date.now() - 1; state.timer.running = true;');
+  check('таймер: истекший не уходит в минус', q('timerRemainingMs()'), 0);
+}
+
+// --- 8. Полный сценарий: новая неделя через ensureCurrentWeek ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.weekKey = '2026-W43'; state.weekStart = '2026-10-19'; state.points = 4;");
+  check('нулевой ролловер: та же неделя', q("ensureCurrentWeek(state, new Date(2026,9,24))"), false);
+  check('ролловер: смена недели', q("ensureCurrentWeek(state, new Date(2026,9,26))"), true);
+  check('ролловер: архив получил W43', q("state.weeks[0].weekKey"), '2026-W43');
+  check('ролловер: новая неделя W44', q('state.weekKey'), '2026-W44');
+}
+
+// --- 9. Минуты таймера, прогресс, напоминание о бэкапе, первый шаг ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('минуты: 0 -> 5 (по умолчанию)', q('clampMinutes(0)'), 5);
+  check('минуты: 500 -> 180', q('clampMinutes(500)'), 180);
+  check('минуты: 25 -> 25', q('clampMinutes(25)'), 25);
+  check('минуты: мусор -> 5', q('clampMinutes("abc")'), 5);
+  check('верхняя граница стоп-крана 30 минут', q('modeTimers.wave'), 30);
+  check('градация тепла: 0', q('heatLevel(0)'), 0);
+  check('градация тепла: 2', q('heatLevel(2)'), 1);
+  check('градация тепла: 5', q('heatLevel(5)'), 2);
+  check('градация тепла: 8', q('heatLevel(8)'), 3);
+  check('градация тепла: 9', q('heatLevel(9)'), 4);
+  check('склонение: 1 день', q('pluralDays(1)'), 'день');
+  check('склонение: 3 дня', q('pluralDays(3)'), 'дня');
+  check('склонение: 11 дней', q('pluralDays(11)'), 'дней');
+  check('склонение: 21 день', q('pluralDays(21)'), 'день');
+}
+
+// --- 10. Очки по дням для тепловой карты ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q(`state.logs = [
+    { id: 1, ts: new Date(2026, 9, 24, 10, 0).getTime(), pts: 2 },
+    { id: 2, ts: new Date(2026, 9, 24, 12, 0).getTime(), pts: 3 }
+  ];
+  state.weeks = [{ weekKey: '2026-W42', weekStart: '2026-10-12', points: 4, goal: 12, logs: [
+    { id: 3, ts: new Date(2026, 9, 14, 9, 0).getTime(), pts: 4 }
+  ] }];`);
+  const map = q('Array.from(collectDayPoints().entries())');
+  const day = key => (map.find(e => e[0] === key) || [])[1];
+  check('день: сумма и количество записей', day('2026-10-24'), { pts: 5, count: 2 });
+  check('архивная неделя тоже в карте', day('2026-10-14'), { pts: 4, count: 1 });
+  check('пустой день отсутствует', day('2026-10-20'), undefined);
+}
+
+// --- 11. Напоминание о бэкапе ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('бэкап: без данных не напоминает', q('state.logs = []; state.weeks = []; backupDue()'), false);
+  check('бэкап: ни разу не скачивался — напоминает', q('state.logs = [{ pts: 1 }]; backupDue()'), true);
+  check('бэкап: вчерашний — молчит', q('state.lastExportAt = Date.now() - 86400000; backupDue()'), false);
+  check('бэкап: 9 дней — напоминает', q('state.lastExportAt = Date.now() - 9 * 86400000; backupDue()'), true);
+  check('бэкап: отложен на неделю — молчит', q('state.nudgeSnoozeUntil = Date.now() + 7 * 86400000; backupDue()'), false);
+}
+
+// --- 12. Первый шаг попадает в запись и очищается ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.mode = 'draft'; state.logs = []; state.points = 0; pickFirstStep(0);");
+  check('первый шаг выбран', q('state.firstStep'), 'Открыть проект и вчерашний файл');
+  q('completeActiveTask();');
+  check('шаг попал в текст записи', q("state.logs[0].text.includes('первый шаг')"), true);
+  check('после записи шаг пуст', q('state.firstStep'), '');
+  check('очки начислены', q('state.points'), 2);
+}
+
+// --- 13. Отрезок — шаг, а не финиш: минуты в логе и продолжение ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('минимальный старт — 5 минут', q('modeTimers.micro'), 5);
+  q("state.mode = 'wave'; state.logs = []; state.points = 0; setTimerMinutes(15); toggleTimer(); state.timer.ranMs = 15 * 60000; completeActiveTask();");
+  check('отрезок виден в записи', q("state.logs[0].text.includes('отрезок 15 мин')"), true);
+  check('минуты отрезка сохранены', q('state.logs[0].spentMs'), 900000);
+  check('очки за отрезок', q('state.points'), 3);
+  check('сегодня: одна отметка', q('todayStats().count'), 1);
+  check('сегодня: 15 минут', q('todayStats().ms'), 900000);
+  q('continueTimer(30)');
+  check('продолжение ставит 30 минут', q('Math.round(state.timer.totalMs / 60000)'), 30);
+  check('продолжение сразу идёт', q('state.timer.running'), true);
+  q('resetTimer()');
+  check('сброс гасит таймер', q('state.timer.running'), false);
+}
+
+// --- 14. Сессия истекла, пока вкладка была закрыта ---
+{
+  const expired = {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 0, goal: 12, mode: 'draft',
+    sphereIndex: 0, heartActive: true, soundEnabled: true, weeks: [], logs: [],
+    timer: {
+      running: true, endsAt: NOW - 1000, startedAt: NOW - 15 * 60000,
+      totalMs: 15 * 60000, remainingMs: 15 * 60000, finished: false, ranMs: 0
+    }
+  };
+  const { ctx } = makeContext(NOW, expired);
+  check('истёкший в фоне отрезок: таймер остановлен', vm.runInContext('state.timer.running', ctx), false);
+  check('истёкший в фоне отрезок: готов', vm.runInContext('state.timer.finished', ctx), true);
+  check('истёкший в фоне отрезок: минуты учтены',
+    Math.round(vm.runInContext('state.timer.ranMs', ctx) / 60000), 15);
+}
+
+const failed = results.filter(r => !r.ok);
+results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
+console.log(`\n${results.length - failed.length}/${results.length} passed`);
+process.exit(failed.length ? 1 : 0);
