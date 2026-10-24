@@ -5,6 +5,10 @@
     python serve.py --tunnel        # + временный https-адрес для телефона
     python serve.py --lan           # + адрес в домашней сети (без https, установки не будет)
     python serve.py --tunnel --open # то же и сразу открыть браузер
+    python serve.py --tunnel --copy # то же и ссылка сразу в буфере обмена
+
+Без терминала: двойной клик по «Запустить FlowCore.cmd» рядом с этим файлом —
+он запускает туннель и кладёт ссылку в буфер, останется вставить её на телефоне.
 
 Почему для телефона нужен туннель: браузер разрешает установку PWA и офлайн-режим
 только на защищённом источнике (https или localhost). Адрес вида 192.168.x.x
@@ -53,6 +57,34 @@ def safe_print(*parts):
         print(text, flush=True)
     except UnicodeEncodeError:
         print(text.encode("ascii", "replace").decode("ascii"), flush=True)
+
+
+def port_in_use(port):
+    """На Windows два процесса могут слушать один порт — поэтому проверяю заранее."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(0.4)
+        return sock.connect_ex(("127.0.0.1", port)) == 0
+
+
+def copy_to_clipboard(text):
+    """Кладёт ссылку в буфер обмена. Если не вышло — молча возвращает False."""
+    tool = None
+    if platform.system() == "Windows":
+        tool = ["clip"]
+    elif platform.system() == "Darwin":
+        tool = ["pbcopy"]
+    else:
+        for candidate in (["wl-copy"], ["xclip", "-selection", "clipboard"], ["xsel", "--clipboard", "--input"]):
+            if shutil.which(candidate[0]):
+                tool = candidate
+                break
+    if not tool:
+        return False
+    try:
+        subprocess.run(tool, input=text, text=True, check=True, timeout=5)
+        return True
+    except Exception:
+        return False
 
 
 def lan_ip():
@@ -193,6 +225,7 @@ def main():
     parser.add_argument("--lan", action="store_true", help="открыть доступ в домашней сети без https")
     parser.add_argument("--tunnel", action="store_true", help="временный https-адрес для телефона")
     parser.add_argument("--open", action="store_true", help="открыть браузер после старта")
+    parser.add_argument("--copy", action="store_true", help="положить адрес туннеля в буфер обмена")
     parser.add_argument("--no-fetch", action="store_true", help="не скачивать cloudflared автоматически")
     args = parser.parse_args()
 
@@ -203,6 +236,12 @@ def main():
     # .webmanifest должен отдаваться с правильным типом, иначе Chrome ругается на манифест
     mimetypes.add_type("application/manifest+json", ".webmanifest")
     mimetypes.add_type("text/javascript", ".js")
+
+    if port_in_use(args.port):
+        safe_print(f"Порт {args.port} уже занят — скорее всего FlowCore уже запущен в другом окне.")
+        safe_print(f"Открой http://localhost:{args.port}/ или запусти на другом порту:")
+        safe_print(f"  python serve.py --port {args.port + 1} --tunnel --copy")
+        return 3
 
     host = "0.0.0.0" if args.lan else "127.0.0.1"
     server = http.server.ThreadingHTTPServer((host, args.port), Handler)
@@ -238,6 +277,13 @@ def main():
                     safe_print("  Android Chrome: меню ⋮ → «Установить приложение»")
                     safe_print("  iPhone Safari:  Поделиться → «На экран Домой»")
                     safe_print("  Адрес живёт, пока открыт этот скрипт. Дневник остаётся в браузере телефона.")
+                    if args.copy and public_url:
+                        if copy_to_clipboard(public_url):
+                            safe_print("")
+                            safe_print("Ссылка уже в буфере обмена — осталось вставить её в Telegram (Ctrl+V)")
+                            safe_print("и открыть на телефоне.")
+                        else:
+                            safe_print("(Скопировать в буфер не удалось — скопируй адрес выше вручную.)")
                     if args.open:
                         webbrowser.open(public_url)
                 else:
