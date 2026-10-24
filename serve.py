@@ -305,6 +305,11 @@ def main():
             safe_print("Ctrl+C — остановить.")
 
         while True:
+            if tunnel and tunnel.poll() is not None:
+                safe_print("")
+                safe_print("Туннель закрылся — адрес для телефона больше не работает.")
+                safe_print("Запусти скрипт заново, чтобы получить новый.")
+                break
             time.sleep(0.5)
     except KeyboardInterrupt:
         safe_print("")
