@@ -349,6 +349,77 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
     Math.round(vm.runInContext('state.timer.ranMs', ctx) / 60000), 15);
 }
 
+// --- 15. Мягкий дневной потолок очков ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('потолок дня — 8', q('DAILY_CAP'), 8);
+  q('state.logs = []; state.weeks = []; state.points = 0; state.mode = \'wave\';');
+  check('пустой день: очков 0', q('pointsToday()'), 0);
+  check('пустой день: осталось 8', q('remainingPointsToday()'), 8);
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('первый отрезок: 3 очка', q('state.points'), 3);
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('второй отрезок: 6 очков', q('state.points'), 6);
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('третий отрезок урезан до потолка', q('state.points'), 8);
+  check('в записи стоит реально начисленное', q('state.logs[0].pts'), 2);
+  check('после потолка осталось 0', q('remainingPointsToday()'), 0);
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('сверх потолка очков не дают', q('state.points'), 8);
+  check('но запись сохранена', q('state.logs[0].kind'), 'Код и учеба');
+  check('в записи ноль очков', q('state.logs[0].pts'), 0);
+  check('дневник не потерял отметку', q('state.logs.length'), 4);
+  q('state.logs = []; state.points = 0; state.timer.ranMs = 0; completeActiveTask();');
+  check('после уборки журнала счёт снова свободен', q('remainingPointsToday()'), 5);
+}
+
+// --- 15b. Вчерашние очки не съедают сегодняшний потолок ---
+{
+  const seed = {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 6, goal: 12, mode: 'draft',
+    sphereIndex: 0, heartActive: true, soundEnabled: true, weeks: [],
+    logs: [{ id: 1, ts: NOW - 86400000, time: '23.10 12:00', kind: 'k', text: 'вчера', pts: 6 }],
+  };
+  const { ctx } = makeContext(NOW, seed);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('вчерашние 6 очков в неделе остались', q('state.points'), 6);
+  check('но в сегодняшний потолок не идут', q('pointsToday()'), 0);
+  check('на сегодня доступно все 8', q('remainingPointsToday()'), 8);
+}
+
+// --- 16. Мост к следующей сессии ---
+{
+  const first = makeContext(NOW);
+  const q1 = expr => vm.runInContext(expr, first.ctx);
+  check('без остановки моста нет', q1('bridgeDue()'), false);
+  q1('state.logs = []; state.points = 0; state.sphereIndex = 2; state.mode = \'wave\';');
+  q1('state.timer.ranMs = 60000; completeActiveTask();');
+  check('остановка записана', q1('state.lastStop.sphere'), 'Тело и перезагрузка');
+  check('остановка помнит режим', q1('state.lastStop.mode'), 'wave');
+  check('в тот же день мост скрыт', q1('bridgeDue()'), false);
+
+  const saved = JSON.parse(first.store['flowCorePortfolioV5']);
+  const next = makeContext(NOW + 86400000, saved);
+  const q2 = expr => vm.runInContext(expr, next.ctx);
+  check('на следующий день мост виден', q2('bridgeDue()'), true);
+  check('мост: "вчера"', q2('bridgeDaysAgo()'), 1);
+  q2('state.sphereIndex = 0; resumeFromBridge();');
+  check('мост поднял сферу остановки', q2('state.sphereIndex'), 2);
+  check('мост поднял режим', q2('state.mode'), 'wave');
+  check('мост сразу запустил таймер', q2('state.timer.running'), true);
+  check('мост ставит 5 минут', q2('Math.round(state.timer.totalMs / 60000)'), 5);
+  check('после продолжения мост скрыт', q2('bridgeDue()'), false);
+
+  const later = makeContext(NOW + 2 * 86400000, saved);
+  const q3 = expr => vm.runInContext(expr, later.ctx);
+  check('через два дня мост тоже есть', q3('bridgeDue()'), true);
+  check('через два дня: "2 дня назад"', q3('bridgeDaysAgo()'), 2);
+  q3('dismissBridge()');
+  check('после «не сейчас» мост скрыт', q3('bridgeDue()'), false);
+  check('«не сейчас» пишется в состояние', q3('state.lastStop.resumed'), true);
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);

@@ -573,6 +573,29 @@
       gap: 6px;
       flex-wrap: wrap;
     }
+    /* Мост к следующей сессии: где остановился в прошлый раз */
+    .bridge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px dashed rgba(44, 230, 102, 0.45);
+      background: rgba(12, 30, 18, 0.55);
+    }
+    .bridge-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 540px;
+      line-height: 1.45;
+    }
+    .bridge-kicker {
+      color: var(--green-title);
+      font-weight: 600;
+    }
     .pill-btn.tiny {
       padding: 1px 7px;
       font-size: 11px;
@@ -1074,6 +1097,13 @@
                 <button class="pill-btn" onclick="applyCustomMinutes()" aria-label="Поставить свои минуты">ОК</button>
               </span>
             </div>
+            <div id="bridgeRow" class="bridge-row hidden">
+              <div id="bridgeText" class="bridge-text"></div>
+              <div class="continue-actions">
+                <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="resumeFromBridge()">Начать 5 мин с этого места</button>
+                <button class="pill-btn" onclick="dismissBridge()">Не сейчас</button>
+              </div>
+            </div>
             <div id="todayLine" class="today-line"></div>
             <div id="continueRow" class="continue-row hidden">
               <div id="continueText" class="continue-text"></div>
@@ -1374,6 +1404,9 @@
     const DAY_MS = 24 * 60 * 60 * 1000;
     const VAULT_ITERATIONS = 150000;
     const TIMER_GATE_MINUTES = 5;
+    // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
+    // длина работы перестаёт быть единственной наградой.
+    const DAILY_CAP = 8;
     const BASE_TITLE = 'FlowCore | Личная панель регуляции и фокуса';
     const spheres = [
       {
@@ -1551,6 +1584,7 @@
         lastExportAt: 0,
         nudgeSnoozeUntil: 0,
         firstStep: '',
+        lastStop: null,
         weeks: [],
         timer: defaultTimer(modeTimers.draft * 60000),
         points: 2,
@@ -1677,6 +1711,7 @@
         lastExportAt: Number(raw.lastExportAt) || 0,
         nudgeSnoozeUntil: Number(raw.nudgeSnoozeUntil) || 0,
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
+        lastStop: normalizeLastStop(raw.lastStop),
         weeks: dedupeWeeks(weeks),
         timer: normalizeTimer(raw.timer)
       };
@@ -1971,9 +2006,14 @@
       const text = sp.tasks[state.mode] + step + (spentMin >= 1 ? ` (отрезок ${spentMin} мин)` : '');
       state.timer.ranMs = 0;
       state.firstStep = '';
-      addLogEntry(sp.name, text, pts, 'action', spentMs);
+      const awarded = addLogEntry(sp.name, text, pts, 'action', spentMs);
+      state.lastStop = { sphere: sp.name, mode: state.mode, text: sp.tasks[state.mode], ts: Date.now(), resumed: false };
+      saveState();
       renderMain();
-      flashMessage(`+${pts} в зачет недели`);
+      renderBridge();
+      flashMessage(awarded
+        ? `+${awarded} в зачет недели`
+        : `День закрыт (${DAILY_CAP} очков). Отрезок записан без очков`);
     }
     // Первый шаг: конкретное физическое действие вместо «сесть и поработать»
     // Повторный клик по выбранному шагу снимает его
@@ -2040,7 +2080,11 @@
         box.textContent = 'Сегодня пока пусто — таймер начнёт первый отрезок.';
         return;
       }
-      box.textContent = `Сегодня: ${count} ${pluralMarks(count)}${mins ? ` · ${mins} мин в таймере` : ''}`;
+      const head = `Сегодня: ${count} ${pluralMarks(count)}${mins ? ` · ${mins} мин в таймере` : ''}`;
+      const pts = pointsToday();
+      box.textContent = pts >= DAILY_CAP
+        ? `${head} · ${pts} очк. — день закрыт, записи идут без очков`
+        : `${head} · ${pts} из ${DAILY_CAP} очк.`;
     }
     // Активный пресет подсвечивается, свой размер показывается в поле
     function renderTimerPresets() {
@@ -2174,9 +2218,9 @@
     function saveFreeform(kind, pts, type) {
       const input = document.getElementById('freeformInput');
       const text = input.value.trim() || `${kind} (быстрая отметка без текста)`;
-      addLogEntry(kind, text, pts, type || 'note');
+      const awarded = addLogEntry(kind, text, pts, type || 'note');
       input.value = '';
-      flashMessage(`Записано (+${pts})`);
+      flashMessage(awarded ? `Записано (+${awarded})` : `Записано. День закрыт: ${DAILY_CAP} очков уже есть`);
     }
     function quickDiaryChip(label) {
       const input = document.getElementById('diaryQuickInput');
@@ -2187,9 +2231,9 @@
     function addQuickDiaryNote() {
       const input = document.getElementById('diaryQuickInput');
       const text = input.value.trim() || 'Короткая отметка в дневнике';
-      addLogEntry('Заметка', text, 1, 'note');
+      const awarded = addLogEntry('Заметка', text, 1, 'note');
       input.value = '';
-      flashMessage('Добавлено в дневник (+1)');
+      flashMessage(awarded ? 'Добавлено в дневник (+1)' : 'Добавлено. День закрыт — без очков');
     }
     function findLog(id) {
       const inCurrent = state.logs.findIndex(l => l.id === id);
@@ -2256,11 +2300,101 @@
         flashMessage('Запись восстановлена');
       }
     }
+    // --- МЯГКИЙ ДНЕВНОЙ ПОТОЛОК ---
+    // Записи не блокируются: после потолка они сохраняются с нулём очков.
+    function dayPointsOn(ts) {
+      const key = dayKey(new Date(ts));
+      let total = 0;
+      const buckets = [state.logs].concat((state.weeks || []).map(w => w.logs));
+      buckets.forEach(list => {
+        (list || []).forEach(log => {
+          if (dayKey(new Date(log.ts)) === key) total += Number(log.pts) || 0;
+        });
+      });
+      return total;
+    }
+    function pointsToday() {
+      return dayPointsOn(Date.now());
+    }
+    function remainingPointsToday() {
+      return Math.max(0, DAILY_CAP - pointsToday());
+    }
+    function cappedPoints(requested) {
+      const want = Math.max(0, Math.floor(Number(requested) || 0));
+      return Math.min(want, remainingPointsToday());
+    }
+    // --- МОСТ К СЛЕДУЮЩЕЙ СЕССИИ ---
+    // Прошлая остановка показывается один раз на новый день: один клик
+    // поднимает нужную сферу и сразу запускает 5 минут.
+    function normalizeLastStop(raw) {
+      if (!raw || typeof raw !== 'object') return null;
+      const ts = Number(raw.ts);
+      const sphere = String(raw.sphere || '');
+      if (!sphere || !Number.isFinite(ts) || ts <= 0) return null;
+      return {
+        sphere,
+        mode: modePoints[raw.mode] ? raw.mode : 'draft',
+        text: String(raw.text || ''),
+        ts,
+        resumed: !!raw.resumed
+      };
+    }
+    function bridgeDue() {
+      const stop = state.lastStop;
+      if (!stop || stop.resumed) return false;
+      return dayKey(new Date(stop.ts)) !== dayKey(new Date());
+    }
+    function bridgeDaysAgo() {
+      const stop = state.lastStop;
+      if (!stop) return 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const then = new Date(stop.ts);
+      then.setHours(0, 0, 0, 0);
+      return Math.max(1, Math.round((today.getTime() - then.getTime()) / DAY_MS));
+    }
+    function renderBridge() {
+      const row = document.getElementById('bridgeRow');
+      if (!row) return;
+      const due = bridgeDue();
+      row.classList.toggle('hidden', !due);
+      if (!due) return;
+      const box = document.getElementById('bridgeText');
+      if (!box) return;
+      const days = bridgeDaysAgo();
+      const when = days === 1 ? 'Вчера' : `${days} ${pluralDays(days)} назад`;
+      const stop = state.lastStop;
+      const text = String(stop.text || '').slice(0, 120);
+      box.innerHTML = `<span class="bridge-kicker">${escapeHtml(when)} остановился на:</span> ${escapeHtml(text)}`
+        + `<br><span style="font-size:12px;">${escapeHtml(stop.sphere)} · счёт дня начинается с нуля</span>`;
+    }
+    function resumeFromBridge() {
+      const stop = state.lastStop;
+      if (!stop) return;
+      const idx = spheres.findIndex(sp => sp.name === stop.sphere);
+      if (idx >= 0) state.sphereIndex = idx;
+      if (modePoints[stop.mode]) state.mode = stop.mode;
+      stop.resumed = true;
+      showSection('main');
+      setTimerMinutes(5);
+      if (!state.timer.running) toggleTimer();
+      saveState();
+      renderAll();
+      flashMessage('Отрезок 5 минут уже идёт');
+    }
+    function dismissBridge() {
+      if (!state.lastStop) return;
+      state.lastStop.resumed = true;
+      saveState();
+      renderBridge();
+      flashMessage('Подсказка убрана до следующей остановки');
+    }
     // --- LOGS & DIARY ---
     function addLogEntry(kind, text, pts, type, spentMs) {
       checkWeekRollover();
       const now = new Date();
-      const points = Number(pts) || 0;
+      const wanted = Math.max(0, Math.floor(Number(pts) || 0));
+      const points = cappedPoints(wanted);
       state.points += points;
       state.logs.unshift({
         id: nextLogId(),
@@ -2274,6 +2408,7 @@
       });
       saveState();
       renderAll();
+      return points;
     }
     function buildLocalDiary() {
       const box = document.getElementById('summaryResultBox');
@@ -2532,8 +2667,8 @@ ${rawText}` }] }]
       renderBreathe();
     }
     function completeBreathingStep() {
-      addLogEntry('Дыхательная разгрузка', '60 секунд спокойного дыхания при давлении в груди', 1, 'action');
-      flashMessage('Разгрузка записана (+1)');
+      const awarded = addLogEntry('Дыхательная разгрузка', '60 секунд спокойного дыхания при давлении в груди', 1, 'action');
+      flashMessage(awarded ? 'Разгрузка записана (+1)' : 'Разгрузка записана. День закрыт — без очков');
     }
     // --- SYSTEM & ENGINE HEART CONTROLS ---
     function toggleHeartEngine() {
@@ -2660,7 +2795,9 @@ ${rawText}` }] }]
       document.getElementById('sphereBadgeText').textContent = `${sp.name} (сменить)`;
       document.getElementById('activeTaskTitle').textContent = sp.tasks[state.mode];
       document.getElementById('activeTaskNote').textContent = sp.notes[state.mode];
-      document.getElementById('completeTaskBtn').textContent = `Выполнено (+${pts} в зачет)`;
+      document.getElementById('completeTaskBtn').textContent = remainingPointsToday() === 0
+        ? 'Выполнено (день закрыт — без очков)'
+        : `Выполнено (+${pts} в зачет)`;
       const stepsRow = document.getElementById('firstStepRow');
       if (stepsRow) {
         stepsRow.innerHTML = '<span class="steps-label">Первый шаг:</span>' +
@@ -2975,6 +3112,7 @@ ${rawText}` }] }]
       renderSparkline();
       renderProgress();
       renderBackupNudge();
+      renderBridge();
       renderTodayLine();
       renderSystem();
       renderTimer();
