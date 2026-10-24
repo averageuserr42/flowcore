@@ -46,6 +46,9 @@
       font-size: 15px;
       line-height: 1.55;
       overflow-x: hidden;
+      /* clip, а не hidden: hidden на body делает его скролл-контейнером
+         и ломает position: sticky у шапки (старые браузеры остаются на hidden) */
+      overflow-x: clip;
       position: relative;
     }
     /* "SECOND HEART" - Central Engine Core Background Animation */
@@ -110,8 +113,9 @@
     }
     /* TOP NAVIGATION BAR (Matches Portfolio Header) */
     .top-header {
-      position: relative;
-      z-index: 10;
+      position: sticky;
+      top: 0;
+      z-index: 30;
       width: 100%;
       border-bottom: 1px solid rgba(56, 235, 107, 0.22);
       background: rgba(4, 9, 6, 0.82);
@@ -122,6 +126,26 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
+      transition: padding 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+    /* Прокрутка: шапка остаётся на месте и поджимается */
+    .top-header.compact {
+      padding: 7px 28px;
+      background: rgba(4, 9, 6, 0.96);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+    .top-header.compact .brand-title {
+      font-size: 14px;
+    }
+    .top-header.compact .quota-badge {
+      padding: 2px 10px;
+      font-size: 12px;
+    }
+    .top-header.compact .wk-dates {
+      display: none;
+    }
+    .top-header.compact .nav-btn {
+      padding: 5px 12px;
     }
     .header-left {
       display: flex;
@@ -387,6 +411,13 @@
       }
       .glow-card {
         padding: 22px 18px;
+      }
+      .top-header.compact {
+        padding: 6px 12px;
+      }
+      .top-header.compact .nav-btn {
+        padding: 4px 8px;
+        font-size: 12px;
       }
     }
     /* Узкие телефоны: в шапке остаётся только номер недели */
@@ -1545,6 +1576,22 @@
         document.getElementById('nav-' + id).classList.toggle('active', id === sec);
       });
     }
+    // Липкая шапка: при прокрутке поджимается, но навигация остаётся на виду
+    function initStickyHeader() {
+      const header = document.querySelector('.top-header');
+      if (!header) return;
+      let queued = false;
+      const sync = () => {
+        header.classList.toggle('compact', (window.scrollY || 0) > 40);
+        queued = false;
+      };
+      window.addEventListener('scroll', () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(sync);
+      }, { passive: true });
+      sync();
+    }
     function flashMessage(msg) {
       const el = document.getElementById('flashToast');
       el.textContent = msg;
@@ -2377,6 +2424,7 @@ ${rawText}` }] }]
         appStarted = true;
         setInterval(tickTimers, 250);
         setInterval(checkWeekRollover, 60000);
+        initStickyHeader();
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) return;
           checkWeekRollover();
