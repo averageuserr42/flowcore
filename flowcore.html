@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowCore | Личная панель регуляции и фокуса</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #030704;
+      --bg-card: rgba(9, 17, 11, 0.88);
+      --bg-card-inner: rgba(14, 26, 17, 0.75);
+      --green-title: #68f796;
+      --green-neon: #2ce666;
+      --green-border: rgba(56, 235, 107, 0.36);
+      --green-border-strong: rgba(56, 235, 107, 0.72);
+      --green-glow: 0 0 28px rgba(44, 230, 102, 0.16), inset 0 0 14px rgba(44, 230, 102, 0.04);
+      --green-glow-active: 0 0 34px rgba(44, 230, 102, 0.28), inset 0 0 16px rgba(44, 230, 102, 0.08);
+      --text-white: #f4f8f5;
+      --text-soft: #d0dbd3;
+      --text-muted: #8fa395;
+      --font-heading: 'Orbitron', sans-serif;
+      --font-body: 'Chakra Petch', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      min-height: 100vh;
+      background-color: var(--bg-void);
+      color: var(--text-white);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.55;
+      overflow-x: hidden;
+      position: relative;
+    }
+    /* "SECOND HEART" - Central Engine Core Background Animation */
+    .engine-heart-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .engine-heart-core {
+      width: 680px;
+      height: 680px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(44, 230, 102, 0.17) 0%,
+        rgba(44, 230, 102, 0.08) 32%,
+        rgba(18, 95, 42, 0.03) 58%,
+        transparent 75%
+      );
+      filter: blur(18px);
+      animation: enginePulse 4.6s infinite ease-in-out;
+      transition: opacity 0.5s ease;
+    }
+    .engine-heart-ring {
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      border: 1px solid rgba(104, 247, 150, 0.08);
+      box-shadow: 0 0 60px rgba(44, 230, 102, 0.12);
+      animation: engineRingPulse 4.6s infinite ease-in-out;
+    }
+    .engine-paused .engine-heart-core,
+    .engine-paused .engine-heart-ring {
+      animation-play-state: paused;
+      opacity: 0.25;
+    }
+    @keyframes enginePulse {
+      0%, 100% {
+        transform: scale(0.86);
+        opacity: 0.48;
+      }
+      45% {
+        transform: scale(1.14);
+        opacity: 0.95;
+      }
+    }
+    @keyframes engineRingPulse {
+      0%, 100% {
+        transform: scale(0.92);
+        opacity: 0.25;
+      }
+      45% {
+        transform: scale(1.08);
+        opacity: 0.65;
+      }
+    }
+    /* TOP NAVIGATION BAR (Matches Portfolio Header) */
+    .top-header {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      border-bottom: 1px solid rgba(56, 235, 107, 0.22);
+      background: rgba(4, 9, 6, 0.82);
+      backdrop-filter: blur(8px);
+      padding: 14px 28px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green-title);
+      letter-spacing: 0.06em;
+      text-shadow: 0 0 12px rgba(44, 230, 102, 0.35);
+    }
+    .quota-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--green-border);
+      background: rgba(14, 28, 18, 0.75);
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+    .quota-dots {
+      display: inline-flex;
+      gap: 3px;
+    }
+    .q-dot {
+      width: 6px;
+      height: 10px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.12);
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+    .q-dot.filled {
+      background: var(--green-neon);
+      box-shadow: 0 0 6px rgba(44, 230, 102, 0.7);
+    }
+    .header-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    /* Portfolio Top-Right Nav Buttons (Like Lebenslauf | Portfolio | Kontakt) */
+    .nav-btn {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-white);
+      background: rgba(10, 20, 13, 0.65);
+      border: 1px solid var(--green-border);
+      border-radius: 6px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      border-color: var(--green-border-strong);
+      box-shadow: 0 0 14px rgba(44, 230, 102, 0.22);
+    }
+    .nav-btn.active {
+      background: rgba(24, 58, 34, 0.55);
+      border-color: var(--green-neon);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(44, 230, 102, 0.28);
+    }
+    /* MAIN VIEWPORT STAGE (Spacious, centered like Portfolio) */
+    .stage-container {
+      position: relative;
+      z-index: 5;
+      min-height: calc(100vh - 70px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 24px 56px 24px;
+    }
+    /* 2-Card Portfolio Grid for Main Screen */
+    .main-grid {
+      width: 100%;
+      max-width: 1040px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+    @media (max-width: 860px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .top-header {
+        padding: 12px 16px;
+      }
+    }
+    /* Single Centered Card (Like Kontakt Page) for Secondary Views */
+    .single-card-wrap {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    /* Uniform Glowing Card (Matches Resume/Kontakt Cards) */
+    .glow-card {
+      background: var(--bg-card);
+      border: 1px solid var(--green-border);
+      border-radius: 14px;
+      box-shadow: var(--green-glow);
+      padding: 28px 30px;
+      backdrop-filter: blur(6px);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .glow-card:hover {
+      border-color: rgba(56, 235, 107, 0.52);
+      box-shadow: var(--green-glow-active);
+    }
+    .card-heading {
+      font-family: var(--font-heading);
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--green-title);
+      letter-spacing: 0.03em;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .card-subtext {
+      color: var(--text-soft);
+      font-size: 14.5px;
+      margin-bottom: 18px;
+    }
+    /* Pill Tags (Matches Windows | Linux | Git | Netzwerke pills) */
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .pill-btn {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-white);
+      background: rgba(14, 28, 18, 0.75);
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill-btn:hover {
+      border-color: var(--green-neon);
+      box-shadow: 0 0 12px rgba(44, 230, 102, 0.22);
+      background: rgba(24, 52, 32, 0.75);
+    }
+    .pill-btn.active {
+      background: rgba(34, 88, 50, 0.72);
+      border-color: var(--green-neon);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(44, 230, 102, 0.32);
+    }
+    /* Main Action Button (Matches "Lebenslauf ansehen" button) */
+    .action-btn {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-white);
+      background: rgba(20, 48, 28, 0.72);
+      border: 1px solid var(--green-neon);
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(44, 230, 102, 0.2);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .action-btn:hover {
+      background: rgba(32, 76, 44, 0.88);
+      box-shadow: 0 0 22px rgba(44, 230, 102, 0.38);
+      transform: translateY(-1px);
+    }
+    .action-btn-secondary {
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-soft);
+      background: rgba(12, 22, 15, 0.7);
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      padding: 9px 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .action-btn-secondary:hover {
+      color: var(--text-white);
+      border-color: var(--green-neon);
+      box-shadow: 0 0 12px rgba(44, 230, 102, 0.18);
+    }
+    /* Left Card: Circular Timer & Active Task (Matches Circular Glasses Icon Layout) */
+    .focus-hero {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin: 10px 0 20px 0;
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--bg-card-inner);
+      border: 1px solid rgba(56, 235, 107, 0.18);
+    }
+    @media (max-width: 520px) {
+      .focus-hero {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+    .timer-orb {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      border: 1.5px solid var(--green-neon);
+      box-shadow: 0 0 22px rgba(44, 230, 102, 0.28), inset 0 0 16px rgba(44, 230, 102, 0.12);
+      background: radial-gradient(circle, rgba(20, 46, 28, 0.55) 0%, rgba(5, 10, 7, 0.92) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      shrink: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .timer-orb:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 28px rgba(44, 230, 102, 0.42), inset 0 0 20px rgba(44, 230, 102, 0.18);
+    }
+    .timer-digits {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-white);
+      letter-spacing: 0.04em;
+    }
+    .timer-sub {
+      font-size: 11px;
+      color: var(--green-title);
+      margin-top: 2px;
+    }
+    /* Inputs & Textareas */
+    .clean-input {
+      width: 100%;
+      background: rgba(6, 12, 8, 0.9);
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text-white);
+      font-family: var(--font-body);
+      font-size: 14.5px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      margin-bottom: 12px;
+    }
+    .clean-input:focus {
+      border-color: var(--green-neon);
+      box-shadow: 0 0 14px rgba(44, 230, 102, 0.22);
+    }
+    .clean-input::placeholder {
+      color: var(--text-muted);
+    }
+    /* Divider Line (Matches Kontakt card lines) */
+    .green-divider {
+      height: 1px;
+      background: rgba(56, 235, 107, 0.18);
+      margin: 16px 0;
+      border: none;
+    }
+    /* Log Rows */
+    .log-scroll {
+      max-height: 310px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+    }
+    .log-row {
+      background: var(--bg-card-inner);
+      border: 1px solid rgba(56, 235, 107, 0.22);
+      border-left: 3px solid var(--green-neon);
+      border-radius: 8px;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    /* Подпись текущей недели в шапке */
+    .week-label {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      border-left: 1px solid rgba(56, 235, 107, 0.28);
+      padding-left: 8px;
+      white-space: nowrap;
+    }
+    /* Архив прошлых недель */
+    .archive-week {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .archive-entries {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 8px;
+    }
+    .archive-entry {
+      font-size: 12.5px;
+      color: var(--text-soft);
+      border-left: 2px solid rgba(56, 235, 107, 0.35);
+      padding-left: 8px;
+      line-height: 1.45;
+    }
+    .hidden {
+      display: none !important;
+    }
+    /* Breathing Orb Animation */
+    @keyframes breatheOrb {
+      0%, 100% { transform: scale(0.88); box-shadow: 0 0 20px rgba(44, 230, 102, 0.2); }
+      40% { transform: scale(1.18); box-shadow: 0 0 42px rgba(44, 230, 102, 0.55); }
+    }
+    .orb-breathing {
+      animation: breatheOrb 10s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <!-- CENTRAL "SECOND HEART" ENGINE IN THE BACKGROUND -->
+  <div id="engineHeartWrap" class="engine-heart-wrap">
+    <div class="engine-heart-core"></div>
+    <div class="engine-heart-ring"></div>
+  </div>
+  <!-- PORTFOLIO-STYLE TOP HEADER -->
+  <header class="top-header">
+    <div class="header-left">
+      <div class="brand-title">FLOWCORE</div>
+      <div class="quota-badge" title="Недельный аккумулятор: очки живут до конца недели, пропуски дней ничего не сбрасывают">
+        <span id="quotaText">2 / 12</span>
+        <div id="quotaDots" class="quota-dots"></div>
+        <span id="weekLabel" class="week-label"></span>
+      </div>
+      <span id="flashToast" style="font-size: 13px; color: var(--green-title);"></span>
+    </div>
+    <nav class="header-nav">
+      <button id="nav-main" class="nav-btn active" onclick="showSection('main')">Фокус</button>
+      <button id="nav-diary" class="nav-btn" onclick="showSection('diary')">Дневник (<span id="diaryCount">1</span>)</button>
+      <button id="nav-breathe" class="nav-btn" onclick="showSection('breathe')">Дыхание</button>
+      <button id="nav-system" class="nav-btn" onclick="showSection('system')">Система</button>
+    </nav>
+  </header>
+  <!-- MAIN WORKSPACE STAGE -->
+  <main class="stage-container">
+    <!-- 1. MAIN VIEW: TWO SPACIOUS GLOWING CARDS (Matches Portfolio index.html) -->
+    <section id="view-main" class="main-grid">
+      <!-- LEFT CARD: CURRENT FOCUS & TIMER ORB -->
+      <div class="glow-card">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <h1 class="card-heading" style="margin-bottom: 0;">Точка старта</h1>
+            <button class="pill-btn" onclick="cycleSphere()" title="Переключить сферу">
+              <span id="sphereBadgeText">Код и песочница</span>
+            </button>
+          </div>
+          <p class="card-subtext">
+            Выбери текущее состояние ниже. Задача и таймер подстроятся без давления.
+          </p>
+          <!-- State Pill Switcher -->
+          <div class="pill-row">
+            <button id="mode-micro" class="pill-btn" onclick="setMode('micro')">Ступор / Туман (+1)</button>
+            <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')">Черновик (+2)</button>
+            <button id="mode-wave" class="pill-btn" onclick="setMode('wave')">Поймал волну (+3)</button>
+          </div>
+          <!-- Orb Timer + Active Task Description -->
+          <div class="focus-hero">
+            <div class="timer-orb" onclick="toggleTimer()" title="Нажми для старта или паузы">
+              <div id="timerReadout" class="timer-digits">05:00</div>
+              <div id="timerActionHint" class="timer-sub">Старт</div>
+            </div>
+            <div style="flex: 1;">
+              <div id="activeTaskTitle" style="font-size: 16px; font-weight: 600; color: var(--text-white); margin-bottom: 6px;">
+                Подучиться 5 минут или поковырять черновик кода без оценки
+              </div>
+              <div id="activeTaskNote" style="font-size: 13.5px; color: var(--text-muted);">
+                Правило 5 минут: если не пошло после сигнала, можно спокойно закрыть задачу.
+              </div>
+              <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+                <button class="pill-btn" style="padding: 3px 10px; font-size: 12px;" onclick="setTimerMinutes(5)">5 мин</button>
+                <button class="pill-btn" style="padding: 3px 10px; font-size: 12px;" onclick="setTimerMinutes(15)">15 мин</button>
+                <button class="pill-btn" style="padding: 3px 10px; font-size: 12px;" onclick="setTimerMinutes(45)">Стоп-кран 45 мин</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+          <button class="action-btn" id="completeTaskBtn" onclick="completeActiveTask()">
+            Выполнено (+2 в зачет)
+          </button>
+          <button class="action-btn-secondary" onclick="resetTimer()">
+            Сбросить таймер
+          </button>
+        </div>
+      </div>
+      <!-- RIGHT CARD: IN YOUR OWN WORDS ("СВОИМИ СЛОВАМИ") -->
+      <div class="glow-card">
+        <div>
+          <h2 class="card-heading">Своими словами</h2>
+          <p class="card-subtext">
+            Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.
+          </p>
+          <!-- Pill Tags (Matches Windows | Linux | Git | Netzwerke pills) -->
+          <div class="pill-row">
+            <button class="pill-btn" onclick="addTag('поучился 5-10 мин')">+ 5-10 мин</button>
+            <button class="pill-btn" onclick="addTag('слабый ком в груди')">+ слабый ком в груди</button>
+            <button class="pill-btn" onclick="addTag('туман в голове')">+ туман в голове</button>
+            <button class="pill-btn" onclick="addTag('поверхностное дыхание')">+ поверхн. дыхание</button>
+            <button class="pill-btn" onclick="addTag('вовремя остановился')">+ вовремя остановился</button>
+          </div>
+          <input
+            id="freeformInput"
+            type="text"
+            class="clean-input"
+            placeholder="Например: поработал 5-10 мин, слабый ком в груди, решил остановиться..."
+            onkeydown="if(event.key === 'Enter') saveFreeform('Вовремя остановился', 2)"
+          />
+        </div>
+        <div>
+          <hr class="green-divider" />
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+            <button class="action-btn" onclick="saveFreeform('Вовремя остановился', 2)">
+              Вовремя остановился (+2)
+            </button>
+            <button class="action-btn-secondary" onclick="saveFreeform('Запись состояния', 1)">
+              Записать симптом (+1)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- 2. DIARY VIEW: SINGLE CENTERED CARD (Opens on click) -->
+    <section id="view-diary" class="single-card-wrap hidden">
+      <div class="glow-card">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h2 class="card-heading" style="margin-bottom: 0;">Дневник и лог для врача</h2>
+            <span id="encryptStatusBadge" class="pill-btn" style="font-size: 12px; cursor: default;">AES-256-GCM активно</span>
+          </div>
+          <p class="card-subtext" style="margin-top: 6px;">
+            Твоя внешняя память. Превращает короткие заметки в структурный отчет без потери контекста.
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+            <button class="action-btn" onclick="buildLocalDiary()">
+              Собрать сводку локально
+            </button>
+            <button class="action-btn-secondary" onclick="runAiDiary()">
+              Сводка через ИИ
+            </button>
+            <button class="action-btn-secondary" onclick="copyForDoctor()">
+              Скопировать текст
+            </button>
+          </div>
+          <!-- Output box for structured summary -->
+          <div id="summaryResultBox" class="hidden" style="background: rgba(6, 14, 9, 0.92); border: 1px solid var(--green-neon); border-radius: 10px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; font-size: 13.5px; color: var(--text-white);"></div>
+          <!-- Quick Diary Note / Micro-entry (No full text required) -->
+          <div style="background: var(--bg-card-inner); border: 1px solid rgba(56, 235, 107, 0.24); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-size: 13.5px; font-weight: 600; color: var(--green-title); margin-bottom: 8px;">
+              Быстрая пометка в дневник (можно в 1 клик или парой слов)
+            </div>
+            <div class="pill-row" style="margin-bottom: 10px;">
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Без текста: рабочий шаг')">⚡ Рабочий шаг</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Вовремя сделал паузу')">⏸ Вовремя пауза</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Легкий туман / усталость')">🌫 Туман / усталость</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Хороший фокус')">🟢 Хороший фокус</button>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <input
+                id="diaryQuickInput"
+                type="text"
+                class="clean-input"
+                style="margin-bottom: 0; flex: 1; min-width: 200px;"
+                placeholder="Короткая пометка в дневник (необязательно писать полный текст)..."
+                onkeydown="if(event.key === 'Enter') addQuickDiaryNote()"
+              />
+              <button class="action-btn" style="padding: 9px 16px;" onclick="addQuickDiaryNote()">
+                + В дневник
+              </button>
+            </div>
+          </div>
+          <div id="logList" class="log-scroll"></div>
+          <div id="archiveWrap" class="hidden" style="margin-top: 16px;">
+            <button class="pill-btn" onclick="toggleArchiveList()">
+              Прошлые недели (<span id="archiveCount">0</span>)
+            </button>
+            <div id="archiveList" class="hidden" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
+          </div>
+        </div>
+        <div>
+          <hr class="green-divider" />
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="action-btn-secondary" onclick="showSection('main')">Назад к фокусу</button>
+            <button class="action-btn-secondary" onclick="closeWeekToArchive()">Закрыть неделю в архив</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- 3. BREATHING DECOMPRESSOR VIEW: SINGLE CENTERED CARD (Like Kontakt Page) -->
+    <section id="view-breathe" class="single-card-wrap hidden">
+      <div class="glow-card" style="text-align: center; align-items: center;">
+        <h2 class="card-heading">Снятие давления в груди</h2>
+        <p class="card-subtext" style="max-width: 460px;">
+          Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.
+        </p>
+        <div id="breatheOrb" class="timer-orb" style="width: 136px; height: 136px; margin: 18px auto;" onclick="toggleBreathe()">
+          <div id="breatheSecondsText" class="timer-digits">60с</div>
+          <div id="breathePhaseLabel" class="timer-sub">Нажми для старта</div>
+        </div>
+        <div id="breatheGuideText" style="font-size: 16px; font-weight: 500; color: var(--text-white); margin: 10px 0 22px 0;">
+          Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+          <button id="breatheStartBtn" class="action-btn" onclick="toggleBreathe()">Запустить 60 секунд</button>
+          <button class="action-btn-secondary" onclick="completeBreathingStep()">Сделал разгрузку (+1)</button>
+        </div>
+      </div>
+    </section>
+    <!-- 4. SYSTEM SETTINGS VIEW: SINGLE CENTERED CARD (Heart Toggle, API Key, E2EE, Backup) -->
+    <section id="view-system" class="single-card-wrap hidden">
+      <div class="glow-card">
+        <h2 class="card-heading">Система и безопасность</h2>
+        <p class="card-subtext">
+          Управление пульсацией фона («Второе сердце»), автономным ключом ИИ и резервными копиями.
+        </p>
+        <!-- 1. Second Heart Engine Control -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div>
+            <div style="font-weight: 600; color: var(--text-white);">Двигатель «Второе сердце» (фон в центре)</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Плавное дыхание зеленого ядра позади карточек</div>
+          </div>
+          <button id="heartToggleBtn" class="pill-btn active" onclick="toggleHeartEngine()">Активно</button>
+        </div>
+        <hr class="green-divider" />
+        <!-- 1b. Timer Sound Notification Control -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <div style="font-weight: 600; color: var(--text-white);">Звуковой сигнал таймера (Web Audio)</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Мягкий двойной сигнал по окончании таймера фокуса и дыхания</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="pill-btn" onclick="playTimerSound()">Проверить звук</button>
+            <button id="soundToggleBtn" class="pill-btn active" onclick="toggleSoundSetting()">Звук: Вкл</button>
+          </div>
+        </div>
+        <hr class="green-divider" />
+        <!-- 2. Weekly Goal Setting -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div>
+            <div style="font-weight: 600; color: var(--text-white);">Недельная квота очков</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Гибкая цель без привязки к дням недели</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="pill-btn" onclick="adjustGoal(-2)">-</button>
+            <span id="sysGoalValue" style="font-family: var(--font-heading); font-weight: 700; color: var(--green-title);">12</span>
+            <button class="pill-btn" onclick="adjustGoal(2)">+</button>
+          </div>
+        </div>
+        <hr class="green-divider" />
+        <!-- 3. Standalone Gemini API Key -->
+        <div>
+          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;">Автономный Gemini API-ключ (по желанию)</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+            Хранится только локально в твоем браузере для работы кнопки ИИ вне чата.
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input id="apiKeyInput" type="password" class="clean-input" style="margin-bottom: 0;" placeholder="AIzaSy..." />
+            <button class="action-btn" style="white-space: nowrap;" onclick="saveApiKey()">Сохранить</button>
+          </div>
+        </div>
+        <hr class="green-divider" />
+        <!-- 4. E2EE Passphrase & Backup Export -->
+        <div>
+          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;">Локальный бэкап и шифрование (AES-256-GCM)</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+            Все записи автоматически шифруются в памяти браузера. Ты можешь скачать их файлом на ПК.
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <button class="action-btn-secondary" onclick="exportBackupJson()">Скачать бэкап (.json)</button>
+            <label class="action-btn-secondary" style="cursor: pointer;">
+              Загрузить бэкап
+              <input type="file" accept=".json" style="display: none;" onchange="importBackupJson(event)" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    // Ключ хранилища НЕ меняю: в нем лежат данные v5, их подхватывает миграция
+    const STORAGE_KEY = 'flowCorePortfolioV5';
+    const CIPHER_KEY = 'flowCoreEncryptedVaultV5';
+    const API_KEY_STORAGE = 'flowCoreLocalGeminiKey';
+    const STATE_VERSION = 6;
+    const GOAL_MIN = 6;
+    const GOAL_MAX = 60;
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const spheres = [
+      {
+        id: 'code',
+        name: 'Код и учеба',
+        tasks: {
+          micro: 'Открыть среду разработки или прочитать 1 короткий блок конспекта без цели запомнить все (2-5 мин)',
+          draft: 'Подучиться 5-15 минут или поковырять черновик кода чисто из любопытства, без оценки',
+          wave: 'Поток кода под Стоп-кран 45 минут: остановиться до того, как появится усталость'
+        },
+        notes: {
+          micro: 'Нулевое давление: сейчас задача просто коснуться темы на пару минут.',
+          draft: 'Правило 5 минут: если не пошло после сигнала, можно спокойно закрыть задачу.',
+          wave: 'Защита от выгорания: обязательно сделай перерыв по сигналу таймера.'
+        }
+      },
+      {
+        id: 'food',
+        name: 'Быт и топливо',
+        tasks: {
+          micro: 'Выпить стакан воды, достать готовую еду или убрать 3 вещи со стола (2 мин)',
+          draft: 'Приготовить простую базу (крупа, мясо, яйца) или освежить рабочее место (15 мин)',
+          wave: 'Сделать запас простой еды в контейнеры на 2-3 дня вперед под таймер (40 мин)'
+        },
+        notes: {
+          micro: 'Телу нужна базовая поддержка без сложных кулинарных задач.',
+          draft: 'Спокойный бытовой шаг в своем темпе.',
+          wave: 'Заготовка экономит ресурс на следующие дни.'
+        }
+      },
+      {
+        id: 'rest',
+        name: 'Тело и перезагрузка',
+        tasks: {
+          micro: 'Открыть окно, опустить плечи и сделать 5 спокойных выдохов (2 мин)',
+          draft: 'Пауза 15 минут без экранов: размять шею, умыться или полежать в тишине',
+          wave: 'Полная разгрузка нервной системы: прогулка или отдых без инфошума (45 мин)'
+        },
+        notes: {
+          micro: 'Выход из телесной скованности важнее любой галочки.',
+          draft: 'Восстановление идет в общий зачет недели.',
+          wave: 'Качественный отдых предотвращает соматический откат.'
+        }
+      }
+    ];
+    const modePoints = { micro: 1, draft: 2, wave: 3 };
+    const modeTimers = { micro: 5, draft: 5, wave: 45 };
+    let logIdSeq = 0;
+    let state = loadState();
+    let breatheTimer = { running: false, endsAt: 0, totalMs: 60000 };
+
+    // --- КАЛЕНДАРЬ: ЛОКАЛЬНОЕ ВРЕМЯ И ISO-НЕДЕЛЯ (без библиотек) ---
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+    function dayKey(date) {
+      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    }
+    function dateFromDayKey(key) {
+      const parts = String(key).split('-').map(Number);
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    function addDays(date, days) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+    }
+    // ISO-8601: неделя с понедельника, номер недели принадлежит году ее четверга
+    function isoWeekKey(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const week = Math.ceil((((d - yearStart) / DAY_MS) + 1) / 7);
+      return `${d.getUTCFullYear()}-W${pad2(week)}`;
+    }
+    function mondayOf(date) {
+      const dayNum = (date.getDay() + 6) % 7; // Пн = 0 ... Вс = 6
+      return addDays(date, -dayNum);
+    }
+    function weekStartKey(date) {
+      return dayKey(mondayOf(date));
+    }
+    function formatWeekRange(startKey) {
+      const start = dateFromDayKey(startKey);
+      const short = d => d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }).replace('.', '');
+      return `${short(start)} – ${short(addDays(start, 6))}`;
+    }
+    function formatStamp(date) {
+      return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ' ' +
+             date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+    // Старые записи хранили только строку "24.10 14:35" — восстанавливаем дату для архива
+    function legacyStampToDate(stamp) {
+      const m = /^(\d{2})\.(\d{2})\s+(\d{2}):(\d{2})$/.exec(String(stamp || '').trim());
+      if (!m) return null;
+      const now = new Date();
+      const date = new Date(now.getFullYear(), Number(m[2]) - 1, Number(m[1]), Number(m[3]), Number(m[4]));
+      if (date.getTime() > now.getTime() + DAY_MS) date.setFullYear(date.getFullYear() - 1);
+      return date;
+    }
+
+    function clampGoal(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return 12;
+      return Math.max(GOAL_MIN, Math.min(GOAL_MAX, Math.round(n)));
+    }
+    function nextLogId() {
+      logIdSeq = (logIdSeq + 1) % 1000;
+      return Date.now() * 1000 + logIdSeq;
+    }
+    function emptyWeek(date) {
+      return { weekKey: isoWeekKey(date), weekStart: weekStartKey(date), points: 0, logs: [] };
+    }
+    function defaultTimer(totalMs) {
+      const total = Number(totalMs) || modeTimers.draft * 60000;
+      return { running: false, endsAt: 0, remainingMs: total, totalMs: total, finished: false };
+    }
+    function normalizeTimer(raw) {
+      const total = Number(raw && (raw.totalMs || raw.remainingMs)) || modeTimers.draft * 60000;
+      const remaining = raw && raw.remainingMs !== undefined ? Number(raw.remainingMs) : total;
+      const timer = {
+        running: !!(raw && raw.running),
+        endsAt: Number(raw && raw.endsAt) || 0,
+        remainingMs: Number.isFinite(remaining) ? Math.max(0, remaining) : total,
+        totalMs: total,
+        finished: !!(raw && raw.finished)
+      };
+      if (timer.running && timer.endsAt <= Date.now()) {
+        timer.running = false;
+        timer.endsAt = 0;
+        timer.remainingMs = 0;
+        timer.finished = true;
+      }
+      return timer;
+    }
+    function createInitialState() {
+      const now = new Date();
+      return Object.assign(emptyWeek(now), {
+        version: STATE_VERSION,
+        goal: 12,
+        mode: 'draft',
+        sphereIndex: 0,
+        heartActive: true,
+        soundEnabled: true,
+        weeks: [],
+        timer: defaultTimer(modeTimers.draft * 60000),
+        points: 2,
+        logs: [{
+          id: nextLogId(),
+          ts: now.getTime(),
+          time: formatStamp(now),
+          kind: 'Вовремя остановился',
+          text: 'Поработал 5-10 минут, заметил слабое ощущение в груди и вовремя сделал паузу.',
+          pts: 2
+        }]
+      });
+    }
+    function normalizeLog(raw, fallbackDate) {
+      const ts = Number(raw && raw.ts);
+      const date = Number.isFinite(ts) && ts > 0
+        ? new Date(ts)
+        : (legacyStampToDate(raw && raw.time) || fallbackDate);
+      return {
+        id: Number(raw && raw.id) || nextLogId(),
+        ts: date.getTime(),
+        time: formatStamp(date),
+        kind: String((raw && raw.kind) || 'Заметка'),
+        text: String((raw && raw.text) || ''),
+        pts: Number(raw && raw.pts) || 0
+      };
+    }
+    function normalizeWeekBucket(raw, fallbackDate) {
+      const logs = (Array.isArray(raw && raw.logs) ? raw.logs : []).map(l => normalizeLog(l, fallbackDate));
+      const newestTs = logs.reduce((acc, l) => Math.max(acc, l.ts), fallbackDate.getTime());
+      const anchor = new Date(newestTs);
+      return {
+        weekKey: (raw && raw.weekKey) || isoWeekKey(anchor),
+        weekStart: (raw && raw.weekStart) || weekStartKey(anchor),
+        goal: clampGoal(raw && raw.goal),
+        points: Number(raw && raw.points) || 0,
+        logs
+      };
+    }
+    function dedupeWeeks(weeks) {
+      const byKey = new Map();
+      weeks.forEach(week => {
+        if (!week || !week.weekKey) return;
+        const prev = byKey.get(week.weekKey);
+        if (!prev) {
+          byKey.set(week.weekKey, week);
+          return;
+        }
+        byKey.set(week.weekKey, {
+          weekKey: prev.weekKey,
+          weekStart: prev.weekStart < week.weekStart ? prev.weekStart : week.weekStart,
+          goal: prev.goal,
+          points: (Number(prev.points) || 0) + (Number(week.points) || 0),
+          logs: prev.logs.concat(week.logs)
+        });
+      });
+      return Array.from(byKey.values()).sort((a, b) => (a.weekKey < b.weekKey ? 1 : -1));
+    }
+    // Миграция любого сохраненного состояния (v5 и старше, старые бэкапы) в схему v6
+    function normalizeState(raw) {
+      const now = new Date();
+      if (!raw || typeof raw !== 'object') return createInitialState();
+      const goal = clampGoal(raw.goal);
+      const currentKey = isoWeekKey(now);
+      const normalizedLogs = (Array.isArray(raw.logs) ? raw.logs : []).map(l => normalizeLog(l, now));
+      const sumPts = list => list.reduce((sum, l) => sum + (Number(l.pts) || 0), 0);
+      let weekKey = typeof raw.weekKey === 'string' ? raw.weekKey : '';
+      let weekStart = typeof raw.weekStart === 'string' ? raw.weekStart : '';
+      let points = Number(raw.points) || 0;
+      let logs = normalizedLogs;
+      const weeks = (Array.isArray(raw.weeks) ? raw.weeks : []).map(w => normalizeWeekBucket(w, now));
+
+      if (!weekKey) {
+        // v5 и старше: ключа недели не было — раскладываем записи по их собственным неделям
+        const groups = new Map();
+        normalizedLogs.forEach(log => {
+          const key = isoWeekKey(new Date(log.ts));
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(log);
+        });
+        groups.forEach((groupLogs, key) => {
+          if (key === currentKey) return;
+          weeks.push({
+            weekKey: key,
+            weekStart: weekStartKey(new Date(groupLogs[0].ts)),
+            goal,
+            points: sumPts(groupLogs),
+            logs: groupLogs
+          });
+        });
+        const currentLogs = groups.get(currentKey) || [];
+        const leftover = Math.max(0, points - sumPts(normalizedLogs));
+        points = sumPts(currentLogs) + leftover;
+        logs = currentLogs;
+        weekKey = currentKey;
+        weekStart = weekStartKey(now);
+      }
+
+      return {
+        version: STATE_VERSION,
+        weekKey,
+        weekStart,
+        points,
+        logs,
+        goal,
+        mode: modePoints[raw.mode] ? raw.mode : 'draft',
+        sphereIndex: Number.isInteger(raw.sphereIndex) && spheres[raw.sphereIndex] ? raw.sphereIndex : 0,
+        heartActive: raw.heartActive !== false,
+        soundEnabled: raw.soundEnabled !== false,
+        weeks: dedupeWeeks(weeks),
+        timer: normalizeTimer(raw.timer)
+      };
+    }
+    function loadState() {
+      let raw = null;
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) raw = JSON.parse(stored);
+      } catch (e) {}
+      const normalized = normalizeState(raw);
+      ensureCurrentWeek(normalized, new Date());
+      return normalized;
+    }
+    // Недельный ролловер: текущий бакет уходит в архив, счет начинается с нуля
+    function ensureCurrentWeek(target = state, now = new Date()) {
+      if (!target) return false;
+      const key = isoWeekKey(now);
+      if (target.weekKey === key) return false;
+      if ((target.logs || []).length || (Number(target.points) || 0) > 0) {
+        target.weeks = dedupeWeeks([{
+          weekKey: target.weekKey,
+          weekStart: target.weekStart || weekStartKey(now),
+          goal: clampGoal(target.goal),
+          points: Number(target.points) || 0,
+          logs: target.logs || []
+        }].concat(target.weeks || []));
+      }
+      const fresh = emptyWeek(now);
+      target.weekKey = fresh.weekKey;
+      target.weekStart = fresh.weekStart;
+      target.points = 0;
+      target.logs = [];
+      target.timer = defaultTimer((target.timer && target.timer.totalMs) || modeTimers[target.mode] * 60000);
+      return true;
+    }
+    function checkWeekRollover() {
+      if (!ensureCurrentWeek()) return false;
+      saveState();
+      renderAll();
+      flashMessage('Новая неделя: счет с нуля, прошлая ушла в архив');
+      return true;
+    }
+    async function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      await encryptVaultSnapshot();
+    }
+    // --- WEB CRYPTO API (AES-256-GCM) VAULT SNAPSHOT ---
+    async function encryptVaultSnapshot() {
+      try {
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+          'raw',
+          enc.encode('flowcore-local-device-secret-v5'),
+          { name: 'PBKDF2' },
+          false,
+          ['deriveKey']
+        );
+        const key = await crypto.subtle.deriveKey(
+          {
+            name: 'PBKDF2',
+            salt: enc.encode('flowcore-salt'),
+            iterations: 50000,
+            hash: 'SHA-256'
+          },
+          keyMaterial,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['encrypt']
+        );
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const cipherBuf = await crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv },
+          key,
+          enc.encode(JSON.stringify(state))
+        );
+        const cipherB64 = btoa(String.fromCharCode(...new Uint8Array(cipherBuf)));
+        localStorage.setItem(CIPHER_KEY, cipherB64);
+      } catch (e) {}
+    }
+    // --- VIEW NAVIGATION (Keeps main screen clean & spacious) ---
+    function showSection(sec) {
+      ['main', 'diary', 'breathe', 'system'].forEach(id => {
+        document.getElementById('view-' + id).classList.toggle('hidden', id !== sec);
+        document.getElementById('nav-' + id).classList.toggle('active', id === sec);
+      });
+    }
+    function flashMessage(msg) {
+      const el = document.getElementById('flashToast');
+      el.textContent = msg;
+      setTimeout(() => {
+        if (el.textContent === msg) el.textContent = '';
+      }, 3000);
+    }
+    // --- FOCUS & SPHERE CONTROLS ---
+    function setMode(m) {
+      state.mode = m;
+      setTimerMinutes(modeTimers[m]);
+      saveState();
+      renderMain();
+    }
+    function cycleSphere() {
+      state.sphereIndex = (state.sphereIndex + 1) % spheres.length;
+      saveState();
+      renderMain();
+    }
+    function completeActiveTask() {
+      const sp = spheres[state.sphereIndex];
+      const pts = modePoints[state.mode];
+      const text = sp.tasks[state.mode];
+      addLogEntry(sp.name, text, pts);
+      flashMessage(`+${pts} в зачет недели`);
+    }
+    // --- TIMER ORB (считает по абсолютному времени: не плывет в фоне и переживает перезагрузку) ---
+    function timerRemainingMs() {
+      const t = state.timer;
+      if (t.running && t.endsAt) return Math.max(0, t.endsAt - Date.now());
+      return Math.max(0, Number(t.remainingMs) || 0);
+    }
+    function renderTimer() {
+      const ms = timerRemainingMs();
+      const totalSec = Math.ceil(ms / 1000);
+      document.getElementById('timerReadout').textContent =
+        `${pad2(Math.floor(totalSec / 60))}:${pad2(totalSec % 60)}`;
+      const hint = document.getElementById('timerActionHint');
+      const t = state.timer;
+      if (t.running) hint.textContent = 'Идет отсчет';
+      else if (t.finished || ms <= 0) hint.textContent = 'Готово!';
+      else if (ms < t.totalMs) hint.textContent = 'Продолжить';
+      else hint.textContent = 'Старт';
+    }
+    function setTimerMinutes(mins) {
+      state.timer = defaultTimer(mins * 60000);
+      saveState();
+      renderTimer();
+    }
+    function toggleTimer() {
+      const t = state.timer;
+      if (t.running) {
+        t.remainingMs = Math.max(0, t.endsAt - Date.now());
+        t.endsAt = 0;
+        t.running = false;
+        saveState();
+        renderTimer();
+        return;
+      }
+      let ms = timerRemainingMs();
+      if (t.finished || ms <= 0) ms = t.totalMs || modeTimers[state.mode] * 60000;
+      t.running = true;
+      t.endsAt = Date.now() + ms;
+      t.remainingMs = ms;
+      t.finished = false;
+      saveState();
+      renderTimer();
+    }
+    function resetTimer() {
+      setTimerMinutes(modeTimers[state.mode]);
+    }
+    function tickTimers() {
+      const t = state.timer;
+      if (t.running) {
+        if (t.endsAt - Date.now() <= 0) {
+          t.running = false;
+          t.endsAt = 0;
+          t.remainingMs = 0;
+          t.finished = true;
+          saveState();
+          renderTimer();
+          playTimerSound();
+          flashMessage('Таймер завершен 🔔');
+        } else {
+          renderTimer();
+        }
+      }
+      tickBreathe();
+    }
+    // --- FREE-FORM INPUT ("СВОИМИ СЛОВАМИ") ---
+    function addTag(fragment) {
+      const input = document.getElementById('freeformInput');
+      const cur = input.value.trim();
+      input.value = cur ? `${cur}, ${fragment}` : fragment;
+      input.focus();
+    }
+    // --- WEB AUDIO SYNTHESIZER (NO EXTERNAL FILES NEEDED) ---
+    function playTimerSound() {
+      if (state.soundEnabled === false) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const notes = [587.33, 880]; // D5 -> A5 soft cyberpunk chime
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.18);
+          gain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.18);
+          gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + idx * 0.18 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.18 + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.18);
+          osc.stop(ctx.currentTime + idx * 0.18 + 0.48);
+        });
+      } catch (e) {}
+    }
+    function toggleSoundSetting() {
+      state.soundEnabled = state.soundEnabled === false ? true : false;
+      saveState();
+      renderSystem();
+      if (state.soundEnabled) playTimerSound();
+    }
+    function saveFreeform(kind, pts) {
+      const input = document.getElementById('freeformInput');
+      const text = input.value.trim() || `${kind} (быстрая отметка без текста)`;
+      addLogEntry(kind, text, pts);
+      input.value = '';
+      flashMessage(`Записано (+${pts})`);
+    }
+    function quickDiaryChip(label) {
+      const input = document.getElementById('diaryQuickInput');
+      const cur = input.value.trim();
+      input.value = cur ? `${cur}, ${label}` : label;
+      input.focus();
+    }
+    function addQuickDiaryNote() {
+      const input = document.getElementById('diaryQuickInput');
+      const text = input.value.trim() || 'Короткая отметка в дневнике';
+      addLogEntry('Заметка', text, 1);
+      input.value = '';
+      flashMessage('Добавлено в дневник (+1)');
+    }
+    function findLog(id) {
+      const inCurrent = state.logs.findIndex(l => l.id === id);
+      if (inCurrent >= 0) return { bucket: state, index: inCurrent, item: state.logs[inCurrent] };
+      for (const week of state.weeks || []) {
+        const i = week.logs.findIndex(l => l.id === id);
+        if (i >= 0) return { bucket: week, index: i, item: week.logs[i] };
+      }
+      return null;
+    }
+    // Все записи по времени, включая архив — для сводок и отчета врачу
+    function allLogs() {
+      const archived = (state.weeks || []).flatMap(week => week.logs.map(l => ({ ...l, weekKey: week.weekKey })));
+      return state.logs.concat(archived).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+    }
+    function appendNoteToLog(id) {
+      const found = findLog(id);
+      if (!found) return;
+      const extra = prompt('Добавить или изменить комментарий к записи:', found.item.text);
+      if (extra !== null && extra.trim() !== '') {
+        found.item.text = extra.trim();
+        saveState();
+        renderAll();
+        flashMessage('Запись обновлена');
+      }
+    }
+
+    function deleteLogEntry(id) {
+      const found = findLog(id);
+      if (!found) return;
+      const where = found.bucket === state ? 'текущей недели' : `архива ${found.bucket.weekKey}`;
+      if (!confirm(`Удалить запись из ${where}?`)) return;
+      found.bucket.points = Math.max(0, (Number(found.bucket.points) || 0) - (Number(found.item.pts) || 0));
+      found.bucket.logs.splice(found.index, 1);
+      saveState();
+      renderAll();
+      flashMessage('Запись удалена');
+    }
+    // --- LOGS & DIARY ---
+    function addLogEntry(kind, text, pts) {
+      checkWeekRollover();
+      const now = new Date();
+      const points = Number(pts) || 0;
+      state.points += points;
+      state.logs.unshift({
+        id: nextLogId(),
+        ts: now.getTime(),
+        time: formatStamp(now),
+        kind,
+        text,
+        pts: points
+      });
+      saveState();
+      renderAll();
+    }
+    function buildLocalDiary() {
+      const box = document.getElementById('summaryResultBox');
+      box.classList.remove('hidden');
+      const logs = allLogs();
+      const stops = logs.filter(l => /остановил|стоп|пауз|разгруз/i.test(l.kind + ' ' + l.text));
+      const symptoms = logs.filter(l => /груд|туман|дыхан|ком|ступор/i.test(l.kind + ' ' + l.text));
+      const actions = logs.filter(l => !stops.includes(l));
+      const lines = [
+        'СВОДКА ДИНАМИКИ (ЛОКАЛЬНАЯ СБОРКА БЕЗ СЕТИ):',
+        '',
+        `1. Выполненные шаги и фокус (${actions.length}):`,
+        ...(actions.length ? actions.map(a => ` - [${a.time}] ${a.text}`) : [' - Записей пока нет']),
+        '',
+        `2. Зафиксированные телесные сигналы (${symptoms.length}):`,
+        ...(symptoms.length ? symptoms.map(s => ` - [${s.time}] ${s.text}`) : [' - Явных маркеров не отмечено']),
+        '',
+        `3. Успешная саморегуляция и ранний стоп (${stops.length}):`,
+        ...(stops.length ? stops.map(st => ` - [${st.time}] ${st.text}`) : [' - Записей раннего стопа пока нет'])
+      ];
+      box.textContent = lines.join('\n');
+    }
+    async function runAiDiary() {
+      const box = document.getElementById('summaryResultBox');
+      box.classList.remove('hidden');
+      
+      const apiKey = localStorage.getItem(API_KEY_STORAGE);
+      if (!apiKey) {
+        box.textContent = 'Для работы ИИ нужен ключ...';
+        return;
+      }
+
+      box.textContent = 'Генерация структурной сводки...';
+      
+      // Наш "Cache Key" — все текущие логи одной строкой
+      const rawText = allLogs().map(l => `[${l.kind}] ${l.text}`).join('\n');
+
+      // ==========================================
+      // ШАГ 1: ПРОВЕРКА КЭША (Тот самый Gatekeeper)
+      // ==========================================
+      const CACHE_STORAGE_KEY = 'ai_summary_cache_v2';
+      const savedCacheStr = localStorage.getItem(CACHE_STORAGE_KEY);
+      
+      if (savedCacheStr) {
+        try {
+          const cache = JSON.parse(savedCacheStr);
+          if (rawText === cache.lastRawText && cache.summary) {
+            box.textContent = cache.summary;
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // ==========================================
+      // ШАГ 2: ЗАПРОС К ИИ (Если кэша нет или логи новые)
+      // ==========================================
+      try {
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey 
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `Сделай краткую сводку моих записей точно в таком же формате, как локальная сборка:
+СВОДКА ДИНАМИКИ (ИИ):
+
+1. Выполненные шаги и фокус:
+ - ...
+
+2. Зафиксированные телесные сигналы:
+ - ...
+
+3. Успешная саморегуляция и ранний стоп:
+ - ...
+
+ПРАВИЛО: Пиши ТОЛЬКО чистый плоский текст без Markdown (без звездочек *, без кавычек ", без решеток #).
+Записи:
+${rawText}` }] }]
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          box.textContent = `Ошибка API: ${data.error?.message || res.statusText}`;
+          return;
+        }
+
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const finalSummary = reply
+          ? reply
+              .replace(/—/g, '-')
+              .replace(/\*\*/g, '')
+              .replace(/^#+\s*/gm, '')
+              .replace(/^\s*\*\s+/gm, ' - ')
+              .trim()
+          : 'Пустой ответ.';
+        
+        // Показываем новый ответ на экране
+        box.textContent = finalSummary;
+
+        // ==========================================
+        // ШАГ 3: СОХРАНЕНИЕ НОВОГО КЭША
+        // ==========================================
+        const newCacheBox = {
+            lastRawText: rawText,
+            summary: finalSummary
+        };
+        localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(newCacheBox));
+
+      } catch (e) {
+        box.textContent = `Сетевая ошибка: ${e.message}`;
+      }
+    }
+    function copyForDoctor() {
+      const lines = [
+        'ЛОГ СОСТОЯНИЙ И ДЕЙСТВИЙ',
+        `Текущая неделя ${state.weekKey} (${formatWeekRange(state.weekStart)}): ${state.points}/${state.goal} очков`,
+        ...state.logs.map(l => `- [${l.time}] (${l.kind}): ${l.text}`)
+      ];
+      const pastWeeks = state.weeks || [];
+      if (pastWeeks.length) {
+        lines.push('', `АРХИВ (${pastWeeks.length} нед.):`);
+        pastWeeks.forEach(week => {
+          lines.push(`Неделя ${week.weekKey} (${formatWeekRange(week.weekStart)}): ${week.points}/${week.goal} очков`);
+          week.logs.forEach(l => lines.push(`- [${l.time}] (${l.kind}): ${l.text}`));
+        });
+      }
+      navigator.clipboard.writeText(lines.join('\n')).then(() => {
+        flashMessage('Лог скопирован в буфер обмена');
+      });
+    }
+    // Архив: ручное закрытие недели ничего не стирает
+    function archiveCurrentWeek() {
+      state.weeks = dedupeWeeks([{
+        weekKey: state.weekKey,
+        weekStart: state.weekStart,
+        goal: state.goal,
+        points: state.points,
+        logs: state.logs
+      }].concat(state.weeks || []));
+      const now = new Date();
+      state.points = 0;
+      state.logs = [];
+      state.weekKey = isoWeekKey(now);
+      state.weekStart = weekStartKey(now);
+      state.timer = defaultTimer((state.timer && state.timer.totalMs) || modeTimers[state.mode] * 60000);
+    }
+    function closeWeekToArchive() {
+      if (!state.logs.length && state.points === 0) {
+        flashMessage('Неделя пуста — закрывать нечего');
+        return;
+      }
+      if (!confirm('Закрыть текущую неделю? Очки обнулятся, записи уйдут в архив и останутся доступны.')) return;
+      archiveCurrentWeek();
+      saveState();
+      renderAll();
+      flashMessage('Неделя в архиве');
+    }
+    function toggleArchiveList() {
+      document.getElementById('archiveList').classList.toggle('hidden');
+    }
+    function toggleArchiveWeek(index) {
+      const box = document.getElementById('archive-week-' + index);
+      if (box) box.classList.toggle('hidden');
+    }
+    // --- BREATHING DECOMPRESSOR (тоже по абсолютному времени) ---
+    function breatheRemainingMs() {
+      if (breatheTimer.running) return Math.max(0, breatheTimer.endsAt - Date.now());
+      return Math.max(0, breatheTimer.totalMs);
+    }
+    function renderBreathe() {
+      const ms = breatheRemainingMs();
+      const orb = document.getElementById('breatheOrb');
+      const secText = document.getElementById('breatheSecondsText');
+      const label = document.getElementById('breathePhaseLabel');
+      const btn = document.getElementById('breatheStartBtn');
+      if (ms <= 0) {
+        orb.classList.remove('orb-breathing');
+        secText.textContent = 'Готово';
+        label.textContent = 'Плечи опущены';
+        btn.textContent = 'Запустить 60 секунд';
+        return;
+      }
+      if (!breatheTimer.running) {
+        orb.classList.remove('orb-breathing');
+        secText.textContent = '60с';
+        label.textContent = 'Нажми для старта';
+        btn.textContent = 'Запустить 60 секунд';
+        return;
+      }
+      secText.textContent = Math.ceil(ms / 1000) + 'с';
+      const elapsed = Math.floor((breatheTimer.totalMs - ms) / 1000);
+      label.textContent = (elapsed % 10) < 4 ? 'Вдох (4с)' : 'Мягкий выдох (6с)';
+      btn.textContent = 'Остановить';
+    }
+    function toggleBreathe() {
+      const orb = document.getElementById('breatheOrb');
+      if (breatheTimer.running) {
+        breatheTimer = { running: false, endsAt: 0, totalMs: 60000 };
+        orb.classList.remove('orb-breathing');
+        renderBreathe();
+        return;
+      }
+      breatheTimer = { running: true, endsAt: Date.now() + 60000, totalMs: 60000 };
+      orb.classList.add('orb-breathing');
+      renderBreathe();
+    }
+    function tickBreathe() {
+      if (!breatheTimer.running) return;
+      if (breatheTimer.endsAt - Date.now() <= 0) {
+        breatheTimer = { running: false, endsAt: 0, totalMs: 60000 };
+        document.getElementById('breatheOrb').classList.remove('orb-breathing');
+        renderBreathe();
+        playTimerSound();
+        return;
+      }
+      renderBreathe();
+    }
+    function completeBreathingStep() {
+      addLogEntry('Дыхательная разгрузка', '60 секунд спокойного дыхания при давлении в груди', 1);
+      flashMessage('Разгрузка записана (+1)');
+    }
+    // --- SYSTEM & ENGINE HEART CONTROLS ---
+    function toggleHeartEngine() {
+      state.heartActive = !state.heartActive;
+      saveState();
+      renderSystem();
+    }
+    function adjustGoal(delta) {
+      state.goal = clampGoal(state.goal + delta);
+      saveState();
+      renderAll();
+    }
+    function saveApiKey() {
+      const val = document.getElementById('apiKeyInput').value.trim();
+      if (val) {
+        localStorage.setItem(API_KEY_STORAGE, val);
+        flashMessage('API-ключ сохранен локально');
+      } else {
+        localStorage.removeItem(API_KEY_STORAGE);
+        flashMessage('API-ключ удален');
+      }
+    }
+    function exportBackupJson() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'flowcore-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    function importBackupJson(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed || (!Array.isArray(parsed.logs) && !Array.isArray(parsed.weeks))) {
+            alert('В файле нет дневника — это не бэкап FlowCore');
+            return;
+          }
+          state = normalizeState(parsed);
+          checkWeekRollover();
+          saveState();
+          renderAll();
+          flashMessage('Бэкап восстановлен');
+        } catch (err) {
+          alert('Ошибка чтения файла бэкапа');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    // --- RENDER FUNCTIONS ---
+    function renderHeaderQuota() {
+      document.getElementById('quotaText').textContent = `${state.points} / ${state.goal}`;
+      const weekNo = String(state.weekKey || '').split('-')[1] || '';
+      document.getElementById('weekLabel').textContent = `${weekNo} · ${formatWeekRange(state.weekStart)}`;
+      const dotsWrap = document.getElementById('quotaDots');
+      dotsWrap.innerHTML = '';
+      const totalDots = 10;
+      const filled = Math.min(totalDots, Math.floor((state.points / state.goal) * totalDots));
+      for (let i = 0; i < totalDots; i++) {
+        const d = document.createElement('span');
+        d.className = 'q-dot' + (i < filled ? ' filled' : '');
+        dotsWrap.appendChild(d);
+      }
+      document.getElementById('diaryCount').textContent = state.logs.length;
+    }
+    function renderMain() {
+      ['micro', 'draft', 'wave'].forEach(m => {
+        document.getElementById('mode-' + m).classList.toggle('active', state.mode === m);
+      });
+      const sp = spheres[state.sphereIndex];
+      const pts = modePoints[state.mode];
+      document.getElementById('sphereBadgeText').textContent = `${sp.name} (сменить)`;
+      document.getElementById('activeTaskTitle').textContent = sp.tasks[state.mode];
+      document.getElementById('activeTaskNote').textContent = sp.notes[state.mode];
+      document.getElementById('completeTaskBtn').textContent = `Выполнено (+${pts} в зачет)`;
+    }
+    function renderDiary() {
+      const list = document.getElementById('logList');
+      if (state.logs.length === 0) {
+        list.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 24px;">Записей пока нет.</div>`;
+        return;
+      }
+      list.innerHTML = state.logs.map(item => `
+        <div class="log-row">
+          <div style="flex: 1;">
+            <div style="font-size: 12px; color: var(--green-title); margin-bottom: 3px;">
+              ${item.time} | ${escapeHtml(item.kind)}
+            </div>
+            <div style="color: var(--text-white); font-size: 14.5px;">${escapeHtml(item.text)}</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- НОВАЯ КНОПКА УДАЛЕНИЯ -->
+            <button class="pill-btn" style="padding: 2px 8px; font-size: 11px; color: #ff5555; border-color: rgba(255,85,85,0.3);" onclick="deleteLogEntry(${item.id})" title="Удалить запись">✖</button>
+            
+            <button class="pill-btn" style="padding: 2px 8px; font-size: 11px;" onclick="appendNoteToLog(${item.id})" title="Дописать или изменить текст">✎</button>
+            <span style="font-family: var(--font-heading); font-weight: 700; color: var(--green-title); white-space: nowrap;">
+              +${item.pts}
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+    function renderSystem() {
+      const wrap = document.getElementById('engineHeartWrap');
+      const btn = document.getElementById('heartToggleBtn');
+      wrap.classList.toggle('engine-paused', !state.heartActive);
+      btn.classList.toggle('active', state.heartActive);
+      btn.textContent = state.heartActive ? 'Активно' : 'На паузе';
+      const soundBtn = document.getElementById('soundToggleBtn');
+      if (soundBtn) {
+        const isSoundOn = state.soundEnabled !== false;
+        soundBtn.classList.toggle('active', isSoundOn);
+        soundBtn.textContent = isSoundOn ? 'Звук: Вкл' : 'Звук: Выкл';
+      }
+      document.getElementById('sysGoalValue').textContent = state.goal;
+      const savedKey = localStorage.getItem(API_KEY_STORAGE) || '';
+      document.getElementById('apiKeyInput').value = savedKey;
+    }
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+    function renderArchive() {
+      const weeks = state.weeks || [];
+      const wrap = document.getElementById('archiveWrap');
+      wrap.classList.toggle('hidden', weeks.length === 0);
+      document.getElementById('archiveCount').textContent = weeks.length;
+      const list = document.getElementById('archiveList');
+      list.innerHTML = weeks.map((week, index) => `
+        <div class="archive-week">
+          <button class="pill-btn" style="align-self: flex-start; font-size: 12px;" onclick="toggleArchiveWeek(${index})">
+            ${escapeHtml(week.weekKey)} · ${escapeHtml(formatWeekRange(week.weekStart))} — ${week.points} / ${week.goal}
+          </button>
+          <div id="archive-week-${index}" class="archive-entries hidden">
+            ${week.logs.length
+              ? week.logs.map(l => `<div class="archive-entry">${escapeHtml(l.time)} | ${escapeHtml(l.kind)} — ${escapeHtml(l.text)} <span style="color: var(--green-title);">+${l.pts}</span> <button class="pill-btn" style="padding: 0 6px; font-size: 10px;" onclick="appendNoteToLog(${l.id})" title="Изменить запись">✎</button> <button class="pill-btn" style="padding: 0 6px; font-size: 10px; color: #ff5555; border-color: rgba(255,85,85,0.3);" onclick="deleteLogEntry(${l.id})" title="Удалить запись">✖</button></div>`).join('')
+              : '<div class="archive-entry">Записей нет</div>'}
+          </div>
+        </div>
+      `).join('');
+    }
+    function renderAll() {
+      renderHeaderQuota();
+      renderMain();
+      renderDiary();
+      renderArchive();
+      renderSystem();
+      renderTimer();
+      renderBreathe();
+    }
+
+    // --- BOOT ---
+    renderAll();
+    saveState(); // мигрированное состояние сразу ложится на диск
+    setInterval(tickTimers, 250);
+    setInterval(checkWeekRollover, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      checkWeekRollover();
+      renderTimer();
+      renderBreathe();
+    });
+  </script>
+</body>
+</html>
