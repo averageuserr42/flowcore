@@ -339,10 +339,73 @@
       background: var(--bg-card-inner);
       border: 1px solid rgba(56, 235, 107, 0.18);
     }
+    /* Телефон: компактная шапка в одну строку навигации и меньше отступов */
+    @media (max-width: 600px) {
+      .top-header {
+        padding: 10px 12px;
+        gap: 10px;
+      }
+      .header-left {
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .brand-title {
+        font-size: 14px;
+      }
+      .quota-badge {
+        gap: 6px;
+        padding: 3px 9px;
+        font-size: 12px;
+      }
+      .quota-dots {
+        gap: 2px;
+      }
+      .q-dot {
+        width: 4px;
+        height: 9px;
+      }
+      .week-label {
+        font-size: 10.5px;
+        padding-left: 6px;
+      }
+      #quotaText {
+        white-space: nowrap;
+      }
+      .header-nav {
+        flex: 1 1 100%;
+        gap: 6px;
+      }
+      .nav-btn {
+        flex: 1 1 auto;
+        font-size: 12.5px;
+        padding: 6px 8px;
+      }
+      .stage-container {
+        padding: 20px 14px 40px;
+        min-height: calc(100vh - 120px);
+      }
+      .glow-card {
+        padding: 22px 18px;
+      }
+    }
+    /* Узкие телефоны: в шапке остаётся только номер недели */
+    @media (max-width: 420px) {
+      .wk-dates {
+        display: none;
+      }
+    }
     @media (max-width: 520px) {
       .focus-hero {
         flex-direction: column;
         text-align: center;
+      }
+      .log-row {
+        flex-wrap: wrap;
+      }
+      .log-row > div:last-child {
+        width: 100%;
+        justify-content: flex-end;
       }
     }
     .timer-orb {
@@ -2097,7 +2160,7 @@ ${rawText}` }] }]
     function renderHeaderQuota() {
       document.getElementById('quotaText').textContent = `${state.points} / ${state.goal}`;
       const weekNo = String(state.weekKey || '').split('-')[1] || '';
-      document.getElementById('weekLabel').textContent = `${weekNo} · ${formatWeekRange(state.weekStart)}`;
+      document.getElementById('weekLabel').innerHTML = `<span class="wk-num">${escapeHtml(weekNo)}</span><span class="wk-dates"> · ${escapeHtml(formatWeekRange(state.weekStart))}</span>`;
       const dotsWrap = document.getElementById('quotaDots');
       dotsWrap.innerHTML = '';
       const totalDots = 10;
