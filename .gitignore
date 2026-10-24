@@ -1,0 +1,2 @@
+# cloudflared (~55 МБ), скачивается автоматически при первом `python serve.py --tunnel`
+.tools/
