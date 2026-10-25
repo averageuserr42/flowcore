@@ -614,6 +614,52 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('md: пустые секции не ломают файл', q('buildObsidianMarkdown()').includes('_Пусто._'), true);
 }
 
+// --- 22. Свои сферы ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('сферы: три по умолчанию', q('spheresOf().length'), 3);
+  check('сферы: первая — дефолтная', q('spheresOf()[0].name'), 'Код и учеба');
+  check('сферы: активная по индексу', q('currentSphere().name'), 'Код и учеба');
+
+  check('сферы: пустой массив откатывается к дефолту', q('normalizeSpheres([]).length'), 3);
+  check('сферы: мусор вместо массива', q('normalizeSpheres("нет").length'), 3);
+  check('сферы: дырки в сфере заполняются', q('normalizeSpheres([{ name: "Своё" }])[0].tasks.draft'), q('DEFAULT_SPHERES[0].tasks.draft'));
+  check('сферы: больше двенадцати не берём', q('normalizeSpheres(new Array(20).fill({ name: "x" })).length'), 12);
+  check('сферы: индекс вне диапазона даёт первую', q('state.sphereIndex = 99; currentSphere().name'), 'Код и учеба');
+  q('state.sphereIndex = 0;');
+
+  q("updateSphere(0, 'task.draft', 'Мой текст задачи');");
+  check('правка: задача изменилась', q('spheresOf()[0].tasks.draft'), 'Мой текст задачи');
+  check('правка: главная перерисована', q("document.getElementById('activeTaskTitle').textContent"), 'Мой текст задачи');
+  q("updateSphere(0, 'name', '  Учёба  ');");
+  check('правка: имя обрезано по краям', q('spheresOf()[0].name'), 'Учёба');
+  q("updateSphere(0, 'name', '   ');");
+  check('правка: пустое имя не оставляет пустоту', q('spheresOf()[0].name'), 'Моё дело');
+  q("updateSphere(0, 'step.1', 'Открыть конспект');");
+  check('правка: первый шаг изменился', q('spheresOf()[0].steps[1]'), 'Открыть конспект');
+
+  q('addSphere();');
+  check('добавление: сфер стало четыре', q('spheresOf().length'), 4);
+  check('добавление: новая выбрана', q('currentSphere().name'), 'Новая сфера');
+  q('removeSphere(3);');
+  check('удаление: сфер снова три', q('spheresOf().length'), 3);
+  q('state.spheres = [state.spheres[0]]; removeSphere(0);');
+  check('удаление: последнюю сферу не удалить', q('state.spheres.length'), 1);
+
+  q("state.spheres = normalizeSpheres(null); updateSphere(1, 'task.micro', 'Пять минут на воду');");
+  const saved = JSON.parse(store['flowCorePortfolioV5']);
+  check('сферы попадают на диск', saved.spheres[1].tasks.micro, 'Пять минут на воду');
+  const next = makeContext(NOW + 1000, saved);
+  check('сферы переживают перезагрузку', vm.runInContext('spheresOf()[1].tasks.micro', next.ctx), 'Пять минут на воду');
+  const clamped = makeContext(NOW, {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 0, goal: 12,
+    sphereIndex: 42, spheres: [{ name: 'Своё', tasks: {}, steps: [], notes: {} }], logs: [], weeks: [],
+  });
+  check('сферы: из бэкапа берём свои', vm.runInContext('spheresOf().length', clamped.ctx), 1);
+  check('сферы: битый индекс сбрасывается', vm.runInContext('state.sphereIndex', clamped.ctx), 0);
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);

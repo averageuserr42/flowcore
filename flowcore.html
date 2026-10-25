@@ -6,7 +6,7 @@
   <!-- Сеть ограничена одним адресом: ИИ-сводка. Инлайн скрипт и стили нужны
        потому, что весь проект — один файл без сборки. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-  <title>FlowCore | Личная панель регуляции и фокуса</title>
+  <title>FlowCore | Дневник фокуса и восстановления</title>
   <meta name="theme-color" content="#030704">
   <script>
     /* Скин читается до первой отрисовки: иначе владелец янтаря видит
@@ -19,7 +19,7 @@
       }
     } catch (e) {}
   </script>
-  <meta name="description" content="Личный дневник регуляции: таймер фокуса, сигналы тела и недельный зачёт без давления.">
+  <meta name="description" content="Дневник фокуса и восстановления: короткие отрезки работы, сигналы тела и недельный зачёт без давления.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -331,6 +331,26 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .level-badge.level-up { animation: none; }
+    }
+    .sphere-edit-block {
+      border: 1px solid rgba(var(--accent-alt-rgb), 0.24);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: var(--bg-card-inner);
+    }
+    .sphere-edit-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 8px 0 3px;
+    }
+    .sphere-edit-text {
+      width: 100%;
+      resize: vertical;
+      font-family: var(--font-body);
+      font-size: 13px;
+      line-height: 1.4;
     }
     .rest-line {
       margin-top: 6px;
@@ -1253,9 +1273,9 @@
           </p>
           <!-- State Pill Switcher -->
           <div class="pill-row">
-            <button id="mode-micro" class="pill-btn" onclick="setMode('micro')">Ступор / Туман (+1)</button>
-            <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')">Черновик (+2)</button>
-            <button id="mode-wave" class="pill-btn" onclick="setMode('wave')">Поймал волну (+3)</button>
+            <button id="mode-micro" class="pill-btn" onclick="setMode('micro')">Совсем мало сил (+1)</button>
+            <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')">Немного сил (+2)</button>
+            <button id="mode-wave" class="pill-btn" onclick="setMode('wave')">Полные силы (+3)</button>
           </div>
           <!-- Orb Timer + Active Task Description -->
           <div class="focus-hero">
@@ -1493,13 +1513,13 @@
       <div class="glow-card">
         <h2 class="card-heading">Система и безопасность</h2>
         <p class="card-subtext">
-          Управление пульсацией фона («Второе сердце»), автономным ключом ИИ и резервными копиями.
+          Свои сферы и тексты, фоновая пульсация, ИИ-сводка и резервные копии.
         </p>
         <!-- 1. Second Heart Engine Control -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Двигатель «Второе сердце» (фон в центре)</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Плавное дыхание зеленого ядра позади карточек</div>
+            <div style="font-weight: 600; color: var(--text-white);">Фоновая пульсация (центр экрана)</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Мягкое свечение за карточками; в каждом скине своего цвета</div>
           </div>
           <button id="heartToggleBtn" class="pill-btn active" onclick="toggleHeartEngine()">Активно</button>
         </div>
@@ -1538,6 +1558,16 @@
           <div id="skinRow" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"></div>
           <div id="skinHint" style="font-size: 12px; color: var(--text-muted); width: 100%; text-align: right;"></div>
         </div>
+        <hr class="green-divider" />
+        <!-- 2a2. Свои сферы и формулировки -->
+        <details>
+          <summary style="cursor: pointer; font-weight: 600; color: var(--text-white);">Сферы и задачи</summary>
+          <div style="font-size: 12.5px; color: var(--text-muted); margin: 8px 0 12px;">
+            Каждая сфера — своё дело с тремя уровнями сил. Текст пишется так, как удобно тебе: он сразу появится на главной.
+          </div>
+          <div id="sphereEditor"></div>
+          <button class="pill-btn" onclick="addSphere()" style="margin-top: 4px;">+ Добавить сферу</button>
+        </details>
         <hr class="green-divider" />
         <!-- 2b. Замок дневника -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -1640,15 +1670,17 @@
     // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
     // длина работы перестаёт быть единственной наградой.
     const DAILY_CAP = 8;
-    const BASE_TITLE = 'FlowCore | Личная панель регуляции и фокуса';
-    const spheres = [
+    const BASE_TITLE = 'FlowCore | Дневник фокуса и восстановления';
+    // Дефолт для уже сохранённых данных: ровно прежний набор, поэтому у того,
+    // кто уже пользуется панелью, ничего не меняется ни на строку.
+    const DEFAULT_SPHERES = [
       {
         id: 'code',
         name: 'Код и учеба',
         tasks: {
           micro: 'Открыть среду разработки или прочитать 1 короткий блок конспекта без цели запомнить все (2-5 мин)',
           draft: 'Подучиться 5-15 минут или поковырять черновик кода чисто из любопытства, без оценки',
-          wave: 'Поток кода под Стоп-кран 30 минут: остановиться до того, как появится усталость'
+          wave: '30 минут работы с остановкой по первому сигналу усталости'
         },
         steps: [
           'Открыть проект и вчерашний файл',
@@ -1700,6 +1732,48 @@
         }
       }
     ];
+    // Сферы живут в состоянии: дело у каждого своё, и вписывать его
+    // в массив, который правится только в коде, — тупик.
+    function normalizeSphere(raw, fallback) {
+      const base = fallback || DEFAULT_SPHERES[0];
+      const src = raw && typeof raw === 'object' ? raw : {};
+      const tasks = src.tasks && typeof src.tasks === 'object' ? src.tasks : {};
+      const notes = src.notes && typeof src.notes === 'object' ? src.notes : {};
+      const steps = Array.isArray(src.steps) ? src.steps : [];
+      const pick = (value, fb) => String(value == null || value === '' ? fb || '' : value).slice(0, 240);
+      return {
+        name: String(src.name || base.name || 'Моё дело').slice(0, 60),
+        tasks: {
+          micro: pick(tasks.micro, base.tasks.micro),
+          draft: pick(tasks.draft, base.tasks.draft),
+          wave: pick(tasks.wave, base.tasks.wave)
+        },
+        steps: [0, 1, 2].map(i => String(steps[i] || (base.steps && base.steps[i]) || '').slice(0, 120)),
+        notes: {
+          micro: pick(notes.micro, base.notes.micro),
+          draft: pick(notes.draft, base.notes.draft),
+          wave: pick(notes.wave, base.notes.wave)
+        }
+      };
+    }
+    function normalizeSpheres(raw) {
+      const list = Array.isArray(raw) ? raw : [];
+      const cleaned = list.map((item, i) => normalizeSphere(item, DEFAULT_SPHERES[i] || DEFAULT_SPHERES[0]));
+      return cleaned.length
+        ? cleaned.slice(0, 12)
+        : DEFAULT_SPHERES.map(sphere => normalizeSphere(sphere, sphere));
+    }
+    function spheresOf() {
+      return (state && Array.isArray(state.spheres) && state.spheres.length) ? state.spheres : DEFAULT_SPHERES;
+    }
+    function currentSphere() {
+      const list = spheresOf();
+      const index = Number.isInteger(state.sphereIndex) && state.sphereIndex >= 0 && state.sphereIndex < list.length
+        ? state.sphereIndex
+        : 0;
+      return list[index];
+    }
+    const MODE_LABELS = { micro: 'Совсем мало сил', draft: 'Немного сил', wave: 'Полные силы' };
     const modePoints = { micro: 1, draft: 2, wave: 3 };
     // 45 минут вызывали отторжение — теперь верхняя граница 30
     const modeTimers = { micro: 5, draft: 5, wave: 30 };
@@ -1819,6 +1893,7 @@
         firstStep: '',
         lastStop: null,
         skin: storedSkin(),
+        spheres: normalizeSpheres(null),
         restBonus: 0,
         lastRestCheckDay: '',
         restBreathDay: '',
@@ -1933,6 +2008,7 @@
         weekStart = weekStartKey(now);
       }
 
+      const sphereList = normalizeSpheres(raw.spheres);
       return {
         version: STATE_VERSION,
         weekKey,
@@ -1941,7 +2017,8 @@
         logs,
         goal,
         mode: modePoints[raw.mode] ? raw.mode : 'draft',
-        sphereIndex: Number.isInteger(raw.sphereIndex) && spheres[raw.sphereIndex] ? raw.sphereIndex : 0,
+        spheres: sphereList,
+        sphereIndex: Number.isInteger(raw.sphereIndex) && raw.sphereIndex >= 0 && raw.sphereIndex < sphereList.length ? raw.sphereIndex : 0,
         heartActive: raw.heartActive !== false,
         soundEnabled: raw.soundEnabled !== false,
         requireTimer: !!raw.requireTimer,
@@ -2251,7 +2328,7 @@
       renderMain();
     }
     function cycleSphere() {
-      state.sphereIndex = (state.sphereIndex + 1) % spheres.length;
+      state.sphereIndex = (state.sphereIndex + 1) % spheresOf().length;
       saveState();
       renderMain();
     }
@@ -2263,7 +2340,7 @@
           return;
         }
       }
-      const sp = spheres[state.sphereIndex];
+      const sp = currentSphere();
       const pts = modePoints[state.mode];
       const spentMs = Number(state.timer.ranMs) || 0;
       const spentMin = Math.round(spentMs / 60000);
@@ -2283,7 +2360,7 @@
     // Первый шаг: конкретное физическое действие вместо «сесть и поработать»
     // Повторный клик по выбранному шагу снимает его
     function pickFirstStep(index) {
-      const sp = spheres[state.sphereIndex];
+      const sp = currentSphere();
       const step = sp.steps && sp.steps[index];
       if (!step) return;
       state.firstStep = state.firstStep === step ? '' : step;
@@ -2434,7 +2511,7 @@
           saveState();
           renderTimer();
           playTimerSound();
-          if (document.hidden) notify('Таймер завершён', 'Стоп-кран: можно встать из-за стола.');
+          if (document.hidden) notify('Таймер завершён', 'Отрезок закончен: можно встать из-за стола.');
           flashMessage('Таймер завершен 🔔');
         } else {
           renderTimer();
@@ -2673,7 +2750,7 @@
     function resumeFromBridge() {
       const stop = state.lastStop;
       if (!stop) return;
-      const idx = spheres.findIndex(sp => sp.name === stop.sphere);
+      const idx = spheresOf().findIndex(sp => sp.name === stop.sphere);
       if (idx >= 0) state.sphereIndex = idx;
       if (modePoints[stop.mode]) state.mode = stop.mode;
       stop.resumed = true;
@@ -3251,7 +3328,7 @@ ${rawText}` }] }]
       ['micro', 'draft', 'wave'].forEach(m => {
         document.getElementById('mode-' + m).classList.toggle('active', state.mode === m);
       });
-      const sp = spheres[state.sphereIndex];
+      const sp = currentSphere();
       const pts = modePoints[state.mode];
       document.getElementById('sphereBadgeText').textContent = `${sp.name} (сменить)`;
       document.getElementById('activeTaskTitle').textContent = sp.tasks[state.mode];
@@ -3360,6 +3437,87 @@ ${rawText}` }] }]
       renderSystem();
       flashMessage(state.requireTimer ? 'Очки теперь только за отработанное время' : 'Снова по клику');
     }
+    // --- РЕДАКТОР СФЕР ---
+    // Универсальная формулировка всё равно не угадает, чем занята голова
+    // в конкретный месяц, поэтому тексты принадлежат пользователю.
+    function renderSphereEditor() {
+      const host = document.getElementById('sphereEditor');
+      if (!host) return;
+      const list = spheresOf();
+      host.innerHTML = list.map((sp, i) => `
+        <div class="sphere-edit-block">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <input class="clean-input" style="flex: 1;" value="${escapeHtml(sp.name)}"
+              aria-label="Название сферы ${i + 1}"
+              onchange="updateSphere(${i}, 'name', this.value)" />
+            <button class="pill-btn" onclick="removeSphere(${i})"
+              title="Удалить сферу" aria-label="Удалить сферу ${escapeHtml(sp.name)}">✖</button>
+          </div>
+          ${['micro', 'draft', 'wave'].map(mode => `
+            <label class="sphere-edit-label">${MODE_LABELS[mode]}</label>
+            <textarea class="clean-input sphere-edit-text" rows="2"
+              onchange="updateSphere(${i}, 'task.${mode}', this.value)">${escapeHtml(sp.tasks[mode])}</textarea>
+          `).join('')}
+          ${[0, 1, 2].map(step => `
+            <label class="sphere-edit-label">Первый шаг ${step + 1}</label>
+            <input class="clean-input" value="${escapeHtml(sp.steps[step] || '')}"
+              onchange="updateSphere(${i}, 'step.${step}', this.value)" />
+          `).join('')}
+        </div>
+      `).join('');
+    }
+    function updateSphere(index, path, value) {
+      if (!state || !Array.isArray(state.spheres)) return;
+      const sphere = state.spheres[index];
+      if (!sphere) return;
+      const text = String(value == null ? '' : value).slice(0, 240);
+      if (path === 'name') sphere.name = text.slice(0, 60).trim() || 'Моё дело';
+      else if (path.indexOf('task.') === 0) sphere.tasks[path.slice(5)] = text;
+      else if (path.indexOf('note.') === 0) sphere.notes[path.slice(5)] = text;
+      else if (path.indexOf('step.') === 0) {
+        const step = Number(path.slice(5));
+        if (step >= 0 && step < 3) sphere.steps[step] = text;
+      }
+      saveState();
+      renderMain();
+    }
+    function addSphere() {
+      if (!state) return;
+      if (!Array.isArray(state.spheres)) state.spheres = normalizeSpheres(null);
+      state.spheres.push(normalizeSphere({
+        name: 'Новая сфера',
+        tasks: {
+          micro: 'Коснуться дела на 2-5 минут без цели закончить',
+          draft: 'Спокойные 5-15 минут в своём темпе',
+          wave: '30 минут работы с остановкой по первому сигналу усталости'
+        },
+        steps: ['Открыть нужный файл или вещь', 'Сделать самое маленькое действие', 'Отметить, что получилось'],
+        notes: {
+          micro: 'Сейчас задача — просто коснуться темы.',
+          draft: 'Идёт в общий зачёт недели без оценки качества.',
+          wave: 'Остановиться по сигналу важнее, чем досидеть.'
+        }
+      }, DEFAULT_SPHERES[0]));
+      state.sphereIndex = state.spheres.length - 1;
+      saveState();
+      renderAll();
+      flashMessage('Сфера добавлена');
+    }
+    function removeSphere(index) {
+      if (!state || !Array.isArray(state.spheres)) return;
+      if (state.spheres.length <= 1) {
+        flashMessage('Нужна хотя бы одна сфера');
+        return;
+      }
+      const name = state.spheres[index] ? state.spheres[index].name : '';
+      if (!confirm(`Удалить сферу «${name}»?`)) return;
+      state.spheres.splice(index, 1);
+      state.sphereIndex = Math.min(state.sphereIndex, state.spheres.length - 1);
+      saveState();
+      renderAll();
+      flashMessage('Сфера удалена');
+    }
+
     function renderSystem() {
       const wrap = document.getElementById('engineHeartWrap');
       const btn = document.getElementById('heartToggleBtn');
@@ -3431,6 +3589,7 @@ ${rawText}` }] }]
             : 'Все скины открыты';
         }
       }
+      renderSphereEditor();
 
       const keyInput = document.getElementById('apiKeyInput');
       const savedKey = localStorage.getItem(API_KEY_STORAGE) || '';
