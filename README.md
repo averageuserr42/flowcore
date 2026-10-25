@@ -1,115 +1,117 @@
 # FlowCore
 
-**Дневник фокуса и восстановления.** Один HTML-файл без сборки, сервера и аккаунтов: короткие отрезки работы, сигналы тела и недельный зачёт, который не превращается в гонку.
+*Русская версия: [README.ru.md](README.ru.md).*
 
-Сделано для тех дней, когда «сесть и поработать час» — не вариант, а пять минут — вариант. Приложение принимает и пять минут, и полные силы, и честно записывает «сегодня не вышло».
+**A focus and recovery diary.** One HTML file with no build step, no server and no account: short stretches of work, body signals, and a weekly score that does not turn into a race.
 
-![Главный экран FlowCore](screenshots/01-focus.png)
+It is built for the days when "sit down and work for an hour" is not an option and five minutes is. The app takes five minutes, it takes full strength, and it records "today did not work out" without turning it into a verdict.
 
-## Что умеет
+![The Focus screen](screenshots/01-focus.png)
 
-**Три режима по силам.** «Совсем мало сил» (+1), «Немного сил» (+2), «Полные силы» (+3). Для каждой сферы свои задачи под каждый режим — не нужно придумывать формулировку заново.
+## What it does
 
-**Первый шаг вместо «поработать».** К задаче прилагаются три конкретных физических действия («открыть редактор», «прочитать последний абзац»). Пять минут считаются работой, даже если дальше не пошло.
+**Three levels of energy.** Barely any (+1), some (+2), full (+3). Every area keeps its own task for each level, so you never invent the wording again.
 
-**Мост после остановки.** Если остановился вчера — сверху появляется «вчера остановился на: …» и кнопка «начать 5 минут с этого места». Возврат в работу не требует вспоминать, где ты был.
+**A first step instead of "go work".** Each task comes with three concrete physical actions: open the editor, read the last paragraph, write down one question. Five minutes count as work even if you stop right there.
 
-**Неделя, а не день.** Очки копятся на неделю (по умолчанию 12, настраивается). Пропущенный день ничего не сбрасывает; неделя закрывается в архив сама. Видно тепловую карту за 12 недель и график последних недель.
+**A bridge after stopping.** If you stopped yesterday, a line at the top says where, with one button that starts five minutes from that exact place. Coming back does not require remembering where you were.
 
-**Мягкий потолок дня: 8 очков.** После него записи идут дальше, но очки не растут — длина работы перестаёт быть единственной наградой. Есть опция «очки только за отработанное время»: «Выполнено» даст очки, только если таймер честно отработал 5 минут.
+**A week, not a day.** Points collect over the week (12 by default, adjustable). A missed day resets nothing, and the week closes into the archive on its own. The panel shows a heat map for the last 12 weeks and a chart of recent weeks.
 
-**Уровень за всё время.** 10 опыта = уровень; опыт считается из всех очков за всю историю и не сгорает с неделей. Уровень открывает скины: изумруд (1), янтарь (3), кибер (6), аврора (10) — каждый меняет палитру целиком, включая фоновую пульсацию.
+**A soft cap of 8 points a day.** Past it, notes keep going in and points stop growing, so the length of work stops being the only reward. An optional strict mode gives points only for the time the timer actually ran.
 
-**Отдых приносит очки.** За спокойный вчерашний день (≤6 очков) или за «вовремя остановился» начисляется заряд отдыха (до 3). Заряд добавляет +1 к следующему шагу внутри дневного лимита — быстрее закрыть норму и пойти отдыхать, а не сидеть дольше.
+**A level for all time.** 10 experience points make a level, counted from every point you ever earned, so a new week does not burn it. Levels unlock skins: emerald (1), amber (3), cyber (6), aurora (10). Each one changes the whole palette, the background pulse included.
 
-**Страховочный резерв (до 4 очков).** Если неделя закрылась с «ранним стопом» или выше квоты, одно очко уходит в резерв. В тяжёлую неделю его можно забрать обратно в один клик.
+**Rest earns points.** A calm yesterday (6 points or fewer) or an early stop charges the rest bonus, up to 3. A charge adds +1 to your next step inside the daily cap, which closes the day sooner instead of pushing you to sit longer.
 
-**Дыхание — две техники и фон.** «Спокойный выдох 4/6» на минуту и «Вздох на пять минут»: два вдоха носом и длинный выдох ртом — то, что снимает острую тревогу за пару циклов, когда минуты не хватает. Рядом — генератор коричневого шума с ползунком громкости: шум считается в браузере, ни файлов, ни сети. На телефоне звук обрывается, если погасить экран: это про пять-десять минут, а не про сон.
+**A safety reserve of up to 4 points.** A week that closed with an early stop or above its quota moves one point into the reserve. In a hard week you take it back in one click.
 
-**Дневник и выгрузка.** Быстрые пометки в один клик, сводка локально, сводка через ИИ (если вписан свой ключ Gemini), копирование всего дневника текстом и экспорт недели в `.md` с YAML-заголовком — файл сразу ложится в Obsidian.
+**Breathing: two techniques and a background.** "Calm exhale 4/6" runs for a minute. "A five-minute sigh" is two breaths in through the nose and one long breath out through the mouth, which is what takes the edge off acute anxiety when a minute is not enough. Next to it sits a brown noise generator with a volume slider. The noise is computed in the browser, so there are no files and no network. On a phone the sound stops when the screen locks, which makes this a tool for five or ten minutes, not for falling asleep.
 
-**Свои сферы и тексты.** Первый запуск — три вопроса: чем занята голова, сколько очков в неделю, как назвать главное дело. Пропустить можно одной кнопкой: тогда ставятся две нейтральные сферы — дело и отдых, обе на языке интерфейса. Дальше названия, задачи и шаги правятся прямо в панели.
+**Diary and export.** Notes in one tap, a summary built locally, an AI summary if you add your own Gemini key, the whole diary copied as text, and a week exported as `.md` with YAML front matter that Obsidian reads as is.
 
-**Четыре языка интерфейса.** Русский, украинский, английский и немецкий. Язык подхватывается из браузера при первом запуске и меняется в «Системе» — в том числе уже на экране пароля, до расшифровки дневника. Переводится оболочка: подписи, кнопки, сводки, экспорт, заготовки сфер. То, что ты написал сам, остаётся твоими словами. Ни один язык не объявлен главным: словарь — одна таблица, где все четыре стоят рядом.
+**Your own areas and wording.** The first run asks three questions: what is on your mind, how many points a week, what to call the main thing. One button skips all three and leaves two neutral areas, one thing of your own and rest, both in the interface language. Names, tasks and steps are edited in the panel afterwards.
 
-**Данные остаются у тебя.** Всё лежит в localStorage браузера. Замок дневника — пароль через PBKDF2 и AES-256-GCM: без пароля файл на диске не читается. Единственный внешний запрос — необязательная ИИ-сводка в Gemini со своим ключом; Content-Security-Policy запрещает всё остальное.
+**Four interface languages.** Russian, Ukrainian, English and German. The language comes from the browser on first run and changes in System, including on the password screen before the diary is decrypted. Only the shell is translated: labels, buttons, summaries, export, area templates. What you wrote stays in your words. No language is declared the main one either, because the dictionary is a single table where all four stand side by side.
 
-**Ставится на телефон и работает офлайн.** Есть manifest, Service Worker и иконки: Android Chrome — «Установить приложение», iPhone Safari — «На экран Домой».
+**Your data stays with you.** Everything lives in the browser's localStorage. The diary lock is a password through PBKDF2 and AES-256-GCM, so the file on disk cannot be read without it. The only outgoing request is the optional Gemini summary with your own key, and the Content Security Policy blocks everything else.
 
-## Скриншоты
+**Installs on a phone and works offline.** There is a manifest, a service worker and icons. Android Chrome offers "Install app", iPhone Safari has "Add to Home Screen".
 
-| Экран фокуса | Дневник и итоги недели |
+## Screenshots
+
+| Focus | Diary and weekly review |
 | --- | --- |
-| ![Экран фокуса](screenshots/01-focus.png) | ![Дневник](screenshots/02-diary.png) |
+| ![The focus screen](screenshots/01-focus.png) | ![The diary](screenshots/02-diary.png) |
 
-| Дыхание: две методики и коричневый шум | Система и безопасность |
+| Breathing: two techniques and brown noise | System and security |
 | --- | --- |
-| ![Дыхание](screenshots/03-breathe.png) | ![Система](screenshots/03-system.png) |
+| ![Breathing](screenshots/03-breathe.png) | ![System](screenshots/03-system.png) |
 
-| Первый запуск | Телефон |
+| First run | Phone |
 | --- | --- |
-| ![Первый запуск](screenshots/04-onboarding.png) | ![Телефон](screenshots/mobile/01-focus.png) |
+| ![First run](screenshots/04-onboarding.png) | ![Phone](screenshots/mobile/01-focus.png) |
 
-Интерфейс на снимках — английский: это язык по умолчанию, остальные три переключаются в «Системе». Все скриншоты сняты на демонстрационном профиле — это не чьи-то настоящие записи.
+The interface in the shots is English, which is the default, and the other three switch in System. Every screenshot comes from a demo profile, so none of it is anybody's real diary.
 
-## Быстрый старт
+## Quick start
 
-**Онлайн.** https://averageuserr42.github.io/flowcore/ — постоянный адрес: его можно один раз добавить на экран «Домой» и не трогать. Своя копия — по шагам ниже.
+**Online.** https://averageuserr42.github.io/flowcore/ is a permanent address: add it to your home screen once and forget it. Your own copy is described below.
 
-**Локально.** Скачай папку и открой `flowcore.html` двойным кликом: без сервера всё работает, кроме установки на телефон (для PWA нужен http(s)).
+**Locally.** Download the folder and open `flowcore.html` with a double click. Everything works without a server except installing it as an app, which needs http(s).
 
-**С сервером и адресом для телефона.**
+**With a server and an address for your phone.**
 
 ```bash
-python serve.py            # http://localhost:8088, ничего не кэшируется
-python serve.py --open     # то же, но сразу откроет браузер
-python serve.py --tunnel   # временный https-адрес, чтобы поставить PWA на телефон
-python serve.py --lan      # доступ в домашней сети по http (PWA не установится)
+python serve.py            # http://localhost:8088, nothing cached
+python serve.py --open     # the same, and it opens the browser
+python serve.py --tunnel   # a temporary https address for installing the PWA on a phone
+python serve.py --lan      # home network access over http (the PWA will not install)
 ```
 
-На Windows то же самое делает `FlowCore.cmd` — двойной клик вместо терминала.
+On Windows, `FlowCore.cmd` does the same from a double click.
 
-## Публикация своей копии
+## Publishing your own copy
 
-1. Форк или свой репозиторий с этими файлами в корне.
-2. Settings → Pages → Source: **Deploy from a branch**, ветка — та, которую создал GitHub (`main` у новых репозиториев, `master` если назвал так), папка `/ (root)`.
-3. Через минуту приложение живёт по адресу `https://USERNAME.github.io/REPO/`.
+1. Fork, or create a repository with these files at the root.
+2. Settings → Pages → Source: **Deploy from a branch**, then the branch GitHub created (`main` for new repositories, `master` if you named it that), folder `/ (root)`.
+3. A minute later the app lives at `https://USERNAME.github.io/REPO/`.
 
-Файл `index.html` нужен, чтобы адрес без имени файла открывался сразу: Pages отдаёт папку, а приложение — один `flowcore.html`.
+`index.html` exists so that an address without a file name opens the app: Pages serves a folder, and the app is one `flowcore.html`.
 
-## Структура
+## Layout
 
-| Путь | Что это |
+| Path | What it is |
 | --- | --- |
-| `flowcore.html` | всё приложение: разметка, стили, логика, шрифт в base64 |
-| `index.html` | редирект на `flowcore.html` для GitHub Pages |
-| `serve.py` | локальный сервер; `--tunnel` поднимает временный https для телефона |
-| `FlowCore.cmd` | запуск сервера двойным кликом в Windows |
-| `sw.js`, `manifest.webmanifest`, `icon-*.png` | офлайн-оболочка и установка на телефон |
-| `tests/run.js` | проверки логики без браузера |
-| `.github/workflows/tests.yml` | прогон этих проверок на каждый push и pull request |
-| `ETHICS.md` | позиция автора: для чего этот код не предназначен |
-| `screenshots/` | снимки для README |
+| `flowcore.html` | the whole app: markup, styles, logic and a font in base64 |
+| `index.html` | redirect to `flowcore.html` for GitHub Pages |
+| `serve.py` | local server; `--tunnel` brings up a temporary https address for a phone |
+| `FlowCore.cmd` | starts the server with a double click on Windows |
+| `sw.js`, `manifest.webmanifest`, `icon-*.png` | offline shell and phone installation |
+| `tests/run.js` | logic checks without a browser |
+| `.github/workflows/tests.yml` | runs those checks on every push and pull request |
+| `ETHICS.md` | the author's position on what this code is not for |
+| `screenshots/` | the images in this README |
 
-## Тесты
+## Tests
 
 ```bash
 node tests/run.js
 ```
 
-Сейчас **348 проверок**: недельный ролловер и архив, миграция старых бэкапов, замок, дневной потолок, уровень и скины, резерв, бонус отдыха, методики дыхания и фазы, шум с общим выключателем звука, экспорт в Markdown, редактор сфер, интервью первого запуска, словарь на четыре языка (все ключи из разметки и кода на месте, склонения через `Intl.PluralRules`). Тесты вырезают скрипт из настоящего `flowcore.html`, поэтому проверяют именно тот файл, который открывает браузер.
+There are **348 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap, level and skins, the reserve, the rest bonus, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
-Те же проверки запускаются на GitHub Actions при каждом push и pull request — файл `.github/workflows/tests.yml`. Сборки нет, поэтому шагов всего три: checkout, Node, `node tests/run.js`.
+The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
-## Ограничения
+## Limits
 
-- Интерфейс на четырёх языках — русский, украинский, английский, немецкий. Новый язык — это ещё одна колонка в словаре, но готового перевода на другие пока нет.
-- Данные живут в одном браузере: очистка профиля или «сайт-данных» их удалит. Раз в неделю стоит скачивать бэкап JSON.
-- Синхронизации между устройствами нет — это осознанно, чтобы не появлялось сервера и аккаунта.
-- Всё в одном файле: правки удобны, но файл уже большой — около 306 КБ, в gzip примерно 90 КБ.
+- Four interface languages: Russian, Ukrainian, English, German. Another language is one more column in the dictionary, but no other translation exists yet.
+- Data lives in one browser. Clearing the profile or the site data removes it, so download a JSON backup every week or so.
+- There is no sync between devices, on purpose, so that no server and no account appear.
+- Everything is one file. Edits stay convenient, but the file is already large: about 306 KB, roughly 90 KB over the wire with gzip.
 
-## Лицензия
+## License
 
-MIT — бери, меняй, используй, публикуй; единственное условие — сохранить текст лицензии. См. [LICENSE](LICENSE).
+MIT: take it, change it, use it, publish it. The only condition is keeping the license text. See [LICENSE](LICENSE).
 
-Отдельно лежит [ETHICS.md](ETHICS.md) — позиция автора: код не предназначен для государственных органов, армии, спецслужб и полиции, госкомпаний, политических организаций и подрядчиков оборонки. Это **заявление, а не условие лицензии**: MIT даёт разрешение без ограничений, и этот файл его не сужает — публичный однофайловый проект всё равно невозможно проверить на «кто скачал». Люди при этом приглашаются независимо от страны и гражданства: линия проведена по структурам, а не по паспортам.
+[ETHICS.md](ETHICS.md) sits next to it as the author's position: this code is not meant for government bodies, armed forces, intelligence services and police, state-owned companies, political organisations, or defence contractors. It is **a statement, not a license condition**: MIT grants permission without restrictions and this file does not narrow it, because a public single-file project cannot check who downloaded it anyway. People are welcome regardless of country and citizenship, since the line is drawn at institutions and not at passports.
