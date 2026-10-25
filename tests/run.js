@@ -792,9 +792,12 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('словарь: ключи методик дыхания есть', missingModes, []);
   check('словарь: карта методик покрывает весь набор', q('Object.keys(BREATHE_MODE_KEYS).join()'), q('BREATHE_MODES.join()'));
   // Подсказка, запись и подписи фаз живут в самих методиках — сканер их не видит
-  const phaseKeys = q('BREATHE_MODES.map(key => BREATHE_PROTOCOLS[key]).reduce((out, proto) => out.concat([proto.guide, proto.log], proto.phases.map(p => p.label)), [])');
+  const phaseKeys = q('BREATHE_MODES.map(key => BREATHE_PROTOCOLS[key]).reduce((out, proto) => out.concat([proto.guide, proto.hint, proto.log], proto.phases.map(p => p.label)), [])');
   const missingPhase = phaseKeys.filter(key => q(`Object.prototype.hasOwnProperty.call(STRINGS, ${JSON.stringify(key)})`) !== true);
   check('словарь: ключи фаз и подсказок дыхания есть', missingPhase, []);
+  // Подсказка над орбом принадлежит методике: «6 спокойных циклов» над
+  // пятиминутным вздохом — обещание чужого протокола
+  check('дыхание: у каждой методики своя подсказка', q('BREATHE_PROTOCOLS.exhale.hint !== BREATHE_PROTOCOLS.sigh.hint'), true);
 
   check('дыхание: методика по умолчанию', q('state.breatheMode'), 'exhale');
   check('дыхание: на старте часовая подсказка', q("document.getElementById('breatheGuideText').textContent"), q("t('breathe.guide')"));
@@ -806,6 +809,7 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('дыхание: методика запомнилась', q('state.breatheMode'), 'sigh');
   check('дыхание: орб пересчитан на пять минут', q("document.getElementById('breatheSecondsText').textContent"), '5:00');
   check('дыхание: подсказка сменилась', q("document.getElementById('breatheGuideText').textContent"), q("t('breathe.guide.sigh')"));
+  check('дыхание: текст над орбом тоже из методики', q("document.getElementById('breatheHint').textContent"), q("t('breathe.hint.sigh')"));
   check('дыхание: первая фаза вздоха', q('breathePhaseKey(0)'), 'breathe.sigh.in');
   check('дыхание: добор воздуха', q('breathePhaseKey(2500)'), 'breathe.sigh.top');
   check('дыхание: длинный выдох ртом', q('breathePhaseKey(5000)'), 'breathe.sigh.out');

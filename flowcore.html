@@ -1513,7 +1513,7 @@
       <div class="glow-card" style="text-align: center; align-items: center;">
         <h2 class="card-heading" data-i18n="breathe.title">Снятие давления в груди</h2>
         <p class="card-subtext" style="max-width: 460px;">
-          <span data-i18n="breathe.hint">Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.</span>
+          <span id="breatheHint" data-i18n="breathe.hint">Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.</span>
         </p>
         <div id="breatheModeRow" class="pill-row" role="group" data-i18n-aria="breathe.modes.aria" aria-label="Методика дыхания" style="justify-content: center; margin-bottom: 2px;"></div>
         <div id="breatheOrb" class="timer-orb" style="width: 136px; height: 136px; margin: 18px auto;" onclick="toggleBreathe()" role="button" tabindex="0" data-i18n-aria="breathe.aria" aria-label="Дыхание: запустить или остановить" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleBreathe(); }">
@@ -1825,6 +1825,7 @@
         totalMs: 60000,
         cycleMs: 10000,
         guide: 'breathe.guide',
+        hint: 'breathe.hint',
         log: 'breathe.log.text',
         phases: [
           { ms: 4000, label: 'breathe.inhale' },
@@ -1835,6 +1836,7 @@
         totalMs: 300000,
         cycleMs: 11000,
         guide: 'breathe.guide.sigh',
+        hint: 'breathe.hint.sigh',
         log: 'breathe.log.text.sigh',
         phases: [
           { ms: 2000, label: 'breathe.sigh.in' },
@@ -3106,6 +3108,10 @@
       const btn = document.getElementById('breatheStartBtn');
       const guide = document.getElementById('breatheGuideText');
       if (guide) guide.textContent = t(proto.guide);
+      // Подсказка над орбом тоже принадлежит методике: «6 спокойных циклов»
+      // над пятиминутным вздохом — обещание чужого протокола
+      const hint = document.getElementById('breatheHint');
+      if (hint) hint.textContent = t(proto.hint);
       // Переключатель пересобирается только при смене методики или языка:
       // renderBreathe зовётся четыре раза в секунду, пока идёт отсчёт
       const row = document.getElementById('breatheModeRow');
@@ -4552,6 +4558,7 @@
 
       // Дыхание
       'breathe.title': ['Снятие давления в груди', 'Зняття тиску в грудях', 'Releasing pressure in the chest', 'Druck in der Brust lösen'],
+      'breathe.hint.sigh': ['Паника уже началась: два коротких вдоха носом и один длинный выдох ртом, пять минут подряд.', 'Паніка вже почалася: два короткі вдихи носом і один довгий видих ротом, п’ять хвилин поспіль.', 'Panic has already started: two short breaths in through the nose, one long breath out through the mouth, for five minutes.', 'Die Panik ist schon da: zwei kurze Atemzüge durch die Nase, ein langes Ausatmen durch den Mund, fünf Minuten lang.'],
       'breathe.hint': ['Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.', 'Коли з’являється клубок у грудях або поверхневе дихання: опусти плечі й зроби 6 спокійних циклів.', 'When the chest tightens or the breathing goes shallow: drop your shoulders and take 6 calm cycles.', 'Wenn die Brust eng wird oder die Atmung flach: Schultern sinken lassen und 6 ruhige Zyklen atmen.'],
       'breathe.aria': ['Дыхание: запустить или остановить', 'Дихання: запустити або зупинити', 'Breathing: start or stop', 'Atmen: starten oder stoppen'],
       'breathe.guide': ['Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)', 'Вдих носом (4 сек) | Довгий м’який видих (6 сек)', 'Breathe in through the nose (4 s) | A long soft breath out (6 s)', 'Durch die Nase einatmen (4 s) | Lang und weich ausatmen (6 s)'],
