@@ -3463,6 +3463,7 @@ ${rawText}` }] }]
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
             <input class="clean-input" style="flex: 1;" value="${escapeHtml(sp.name)}"
               aria-label="Название сферы ${i + 1}"
+              oninput="queueSphereEdit(${i}, 'name', this.value)"
               onchange="updateSphere(${i}, 'name', this.value)" />
             <button class="pill-btn" onclick="removeSphere(${i})"
               title="Удалить сферу" aria-label="Удалить сферу ${escapeHtml(sp.name)}">✖</button>
@@ -3470,15 +3471,24 @@ ${rawText}` }] }]
           ${['micro', 'draft', 'wave'].map(mode => `
             <label class="sphere-edit-label">${MODE_LABELS[mode]}</label>
             <textarea class="clean-input sphere-edit-text" rows="2"
+              oninput="queueSphereEdit(${i}, 'task.${mode}', this.value)"
               onchange="updateSphere(${i}, 'task.${mode}', this.value)">${escapeHtml(sp.tasks[mode])}</textarea>
           `).join('')}
           ${[0, 1, 2].map(step => `
             <label class="sphere-edit-label">Первый шаг ${step + 1}</label>
             <input class="clean-input" value="${escapeHtml(sp.steps[step] || '')}"
+              oninput="queueSphereEdit(${i}, 'step.${step}', this.value)"
               onchange="updateSphere(${i}, 'step.${step}', this.value)" />
           `).join('')}
         </div>
       `).join('');
+    }
+    // Правка сохраняется через короткую паузу: иначе каждый символ писал бы
+    // весь дневник на диск, а без этого закрытая вкладка съедала бы текст
+    let sphereEditTimer = null;
+    function queueSphereEdit(index, path, value) {
+      clearTimeout(sphereEditTimer);
+      sphereEditTimer = setTimeout(() => updateSphere(index, path, value), 400);
     }
     function updateSphere(index, path, value) {
       if (!state || !Array.isArray(state.spheres)) return;
