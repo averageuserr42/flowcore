@@ -332,6 +332,15 @@
     @media (prefers-reduced-motion: reduce) {
       .level-badge.level-up { animation: none; }
     }
+    .rest-line {
+      margin-top: 6px;
+      font-size: 12.5px;
+      color: var(--green-title);
+      opacity: 0.85;
+    }
+    .rest-line:empty {
+      display: none;
+    }
     .quota-dots {
       display: inline-flex;
       gap: 3px;
@@ -1291,6 +1300,7 @@
               </div>
             </div>
             <div id="todayLine" class="today-line"></div>
+            <div id="restLine" class="rest-line"></div>
             <div id="continueRow" class="continue-row hidden">
               <div id="continueText" class="continue-text"></div>
               <div class="continue-actions">
@@ -1600,6 +1610,10 @@
     const DAY_MS = 24 * 60 * 60 * 1000;
     const VAULT_ITERATIONS = 150000;
     const TIMER_GATE_MINUTES = 5;
+    // Отдых: заряд даётся за спокойный вчерашний день или за раннюю остановку,
+    // и тратится как +1 очко внутри дневного потолка, а не сверх него.
+    const REST_CAP = 3;
+    const REST_LIGHT_DAY = 6;
     const XP_PER_LEVEL = 10;
     // Скин — это только палитра. Набор держим одним словарём, чтобы
     // нормализация, меню и атрибут на <html> не могли разойтись.
@@ -1797,6 +1811,9 @@
         firstStep: '',
         lastStop: null,
         skin: storedSkin(),
+        restBonus: 0,
+        lastRestCheckDay: '',
+        restBreathDay: '',
         weeks: [],
         timer: defaultTimer(modeTimers.draft * 60000),
         points: 2,
@@ -1925,6 +1942,9 @@
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
         lastStop: normalizeLastStop(raw.lastStop),
         skin: normalizeSkin(raw.skin || storedSkin()),
+        restBonus: Math.max(0, Math.min(REST_CAP, Number(raw.restBonus) || 0)),
+        lastRestCheckDay: typeof raw.lastRestCheckDay === 'string' ? raw.lastRestCheckDay : '',
+        restBreathDay: typeof raw.restBreathDay === 'string' ? raw.restBreathDay : '',
         weeks: dedupeWeeks(weeks),
         timer: normalizeTimer(raw.timer)
       };
@@ -2141,10 +2161,15 @@
       return true;
     }
     function checkWeekRollover() {
-      if (!ensureCurrentWeek()) return false;
+      const rolled = ensureCurrentWeek();
+      // Заряд отдыха начисляется тут же: иначе в открытой с полуночи вкладке
+      // он появится только после перезагрузки
+      const rested = syncRestBonus();
+      if (!rolled && !rested) return false;
       saveState();
       renderAll();
-      flashMessage('Новая неделя: счет с нуля, прошлая ушла в архив');
+      if (rolled) flashMessage('Новая неделя: счет с нуля, прошлая ушла в архив');
+      else flashMessage('Заряд отдыха: +1');
       return true;
     }
     async function saveState() {
@@ -2298,6 +2323,13 @@
       box.textContent = pts >= DAILY_CAP
         ? `${head} · ${pts} очк. — день закрыт, записи идут без очков`
         : `${head} · ${pts} из ${DAILY_CAP} очк.`;
+      const restLine = document.getElementById('restLine');
+      if (restLine) {
+        const charges = Number(state.restBonus) || 0;
+        restLine.textContent = charges
+          ? `⚡ Отдых: ${charges} ${charges === 1 ? 'заряд' : 'заряда'} — +1 к ${charges === 1 ? 'следующему шагу' : 'следующим шагам'}`
+          : '';
+      }
     }
     // Активный пресет подсвечивается, свой размер показывается в поле
     function renderTimerPresets() {
@@ -2536,6 +2568,36 @@
       const want = Math.max(0, Math.floor(Number(requested) || 0));
       return Math.min(want, remainingPointsToday());
     }
+    // --- БОНУС ОТДЫХА ---
+    // Один заряд за спокойный вчерашний день или за раннюю остановку.
+    // Считается раз в день при запуске: без отметки дня начисление
+    // повторялось бы на каждой перерисовке.
+    function dayPointsOf(logs, key) {
+      return logs
+        .filter(log => dayKey(new Date(log.ts)) === key)
+        .reduce((sum, log) => sum + (Number(log.pts) || 0), 0);
+    }
+    function allStoredLogs(target) {
+      const archived = (target.weeks || []).reduce((list, week) => list.concat(week.logs || []), []);
+      return (target.logs || []).concat(archived);
+    }
+    function syncRestBonus(target = state, now = new Date()) {
+      if (!target) return false;
+      const today = dayKey(now);
+      if (target.lastRestCheckDay === today) return false;
+      const firstRun = !target.lastRestCheckDay;
+      target.lastRestCheckDay = today;
+      // На первом запуске начислять нечего: отдыхать ещё было не от чего
+      if (firstRun) return false;
+      const logs = allStoredLogs(target);
+      const yesterdayKey = dayKey(addDays(now, -1));
+      const yesterdayLogs = logs.filter(log => dayKey(new Date(log.ts)) === yesterdayKey);
+      const yesterdayPts = dayPointsOf(logs, yesterdayKey);
+      const stoppedEarly = yesterdayLogs.some(log => (log.type || inferLogType(log.kind, log.text)) === 'stop');
+      if (yesterdayPts > REST_LIGHT_DAY && !stoppedEarly) return false;
+      target.restBonus = Math.min(REST_CAP, (Number(target.restBonus) || 0) + 1);
+      return true;
+    }
     // --- МОСТ К СЛЕДУЮЩЕЙ СЕССИИ ---
     // Прошлая остановка показывается один раз на новый день: один клик
     // поднимает нужную сферу и сразу запускает 5 минут.
@@ -2603,11 +2665,21 @@
       flashMessage('Подсказка убрана до следующей остановки');
     }
     // --- LOGS & DIARY ---
-    function addLogEntry(kind, text, pts, type, spentMs) {
+    function addLogEntry(kind, text, pts, type, spentMs, options) {
       checkWeekRollover();
+      const opts = options || {};
       const now = new Date();
       const wanted = Math.max(0, Math.floor(Number(pts) || 0));
-      const points = cappedPoints(wanted);
+      const kindOf = type || 'note';
+      // Заряд тратится только если в дне есть место именно под него,
+      // иначе он сгорел бы впустую, урезанный потолком.
+      const canSpendBonus = opts.useRestBonus !== false
+        && (kindOf === 'action' || kindOf === 'stop')
+        && wanted > 0
+        && (Number(state.restBonus) || 0) > 0
+        && remainingPointsToday() > wanted;
+      if (canSpendBonus) state.restBonus = Math.max(0, (Number(state.restBonus) || 0) - 1);
+      const points = cappedPoints(wanted + (canSpendBonus ? 1 : 0));
       state.points += points;
       state.logs.unshift({
         id: nextLogId(),
@@ -2880,8 +2952,19 @@ ${rawText}` }] }]
       renderBreathe();
     }
     function completeBreathingStep() {
-      const awarded = addLogEntry('Дыхательная разгрузка', '60 секунд спокойного дыхания при давлении в груди', 1, 'action');
-      flashMessage(awarded ? 'Разгрузка записана (+1)' : 'Разгрузка записана. День закрыт — без очков');
+      // Разгрузка сама не тратит заряд отдыха — она его зарабатывает
+      const awarded = addLogEntry('Дыхательная разгрузка', '60 секунд спокойного дыхания при давлении в груди', 1, 'action', 0, { useRestBonus: false });
+      const today = dayKey(new Date());
+      const canCharge = state.restBreathDay !== today && (Number(state.restBonus) || 0) < REST_CAP;
+      if (canCharge) {
+        state.restBonus = (Number(state.restBonus) || 0) + 1;
+        state.restBreathDay = today;
+        saveState();
+        renderAll();
+      }
+      flashMessage(canCharge
+        ? `Разгрузка записана, зарядов отдыха: ${state.restBonus}`
+        : (awarded ? 'Разгрузка записана (+1)' : 'Разгрузка записана. День закрыт — без очков'));
     }
     // --- SYSTEM & ENGINE HEART CONTROLS ---
     function toggleHeartEngine() {
@@ -3443,6 +3526,7 @@ ${rawText}` }] }]
     function startApp() {
       if (!state) return;
       applySkin(state.skin);
+      syncRestBonus();
       if (!appStarted) {
         appStarted = true;
         setInterval(tickTimers, 250);

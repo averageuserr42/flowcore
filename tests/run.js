@@ -481,6 +481,59 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('но новый выбор снова заперт', q('skinUnlocked("cyber")'), false);
 }
 
+// --- 19. Бонус отдыха ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('отдых: потолок зарядов — 3', q('REST_CAP'), 3);
+  check('отдых: лёгкий день — до 6 очков', q('REST_LIGHT_DAY'), 6);
+  q("state.logs = []; state.weeks = []; state.restBonus = 0; state.lastRestCheckDay = '';");
+  check('отдых: первый запуск ничего не даёт', q('syncRestBonus(state, new Date(2026,9,24,12,0))'), false);
+  check('отдых: отметка дня поставлена', q('state.lastRestCheckDay'), '2026-10-24');
+  check('отдых: зарядов на старте 0', q('state.restBonus'), 0);
+  check('отдых: второй раз в тот же день молчит', q('syncRestBonus(state, new Date(2026,9,24,20,0))'), false);
+
+  q(`state.logs = [{ id: 1, ts: new Date(2026,9,23,12,0).getTime(), time: '23.10 12:00', kind: 'k', text: 'x', pts: 5 }];
+     state.restBonus = 0; state.lastRestCheckDay = '2026-10-23';`);
+  check('отдых: спокойный вчерашний день даёт заряд', q('syncRestBonus(state, new Date(2026,9,24,12,0))'), true);
+  check('отдых: заряд начислен', q('state.restBonus'), 1);
+
+  q(`state.logs = [{ id: 2, ts: new Date(2026,9,23,12,0).getTime(), time: '23.10 12:00', kind: 'k', text: 'x', pts: 7, type: 'action' }];
+     state.restBonus = 0; state.lastRestCheckDay = '2026-10-23';`);
+  check('отдых: тяжёлый день без остановки — без заряда', q('syncRestBonus(state, new Date(2026,9,24,12,0))'), false);
+  check('отдых: зарядов 0', q('state.restBonus'), 0);
+
+  q(`state.logs = [{ id: 3, ts: new Date(2026,9,23,12,0).getTime(), time: '23.10 12:00', kind: 'k', text: 'x', pts: 7, type: 'stop' }];
+     state.restBonus = 0; state.lastRestCheckDay = '2026-10-23';`);
+  check('отдых: тяжёлый день с ранней остановкой — заряд есть', q('syncRestBonus(state, new Date(2026,9,24,12,0))'), true);
+
+  q("state.logs = []; state.restBonus = 3; state.lastRestCheckDay = '2026-10-23';");
+  q('syncRestBonus(state, new Date(2026,9,24,12,0));');
+  check('отдых: больше трёх зарядов не копится', q('state.restBonus'), 3);
+
+  q('state.logs = []; state.weeks = []; state.points = 0; state.restBonus = 1;');
+  check('расход: шаг с зарядом даёт 2 очка', q("addLogEntry('k', 't', 1, 'action')"), 2);
+  check('расход: заряд списан', q('state.restBonus'), 0);
+  check('расход: в записи стоит начисленное', q('state.logs[0].pts'), 2);
+
+  q("state.logs = [{ id: 9, ts: Date.now(), time: '24.10 12:00', kind: 'k', text: 'y', pts: 7 }]; state.points = 0; state.restBonus = 1;");
+  check('расход: урезанный шаг не тратит заряд', q("addLogEntry('k', 'z', 2, 'action')"), 1);
+  check('расход: заряд цел', q('state.restBonus'), 1);
+
+  q("state.logs = []; state.weeks = []; state.points = 0; state.restBonus = 0; state.restBreathDay = '';");
+  q('completeBreathingStep();');
+  check('дыхание: заряд начислен', q('state.restBonus'), 1);
+  check('дыхание: очко за разгрузку на месте', q('state.points'), 1);
+  q('completeBreathingStep();');
+  check('дыхание: второй заряд за день не дают', q('state.restBonus'), 1);
+
+  const seeded = makeContext(NOW, {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 0, goal: 12,
+    skin: 'emerald', restBonus: 9, logs: [], weeks: [],
+  });
+  check('отдых: мусорное число зарядов ужато', vm.runInContext('state.restBonus', seeded.ctx), 3);
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
