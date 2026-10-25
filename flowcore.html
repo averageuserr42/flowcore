@@ -1947,6 +1947,14 @@
       }
       return timer;
     }
+    // Стартовый набор нового профиля собирается из словаря: DEFAULT_SPHERES —
+    // русский набор и живёт только для миграции старых данных, а новый человек
+    // в английском интерфейсе видел до конца интервью «Код и учеба»
+    function starterSpheres() {
+      const own = ONBOARD_TEMPLATES.find(item => item.key === 'own');
+      const sphere = own ? own.build().sphere : DEFAULT_SPHERES[0];
+      return [normalizeSphere(sphere, DEFAULT_SPHERES[0])];
+    }
     function createInitialState() {
       const now = new Date();
       return Object.assign(emptyWeek(now), {
@@ -1963,7 +1971,7 @@
         firstStep: '',
         lastStop: null,
         skin: storedSkin(),
-        spheres: normalizeSpheres(null),
+        spheres: starterSpheres(),
         restBonus: 0,
         lastRestCheckDay: '',
         restBreathDay: '',

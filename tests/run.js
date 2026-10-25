@@ -22,10 +22,10 @@ function extractAppScript(source) {
 
 const src = extractAppScript(html);
 
-function makeContext(fixedTs, seed) {
+function makeContext(fixedTs, seed, lang = 'ru') {
   const store = {};
   // Язык в тестах зафиксирован: они проверяют тексты, и от окружения это не зависит
-  store['flowCoreLangV1'] = 'ru';
+  store['flowCoreLangV1'] = lang;
   if (seed !== undefined) store['flowCorePortfolioV5'] = JSON.stringify(seed);
 
   const el = () => ({
@@ -88,6 +88,11 @@ function check(name, actual, expected) {
 
 // Фиксированное "сейчас": суббота 24 окт 2026, полдень (локальное время)
 const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
+
+// Новый профиль стартует с одной нейтральной сферой, поэтому тестам моста и
+// переключения нужен явный многосферный профиль: без массива сфер загрузка
+// отдаёт прежний набор из кода — тот же, что раньше был стартовым
+const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks: [], onboarded: true };
 
 // --- 1. Границы ISO-недели ---
 {
@@ -310,7 +315,7 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   const { ctx } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
   q("state.mode = 'draft'; state.logs = []; state.points = 0; pickFirstStep(0);");
-  check('первый шаг выбран', q('state.firstStep'), 'Открыть проект и вчерашний файл');
+  check('первый шаг выбран', q('state.firstStep'), 'Достать нужное');
   q('completeActiveTask();');
   check('шаг попал в текст записи', q("state.logs[0].text.includes('первый шаг')"), true);
   check('после записи шаг пуст', q('state.firstStep'), '');
@@ -370,7 +375,7 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('после потолка осталось 0', q('remainingPointsToday()'), 0);
   q('state.timer.ranMs = 60000; completeActiveTask();');
   check('сверх потолка очков не дают', q('state.points'), 8);
-  check('но запись сохранена', q('state.logs[0].kind'), 'Код и учеба');
+  check('но запись сохранена', q('state.logs[0].kind'), 'Своё дело');
   check('в записи ноль очков', q('state.logs[0].pts'), 0);
   check('дневник не потерял отметку', q('state.logs.length'), 4);
   q('state.logs = []; state.points = 0; state.timer.ranMs = 0; completeActiveTask();');
@@ -393,7 +398,7 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
 
 // --- 16. Мост к следующей сессии ---
 {
-  const first = makeContext(NOW);
+  const first = makeContext(NOW, MULTI_SPHERE_PROFILE);
   const q1 = expr => vm.runInContext(expr, first.ctx);
   check('без остановки моста нет', q1('bridgeDue()'), false);
   q1('state.logs = []; state.points = 0; state.sphereIndex = 2; state.mode = \'wave\';');
@@ -621,15 +626,17 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
 {
   const { ctx, store } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
-  check('сферы: три по умолчанию', q('spheresOf().length'), 3);
-  check('сферы: первая — дефолтная', q('spheresOf()[0].name'), 'Код и учеба');
-  check('сферы: активная по индексу', q('currentSphere().name'), 'Код и учеба');
+  // Новый профиль стартует с одной нейтральной сферой из словаря, а не
+  // с русским набором из кода: тот остался только для миграции
+  check('сферы: стартовый набор — одна сфера', q('spheresOf().length'), 1);
+  check('сферы: стартовая сфера на языке интерфейса', q('spheresOf()[0].name'), 'Своё дело');
+  check('сферы: активная по индексу', q('currentSphere().name'), 'Своё дело');
 
   check('сферы: пустой массив откатывается к дефолту', q('normalizeSpheres([]).length'), 3);
   check('сферы: мусор вместо массива', q('normalizeSpheres("нет").length'), 3);
   check('сферы: дырки в сфере заполняются', q('normalizeSpheres([{ name: "Своё" }])[0].tasks.draft'), q('DEFAULT_SPHERES[0].tasks.draft'));
   check('сферы: больше двенадцати не берём', q('normalizeSpheres(new Array(20).fill({ name: "x" })).length'), 12);
-  check('сферы: индекс вне диапазона даёт первую', q('state.sphereIndex = 99; currentSphere().name'), 'Код и учеба');
+  check('сферы: индекс вне диапазона даёт первую', q('state.sphereIndex = 99; currentSphere().name'), 'Своё дело');
   q('state.sphereIndex = 0;');
 
   q("updateSphere(0, 'task.draft', 'Мой текст задачи');");
@@ -643,10 +650,10 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('правка: первый шаг изменился', q('spheresOf()[0].steps[1]'), 'Открыть конспект');
 
   q('addSphere();');
-  check('добавление: сфер стало четыре', q('spheresOf().length'), 4);
+  check('добавление: сфер стало две', q('spheresOf().length'), 2);
   check('добавление: новая выбрана', q('currentSphere().name'), 'Новая сфера');
-  q('removeSphere(3);');
-  check('удаление: сфер снова три', q('spheresOf().length'), 3);
+  q('removeSphere(1);');
+  check('удаление: сфер снова одна', q('spheresOf().length'), 1);
   q('state.spheres = [state.spheres[0]]; removeSphere(0);');
   check('удаление: последнюю сферу не удалить', q('state.spheres.length'), 1);
 
@@ -713,6 +720,23 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   });
   check('старые данные: интервью не всплывает', vm.runInContext('state.onboarded', legacy.ctx), true);
   check('старые данные: дефолтные сферы сохранены', vm.runInContext('spheresOf()[0].name', legacy.ctx), 'Код и учеба');
+
+  // Новый профиль не должен нести в себе русский текст из кода: до конца
+  // интервью он виден за модалкой, а после пропуска остаётся насовсем
+  const en = makeContext(NOW, undefined, 'en');
+  const qe = expr => vm.runInContext(expr, en.ctx);
+  check('старт: английский профиль начинает по-английски', qe('spheresOf()[0].name'), 'My own thing');
+  check('старт: в стартовом наборе нет кириллицы', qe('/[а-яёіїєґ]/i.test(JSON.stringify(spheresOf()))'), false);
+  check('старт: и задачи из словаря', qe('spheresOf()[0].tasks.micro'), qe("t('tpl.own.micro')"));
+  const de = makeContext(NOW, undefined, 'de');
+  check('старт: немецкий профиль — по-немецки', vm.runInContext('spheresOf()[0].name', de.ctx), 'Meine eigene Sache');
+  // Смена языка до конца интервью пересобирает стартовый набор
+  const sw = makeContext(NOW, undefined, 'en');
+  check('старт: смена языка пересобирает набор', vm.runInContext("uiLang = 'de'; starterSpheres()[0].name", sw.ctx), 'Meine eigene Sache');
+  // Старый профиль без сфер получает прежний набор: миграция не переводится
+  const legacyNoSpheres = makeContext(NOW, { version: 6, points: 0, goal: 12, logs: [], weeks: [], onboarded: true }, 'en');
+  check('старт: старый профиль без сфер не переводим', vm.runInContext('spheresOf()[0].name', legacyNoSpheres.ctx), 'Код и учеба');
+  check('старт: и остальных двух не теряет', vm.runInContext('spheresOf().length', legacyNoSpheres.ctx), 3);
 }
 
 // --- 24. Скин на первой отрисовке (скрипт в шапке, до загрузки приложения) ---
