@@ -1,0 +1,25 @@
+# Прогон тестов на каждый push и pull request.
+# Тесты — один файл на Node без зависимостей, поэтому шагов немного:
+# checkout, Node, запуск. Сборки нет: приложение — это flowcore.html.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  logic:
+    name: Logic tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run tests/run.js
+        run: node tests/run.js
