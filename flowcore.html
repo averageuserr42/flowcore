@@ -3585,7 +3585,7 @@
         if (lockNowBtn) lockNowBtn.classList.toggle('hidden', !vault.enabled);
       }
       const badge = document.getElementById('encryptStatusBadge');
-      if (badge) badge.textContent = vault.enabled ? 'AES-256-GCM · замок включён' : 'Локально, без пароля';
+      if (badge) badge.textContent = vault.enabled ? t('lock.badge.locked') : t('lock.badge.open');
 
       const notifyBtn = document.getElementById('notifyToggleBtn');
       if (notifyBtn) {
@@ -4310,6 +4310,8 @@
       'md.section.signals': ['Телесные сигналы', 'Тілесні сигнали', 'Body signals', 'Körpersignale'],
       'md.section.stops': ['Ранний стоп и саморегуляция', 'Рання зупинка й саморегуляція', 'Early stops and self-regulation', 'Frühe Stopps und Selbstregulation'],
       'diary.export.done': ['Файл {name} скачан', 'Файл {name} завантажено', 'Saved {name}', '{name} gespeichert'],
+      'lock.badge.open': ['Локально, без пароля', 'Локально, без пароля', 'Local, no password', 'Lokal, ohne Passwort'],
+      'lock.badge.locked': ['AES-256-GCM · замок включён', 'AES-256-GCM · замок увімкнено', 'AES-256-GCM · lock is on', 'AES-256-GCM · Schloss aktiv'],
     };
     let uiLang = detectLang();
 
