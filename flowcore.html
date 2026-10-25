@@ -1515,17 +1515,21 @@
         <p class="card-subtext" style="max-width: 460px;">
           <span data-i18n="breathe.hint">Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.</span>
         </p>
+        <div id="breatheModeRow" class="pill-row" role="group" data-i18n-aria="breathe.modes.aria" aria-label="Методика дыхания" style="justify-content: center; margin-bottom: 2px;"></div>
         <div id="breatheOrb" class="timer-orb" style="width: 136px; height: 136px; margin: 18px auto;" onclick="toggleBreathe()" role="button" tabindex="0" data-i18n-aria="breathe.aria" aria-label="Дыхание: запустить или остановить" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleBreathe(); }">
-          <div id="breatheSecondsText" class="timer-digits" data-i18n="breathe.idleSeconds">60с</div>
+          <div id="breatheSecondsText" class="timer-digits">1:00</div>
           <div id="breathePhaseLabel" class="timer-sub" data-i18n="breathe.idle">Нажми для старта</div>
         </div>
-        <div id="breatheGuideText" style="font-size: 16px; font-weight: 500; color: var(--text-white); margin: 10px 0 22px 0;">
-          <span data-i18n="breathe.guide">Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)</span>
-        </div>
+        <div id="breatheGuideText" style="font-size: 16px; font-weight: 500; color: var(--text-white); margin: 10px 0 22px 0;">Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)</div>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
           <button id="breatheStartBtn" class="action-btn" onclick="toggleBreathe()" data-i18n="breathe.start">Запустить 60 секунд</button>
           <button class="action-btn-secondary" onclick="completeBreathingStep()" data-i18n="breathe.done.btn">Сделал разгрузку (+1)</button>
         </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 18px;">
+          <button id="breatheNoiseBtn" class="pill-btn" onclick="toggleBrownNoise()" data-i18n="breathe.noise.off">Шум: выкл</button>
+          <input id="noiseVolume" type="range" min="0" max="100" value="40" aria-label="Громкость шума" data-i18n-aria="breathe.noise.volume" oninput="setNoiseVolume(this.value)" style="width: 130px; accent-color: var(--green-title);" />
+        </div>
+        <p class="card-subtext" style="font-size: 12px; margin-top: 8px; max-width: 460px;" data-i18n="breathe.noise.hint">Коричневый шум ровным фоном — когда тишина давит. На телефоне звук обрывается, если погасить экран.</p>
       </div>
     </section>
     <!-- 4. SYSTEM SETTINGS VIEW: SINGLE CENTERED CARD (Heart Toggle, API Key, E2EE, Backup) -->
@@ -1813,6 +1817,39 @@
     let state = null;                               // появляется после загрузки или разблокировки
     let appStarted = false;
     let breatheTimer = { running: false, endsAt: 0, totalMs: 60000 };
+    // Методики дыхания: длительность, длина цикла и профиль фаз.
+    // Вздох — два вдоха носом и длинный выдох ртом: он снимает острую
+    // тревогу за один-три цикла, но имеет смысл только если дышать дольше минуты.
+    const BREATHE_PROTOCOLS = {
+      exhale: {
+        totalMs: 60000,
+        cycleMs: 10000,
+        guide: 'breathe.guide',
+        log: 'breathe.log.text',
+        phases: [
+          { ms: 4000, label: 'breathe.inhale' },
+          { ms: 6000, label: 'breathe.exhale' }
+        ]
+      },
+      sigh: {
+        totalMs: 300000,
+        cycleMs: 11000,
+        guide: 'breathe.guide.sigh',
+        log: 'breathe.log.text.sigh',
+        phases: [
+          { ms: 2000, label: 'breathe.sigh.in' },
+          { ms: 1500, label: 'breathe.sigh.top' },
+          { ms: 7500, label: 'breathe.sigh.out' }
+        ]
+      }
+    };
+    const BREATHE_MODES = ['exhale', 'sigh'];
+    const BREATHE_MODE_KEYS = { exhale: 'breathe.mode.exhale', sigh: 'breathe.mode.sigh' };
+    function normalizeBreatheMode(value) {
+      return BREATHE_MODES.indexOf(value) === -1 ? 'exhale' : value;
+    }
+    let noiseNodes = null;
+    let noiseVolume = 0.16;
     let audioCtx = null;
     let passResolver = null;
     let aiConsentGiven = false;
@@ -1928,6 +1965,7 @@
         restBonus: 0,
         lastRestCheckDay: '',
         restBreathDay: '',
+        breatheMode: 'exhale',
         reservePool: 0,
         weeks: [],
         timer: defaultTimer(modeTimers.draft * 60000),
@@ -2061,6 +2099,7 @@
         restBonus: Math.max(0, Math.min(REST_CAP, Number(raw.restBonus) || 0)),
         lastRestCheckDay: typeof raw.lastRestCheckDay === 'string' ? raw.lastRestCheckDay : '',
         restBreathDay: typeof raw.restBreathDay === 'string' ? raw.restBreathDay : '',
+        breatheMode: normalizeBreatheMode(raw.breatheMode),
         reservePool: Math.max(0, Math.min(RESERVE_CAP, Number(raw.reservePool) || 0)),
         weeks: dedupeWeeks(weeks),
         timer: normalizeTimer(raw.timer)
@@ -2321,6 +2360,9 @@
     }
     // --- VIEW NAVIGATION (Keeps main screen clean & spacious) ---
     function showSection(sec) {
+      // Шум — помощь для экрана дыхания; уходя с него, звук выключаем,
+      // иначе вкладка гудит в фоне без всякой причины
+      if (sec !== 'breathe') stopBrownNoise();
       ['main', 'diary', 'breathe', 'system'].forEach(id => {
         document.getElementById('view-' + id).classList.toggle('hidden', id !== sec);
         document.getElementById('nav-' + id).classList.toggle('active', id === sec);
@@ -2595,8 +2637,12 @@
     }
     function toggleSoundSetting() {
       state.soundEnabled = state.soundEnabled === false ? true : false;
+      // Общий выключатель звука глушит и фон, и сигнал таймера: иначе
+      // «звук выкл» значит только половину правды
+      if (state.soundEnabled === false) stopBrownNoise();
       saveState();
       renderSystem();
+      renderBreathe();
       if (state.soundEnabled) playTimerSound();
     }
     function saveFreeform(kind, pts, type) {
@@ -3032,12 +3078,51 @@
       if (breatheTimer.running) return Math.max(0, breatheTimer.endsAt - Date.now());
       return Math.max(0, breatheTimer.totalMs);
     }
+    function breatheProtocol() {
+      return BREATHE_PROTOCOLS[normalizeBreatheMode(state && state.breatheMode)];
+    }
+    // Фаза берётся из профиля методики, а не из арифметики в рендере:
+    // у вздоха три фазы вместо двух, и старое "% 10" разошлось бы с ним на первой секунде
+    function breathePhaseKey(elapsedMs) {
+      const proto = breatheProtocol();
+      let left = elapsedMs % proto.cycleMs;
+      for (const phase of proto.phases) {
+        if (left < phase.ms) return phase.label;
+        left -= phase.ms;
+      }
+      return proto.phases[0].label;
+    }
+    // Время на орбе — мм:сс: у пятиминутной методики цифра «300» ничего не говорит
+    function formatClock(ms) {
+      const total = Math.max(0, Math.ceil(ms / 1000));
+      return `${Math.floor(total / 60)}:${pad2(total % 60)}`;
+    }
     function renderBreathe() {
+      const proto = breatheProtocol();
       const ms = breatheRemainingMs();
       const orb = document.getElementById('breatheOrb');
       const secText = document.getElementById('breatheSecondsText');
       const label = document.getElementById('breathePhaseLabel');
       const btn = document.getElementById('breatheStartBtn');
+      const guide = document.getElementById('breatheGuideText');
+      if (guide) guide.textContent = t(proto.guide);
+      // Переключатель пересобирается только при смене методики или языка:
+      // renderBreathe зовётся четыре раза в секунду, пока идёт отсчёт
+      const row = document.getElementById('breatheModeRow');
+      if (row) {
+        const active = normalizeBreatheMode(state && state.breatheMode);
+        const stamp = `${active}:${currentLang()}`;
+        if (row.getAttribute('data-rendered') !== stamp) {
+          row.setAttribute('data-rendered', stamp);
+          row.innerHTML = BREATHE_MODES.map(key => {
+            const on = key === active;
+            return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}"`
+              + ` onclick="setBreatheMode('${key}')">${escapeHtml(t(BREATHE_MODE_KEYS[key]))}</button>`;
+          }).join('');
+        }
+      }
+      const noiseBtn = document.getElementById('breatheNoiseBtn');
+      if (noiseBtn) noiseBtn.textContent = t(noiseNodes ? 'breathe.noise.on' : 'breathe.noise.off');
       if (ms <= 0) {
         orb.classList.remove('orb-breathing');
         secText.textContent = t('breathe.done');
@@ -3047,32 +3132,43 @@
       }
       if (!breatheTimer.running) {
         orb.classList.remove('orb-breathing');
-        secText.textContent = t('breathe.idleSeconds');
+        secText.textContent = formatClock(proto.totalMs);
         label.textContent = t('breathe.idle');
         btn.textContent = t('breathe.start');
         return;
       }
-      secText.textContent = t('breathe.seconds', { n: Math.ceil(ms / 1000) });
-      const elapsed = Math.floor((breatheTimer.totalMs - ms) / 1000);
-      label.textContent = (elapsed % 10) < 4 ? t('breathe.inhale') : t('breathe.exhale');
+      secText.textContent = formatClock(ms);
+      label.textContent = t(breathePhaseKey(proto.totalMs - ms));
       btn.textContent = t('breathe.stop');
+    }
+    function setBreatheMode(key) {
+      const mode = normalizeBreatheMode(key);
+      if (!state || normalizeBreatheMode(state.breatheMode) === mode) return;
+      state.breatheMode = mode;
+      // Смена методики обнуляет отсчёт: продолжать чужой цикл — только путать
+      breatheTimer = { running: false, endsAt: 0, totalMs: breatheProtocol().totalMs };
+      const orb = document.getElementById('breatheOrb');
+      if (orb) orb.classList.remove('orb-breathing');
+      saveState();
+      renderBreathe();
     }
     function toggleBreathe() {
       const orb = document.getElementById('breatheOrb');
+      const proto = breatheProtocol();
       if (breatheTimer.running) {
-        breatheTimer = { running: false, endsAt: 0, totalMs: 60000 };
+        breatheTimer = { running: false, endsAt: 0, totalMs: proto.totalMs };
         orb.classList.remove('orb-breathing');
         renderBreathe();
         return;
       }
-      breatheTimer = { running: true, endsAt: Date.now() + 60000, totalMs: 60000 };
+      breatheTimer = { running: true, endsAt: Date.now() + proto.totalMs, totalMs: proto.totalMs };
       orb.classList.add('orb-breathing');
       renderBreathe();
     }
     function tickBreathe() {
       if (!breatheTimer.running) return;
       if (breatheTimer.endsAt - Date.now() <= 0) {
-        breatheTimer = { running: false, endsAt: 0, totalMs: 60000 };
+        breatheTimer = { running: false, endsAt: 0, totalMs: breatheProtocol().totalMs };
         document.getElementById('breatheOrb').classList.remove('orb-breathing');
         renderBreathe();
         playTimerSound();
@@ -3080,9 +3176,74 @@
       }
       renderBreathe();
     }
+    // --- ФОНОВЫЙ ШУМ: ГЕНЕРАЦИЯ В БРАУЗЕРЕ, БЕЗ ФАЙЛОВ И СЕТИ ---
+    // Коричневый шум — интеграл от белого: низы сильнее, верхи мягче.
+    // Хвост буфера склеен с началом кроссфейдом, иначе петля щёлкает раз в восемь секунд.
+    function brownNoiseBuffer(ctx) {
+      const length = Math.floor(ctx.sampleRate * 8);
+      const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < length; i++) {
+        last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+        data[i] = Math.max(-1, Math.min(1, last * 3));
+      }
+      const fade = Math.min(Math.floor(ctx.sampleRate * 0.2), Math.floor(length / 4));
+      for (let i = 0; i < fade; i++) {
+        const k = i / fade;
+        data[length - fade + i] = data[length - fade + i] * (1 - k) + data[i] * k;
+      }
+      return buffer;
+    }
+    function startBrownNoise() {
+      // Общий выключатель звука старше: «звук выкл» должно молчать везде
+      if (state && state.soundEnabled === false) {
+        flashMessage(t('breathe.noise.muted'));
+        return false;
+      }
+      const ctx = getAudioContext();
+      if (!ctx) return false;
+      stopBrownNoise();
+      try {
+        const source = ctx.createBufferSource();
+        source.buffer = brownNoiseBuffer(ctx);
+        source.loop = true;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1400;
+        const gain = ctx.createGain();
+        gain.gain.value = noiseVolume;
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        source.start();
+        noiseNodes = { source, gain };
+      } catch (e) {
+        noiseNodes = null;
+        return false;
+      }
+      return true;
+    }
+    function stopBrownNoise() {
+      if (!noiseNodes) return;
+      try { noiseNodes.source.stop(); } catch (e) {}
+      try { noiseNodes.source.disconnect(); } catch (e) {}
+      try { noiseNodes.gain.disconnect(); } catch (e) {}
+      noiseNodes = null;
+    }
+    function toggleBrownNoise() {
+      if (noiseNodes) stopBrownNoise();
+      else startBrownNoise();
+      renderBreathe();
+    }
+    function setNoiseVolume(value) {
+      const percent = Math.max(0, Math.min(100, Number(value) || 0));
+      noiseVolume = Math.round((percent / 100) * 40) / 100;
+      if (noiseNodes) noiseNodes.gain.gain.value = noiseVolume;
+    }
     function completeBreathingStep() {
       // Разгрузка сама не тратит заряд отдыха — она его зарабатывает
-      const awarded = addLogEntry(t('breathe.log.kind'), t('breathe.log.text'), 1, 'action', 0, { useRestBonus: false });
+      const awarded = addLogEntry(t('breathe.log.kind'), t(breatheProtocol().log), 1, 'action', 0, { useRestBonus: false });
       const today = dayKey(new Date());
       const canCharge = state.restBreathDay !== today && (Number(state.restBonus) || 0) < REST_CAP;
       if (canCharge) {
@@ -4191,7 +4352,7 @@
       'toast.nudge.snoozed': ['Напомню через неделю', 'Нагадаю за тиждень', 'I will remind you in a week', 'Ich erinnere in einer Woche'],
 
       // Дневник
-      'diary.title': ['Дневник и лог для врача', 'Щоденник і журнал для лікаря', 'Diary and a log to show a doctor', 'Tagebuch und ein Protokoll für den Arzt'],
+      'diary.title': ['Дневник и итоги недели', 'Щоденник і підсумки тижня', 'Diary and weekly review', 'Tagebuch und Wochenrückblick'],
       'diary.hint': ['Твоя внешняя память. Превращает короткие заметки в структурный отчет без потери контекста.', 'Твоя зовнішня пам’ять. Перетворює короткі нотатки на структурний звіт без втрати контексту.', 'Your external memory. Turns short notes into a structured report without losing context.', 'Dein externes Gedächtnis. Macht aus kurzen Notizen einen strukturierten Bericht, ohne den Zusammenhang zu verlieren.'],
       'diary.summary.local': ['Собрать сводку локально', 'Зібрати зведення локально', 'Build the summary locally', 'Übersicht lokal erstellen'],
       'diary.summary.ai': ['Сводка через ИИ', 'Зведення через ШІ', 'Summary via AI', 'Übersicht per KI'],
@@ -4232,7 +4393,7 @@
       'summary.title.local': ['СВОДКА ДИНАМИКИ (ЛОКАЛЬНАЯ СБОРКА БЕЗ СЕТИ):', 'ЗВЕДЕННЯ ДИНАМІКИ (ЛОКАЛЬНЕ, БЕЗ МЕРЕЖІ):', 'PROGRESS SUMMARY (BUILT LOCALLY, NO NETWORK):', 'VERLAUFSÜBERSICHT (LOKAL ERSTELLT, OHNE NETZ):'],
       'summary.section.actions': ['1. Выполненные шаги и фокус ({n}):', '1. Виконані кроки й фокус ({n}):', '1. Steps taken and focus ({n}):', '1. Gemachte Schritte und Fokus ({n}):'],
       'summary.section.signals': ['2. Зафиксированные телесные сигналы ({n}):', '2. Зафіксовані тілесні сигнали ({n}):', '2. Body signals noted ({n}):', '2. Notierte Körpersignale ({n}):'],
-      'summary.section.stops': ['3. Успешная саморегуляция и ранний стоп ({n}):', '3. Успішна саморегуляція й рання зупинка ({n}):', '3. Successful self-regulation and early stops ({n}):', '3. Gelungene Selbstregulation und frühe Stopps ({n}):'],
+      'summary.section.stops': ['3. Ранние остановки и паузы ({n}):', '3. Ранні зупинки й паузи ({n}):', '3. Early stops and pauses ({n}):', '3. Frühe Stopps und Pausen ({n}):'],
       'summary.line': [' - [{time}] {text}', ' - [{time}] {text}', ' - [{time}] {text}', ' - [{time}] {text}'],
       'summary.none.actions': [' - Записей пока нет', ' - Записів поки немає', ' - No entries yet', ' - Noch keine Einträge'],
       'summary.none.signals': [' - Явных маркеров не отмечено', ' - Явних маркерів не відзначено', ' - No clear markers noted', ' - Keine deutlichen Marker notiert'],
@@ -4249,10 +4410,10 @@
       'ai.http': ['Ошибка API ({status}): {msg}', 'Помилка API ({status}): {msg}', 'API error ({status}): {msg}', 'API-Fehler ({status}): {msg}'],
       'ai.network': ['Сетевая ошибка: {msg}', 'Мережева помилка: {msg}', 'Network error: {msg}', 'Netzwerkfehler: {msg}'],
       'ai.prompt': [
-        'Сделай краткую сводку моих записей точно в таком же формате, как локальная сборка:\nСВОДКА ДИНАМИКИ (ИИ):\n\n1. Выполненные шаги и фокус:\n - ...\n\n2. Зафиксированные телесные сигналы:\n - ...\n\n3. Успешная саморегуляция и ранний стоп:\n - ...\n\nПРАВИЛО: Пиши ТОЛЬКО чистый плоский текст без Markdown (без звездочек *, без кавычек ", без решеток #). Отвечай на русском языке.\nЗаписи:\n{logs}',
-        'Зроби коротке зведення моїх записів точно в такому самому форматі, як локальне зведення:\nЗВЕДЕННЯ ДИНАМІКИ (ШІ):\n\n1. Виконані кроки й фокус:\n - ...\n\n2. Зафіксовані тілесні сигнали:\n - ...\n\n3. Успішна саморегуляція й рання зупинка:\n - ...\n\nПРАВИЛО: Пиши ЛИШЕ чистий плаский текст без Markdown (без зірочок *, без лапок ", без решіток #). Відповідай українською мовою.\nЗаписи:\n{logs}',
-        'Make a short summary of my notes in exactly the same layout as the local build:\nPROGRESS SUMMARY (AI):\n\n1. Steps taken and focus:\n - ...\n\n2. Body signals noted:\n - ...\n\n3. Successful self-regulation and early stops:\n - ...\n\nRULE: write ONLY clean plain text without Markdown (no asterisks *, no quotes ", no hashes #). Answer in English.\nNotes:\n{logs}',
-        'Fasse meine Notizen kurz zusammen, und zwar im gleichen Aufbau wie die lokale Übersicht:\nVERLAUFSÜBERSICHT (KI):\n\n1. Gemachte Schritte und Fokus:\n - ...\n\n2. Notierte Körpersignale:\n - ...\n\n3. Gelungene Selbstregulation und frühe Stopps:\n - ...\n\nREGEL: nur reiner Text ohne Markdown (keine Sternchen *, keine Anführungszeichen ", keine Rauten #). Antworte auf Deutsch.\nNotizen:\n{logs}'
+        'Сделай краткую сводку моих записей точно в таком же формате, как локальная сборка:\nСВОДКА ДИНАМИКИ (ИИ):\n\n1. Выполненные шаги и фокус:\n - ...\n\n2. Зафиксированные телесные сигналы:\n - ...\n\n3. Ранние остановки и паузы:\n - ...\n\nПРАВИЛО: Пиши ТОЛЬКО чистый плоский текст без Markdown (без звездочек *, без кавычек ", без решеток #). Отвечай на русском языке.\nЗаписи:\n{logs}',
+        'Зроби коротке зведення моїх записів точно в такому самому форматі, як локальне зведення:\nЗВЕДЕННЯ ДИНАМІКИ (ШІ):\n\n1. Виконані кроки й фокус:\n - ...\n\n2. Зафіксовані тілесні сигнали:\n - ...\n\n3. Ранні зупинки й паузи:\n - ...\n\nПРАВИЛО: Пиши ЛИШЕ чистий плаский текст без Markdown (без зірочок *, без лапок ", без решіток #). Відповідай українською мовою.\nЗаписи:\n{logs}',
+        'Make a short summary of my notes in exactly the same layout as the local build:\nPROGRESS SUMMARY (AI):\n\n1. Steps taken and focus:\n - ...\n\n2. Body signals noted:\n - ...\n\n3. Early stops and pauses:\n - ...\n\nRULE: write ONLY clean plain text without Markdown (no asterisks *, no quotes ", no hashes #). Answer in English.\nNotes:\n{logs}',
+        'Fasse meine Notizen kurz zusammen, und zwar im gleichen Aufbau wie die lokale Übersicht:\nVERLAUFSÜBERSICHT (KI):\n\n1. Gemachte Schritte und Fokus:\n - ...\n\n2. Notierte Körpersignale:\n - ...\n\n3. Frühe Stopps und Pausen:\n - ...\n\nREGEL: nur reiner Text ohne Markdown (keine Sternchen *, keine Anführungszeichen ", keine Rauten #). Antworte auf Deutsch.\nNotizen:\n{logs}'
       ],
 
       // Копия для врача, архив и резерв
@@ -4394,11 +4555,9 @@
       'breathe.hint': ['Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.', 'Коли з’являється клубок у грудях або поверхневе дихання: опусти плечі й зроби 6 спокійних циклів.', 'When the chest tightens or the breathing goes shallow: drop your shoulders and take 6 calm cycles.', 'Wenn die Brust eng wird oder die Atmung flach: Schultern sinken lassen und 6 ruhige Zyklen atmen.'],
       'breathe.aria': ['Дыхание: запустить или остановить', 'Дихання: запустити або зупинити', 'Breathing: start or stop', 'Atmen: starten oder stoppen'],
       'breathe.guide': ['Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)', 'Вдих носом (4 сек) | Довгий м’який видих (6 сек)', 'Breathe in through the nose (4 s) | A long soft breath out (6 s)', 'Durch die Nase einatmen (4 s) | Lang und weich ausatmen (6 s)'],
-      'breathe.start': ['Запустить 60 секунд', 'Запустити 60 секунд', 'Start 60 seconds', '60 Sekunden starten'],
+      'breathe.start': ['Запустить', 'Запустити', 'Start', 'Starten'],
       'breathe.stop': ['Остановить', 'Зупинити', 'Stop', 'Stoppen'],
       'breathe.idle': ['Нажми для старта', 'Натисни для старту', 'Tap to start', 'Zum Starten tippen'],
-      'breathe.idleSeconds': ['60с', '60с', '60s', '60 s'],
-      'breathe.seconds': ['{n}с', '{n}с', '{n}s', '{n} s'],
       'breathe.inhale': ['Вдох (4с)', 'Вдих (4 с)', 'Breathe in (4s)', 'Einatmen (4 s)'],
       'breathe.exhale': ['Мягкий выдох (6с)', 'М’який видих (6 с)', 'Soft breath out (6s)', 'Sanft ausatmen (6 s)'],
       'breathe.done': ['Готово', 'Готово', 'Done', 'Fertig'],
@@ -4406,9 +4565,22 @@
       'breathe.done.btn': ['Сделал разгрузку (+1)', 'Зробив розвантаження (+1)', 'Decompression done (+1)', 'Entlastung gemacht (+1)'],
       'breathe.log.kind': ['Дыхательная разгрузка', 'Дихальне розвантаження', 'Breathing decompression', 'Atem-Entlastung'],
       'breathe.log.text': ['60 секунд спокойного дыхания при давлении в груди', '60 секунд спокійного дихання при тиску в грудях', '60 seconds of calm breathing when the chest tightens', '60 Sekunden ruhiges Atmen bei Druck in der Brust'],
+      'breathe.log.text.sigh': ['5 минут: двойной вдох носом и длинный выдох ртом', '5 хвилин: подвійний вдих носом і довгий видих ротом', '5 minutes: a double breath in through the nose, one long breath out', '5 Minuten: doppelt durch die Nase einatmen, einmal lang ausatmen'],
       'breathe.recorded.charge': ['Разгрузка записана, зарядов отдыха: {n}', 'Розвантаження записано, зарядів відпочинку: {n}', 'Decompression logged, rest charges: {n}', 'Entlastung notiert, Erholungsladungen: {n}'],
       'breathe.recorded': ['Разгрузка записана (+1)', 'Розвантаження записано (+1)', 'Decompression logged (+1)', 'Entlastung notiert (+1)'],
       'breathe.recorded.capped': ['Разгрузка записана. День закрыт — без очков', 'Розвантаження записано. День закрито — без очок', 'Decompression logged. The day is capped — no points', 'Entlastung notiert. Tag voll — ohne Punkte'],
+      'breathe.mode.exhale': ['Спокойный выдох 4/6', 'Спокійний видих 4/6', 'Calm breath 4/6', 'Ruhiges Ausatmen 4/6'],
+      'breathe.mode.sigh': ['Вздох на пять минут', 'Зітхання на п’ять хвилин', 'A five-minute sigh', 'Fünf Minuten seufzen'],
+      'breathe.modes.aria': ['Методика дыхания', 'Методика дихання', 'Breathing method', 'Atemtechnik'],
+      'breathe.guide.sigh': ['Два коротких вдоха носом | Один длинный выдох ртом', 'Два короткі вдихи носом | Один довгий видих ротом', 'Two short breaths in through the nose | One long breath out through the mouth', 'Zwei kurze Atemzüge durch die Nase | Ein langes Ausatmen durch den Mund'],
+      'breathe.sigh.in': ['Вдох носом', 'Вдих носом', 'Breathe in through the nose', 'Durch die Nase einatmen'],
+      'breathe.sigh.top': ['Добор воздуха', 'Додобір повітря', 'Top up the breath', 'Kurz nachladen'],
+      'breathe.sigh.out': ['Длинный выдох ртом', 'Довгий видих ротом', 'Long breath out through the mouth', 'Lang durch den Mund ausatmen'],
+      'breathe.noise.off': ['Шум: выкл', 'Шум: вимк.', 'Noise: off', 'Rauschen: aus'],
+      'breathe.noise.on': ['Шум: вкл', 'Шум: увімк.', 'Noise: on', 'Rauschen: an'],
+      'breathe.noise.volume': ['Громкость шума', 'Гучність шуму', 'Noise volume', 'Lautstärke des Rauschens'],
+      'breathe.noise.hint': ['Коричневый шум ровным фоном — когда тишина давит. На телефоне звук обрывается, если погасить экран.', 'Коричневий шум рівним тлом — коли тиша тисне. На телефоні звук обривається, якщо погасити екран.', 'Brown noise as an even background, for when silence presses. On a phone the sound cuts out if the screen goes dark.', 'Braunes Rauschen als gleichmäßiger Hintergrund, wenn die Stille drückt. Am Telefon bricht der Ton ab, wenn der Bildschirm ausgeht.'],
+      'breathe.noise.muted': ['Звук выключен в «Системе» — сначала включи его там', 'Звук вимкнено в «Системі» — спершу увімкни його там', 'Sound is off in System — switch it on there first', 'Der Ton ist in „System“ aus — schalte ihn dort zuerst ein'],
 
       // Первый запуск
       'onboard.step': ['ШАГ {n} ИЗ 3', 'КРОК {n} З 3', 'STEP {n} OF 3', 'SCHRITT {n} VON 3'],

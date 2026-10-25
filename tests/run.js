@@ -776,6 +776,94 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('язык можно вернуть назад', q("uiLang = 'ru'; t('nav.focus')"), 'Фокус');
 }
 
+// --- 27. Дыхание: две методики, фазы, шум ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('дыхание: две методики', q('BREATHE_MODES.length'), 2);
+  check('дыхание: выдох — минута', q('BREATHE_PROTOCOLS.exhale.totalMs'), 60000);
+  check('дыхание: вздох — пять минут', q('BREATHE_PROTOCOLS.sigh.totalMs'), 300000);
+  // Сумма фаз обязана совпасть с циклом: иначе фазы поедут по кругу
+  check('дыхание: фазы выдоха складываются в цикл', q('BREATHE_PROTOCOLS.exhale.phases.reduce((s, p) => s + p.ms, 0)'), q('BREATHE_PROTOCOLS.exhale.cycleMs'));
+  check('дыхание: фазы вздоха складываются в цикл', q('BREATHE_PROTOCOLS.sigh.phases.reduce((s, p) => s + p.ms, 0)'), q('BREATHE_PROTOCOLS.sigh.cycleMs'));
+  // Ключи методик — картой, поэтому проверяем сами ключи
+  const modeKeys = q('Object.values(BREATHE_MODE_KEYS)');
+  const missingModes = modeKeys.filter(key => q(`Object.prototype.hasOwnProperty.call(STRINGS, ${JSON.stringify(key)})`) !== true);
+  check('словарь: ключи методик дыхания есть', missingModes, []);
+  check('словарь: карта методик покрывает весь набор', q('Object.keys(BREATHE_MODE_KEYS).join()'), q('BREATHE_MODES.join()'));
+  // Подсказка, запись и подписи фаз живут в самих методиках — сканер их не видит
+  const phaseKeys = q('BREATHE_MODES.map(key => BREATHE_PROTOCOLS[key]).reduce((out, proto) => out.concat([proto.guide, proto.log], proto.phases.map(p => p.label)), [])');
+  const missingPhase = phaseKeys.filter(key => q(`Object.prototype.hasOwnProperty.call(STRINGS, ${JSON.stringify(key)})`) !== true);
+  check('словарь: ключи фаз и подсказок дыхания есть', missingPhase, []);
+
+  check('дыхание: методика по умолчанию', q('state.breatheMode'), 'exhale');
+  check('дыхание: на старте часовая подсказка', q("document.getElementById('breatheGuideText').textContent"), q("t('breathe.guide')"));
+  check('дыхание: время в мм:сс', q('formatClock(60000)'), '1:00');
+  check('дыхание: меньше минуты', q('formatClock(5000)'), '0:05');
+  check('дыхание: пять минут без потери секунд', q('formatClock(299000)'), '4:59');
+
+  q("setBreatheMode('sigh');");
+  check('дыхание: методика запомнилась', q('state.breatheMode'), 'sigh');
+  check('дыхание: орб пересчитан на пять минут', q("document.getElementById('breatheSecondsText').textContent"), '5:00');
+  check('дыхание: подсказка сменилась', q("document.getElementById('breatheGuideText').textContent"), q("t('breathe.guide.sigh')"));
+  check('дыхание: первая фаза вздоха', q('breathePhaseKey(0)'), 'breathe.sigh.in');
+  check('дыхание: добор воздуха', q('breathePhaseKey(2500)'), 'breathe.sigh.top');
+  check('дыхание: длинный выдох ртом', q('breathePhaseKey(5000)'), 'breathe.sigh.out');
+  check('дыхание: цикл повторяется', q('breathePhaseKey(11500)'), 'breathe.sigh.in');
+  q('toggleBreathe();');
+  check('дыхание: старт идёт на пять минут', q('breatheTimer.totalMs'), 300000);
+  check('дыхание: отсчёт идёт', q('breatheTimer.running'), true);
+  q('toggleBreathe();');
+  check('дыхание: стоп сохраняет длину', q('breatheTimer.totalMs'), 300000);
+  check('дыхание: мусорная методика откатывается', q('normalizeBreatheMode("нет-такой")'), 'exhale');
+
+  const saved = JSON.parse(store['flowCorePortfolioV5']);
+  check('дыхание: методика легла в состояние', saved.breatheMode, 'sigh');
+  const next = makeContext(NOW + 1000, saved);
+  check('дыхание: методика пережила перезагрузку', vm.runInContext('state.breatheMode', next.ctx), 'sigh');
+  const legacy = makeContext(NOW, { version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 0, goal: 12, logs: [], weeks: [] });
+  check('дыхание: старые данные получают базовую методику', vm.runInContext('state.breatheMode', legacy.ctx), 'exhale');
+  check('дыхание: мусор в поле откатывается', vm.runInContext('normalizeBreatheMode("sighhh")', legacy.ctx), 'exhale');
+
+  // Без Web Audio шум просто не включается — без падения и без узлов
+  check('шум: без AudioContext не стартует', q('startBrownNoise()'), false);
+  check('шум: узел не создан', q('Boolean(noiseNodes)'), false);
+  q('toggleBrownNoise();');
+  check('шум: переключатель молчит без узлов', q('Boolean(noiseNodes)'), false);
+  q('setNoiseVolume(100);');
+  check('шум: громкость сверху ограничена', q('noiseVolume'), 0.4);
+  q('setNoiseVolume(-50);');
+  check('шум: ниже нуля не уходит', q('noiseVolume'), 0);
+  q('setNoiseVolume(40);');
+  check('шум: сорок процентов — тихий фон', q('noiseVolume'), 0.16);
+  // Заглушка Web Audio: проверяем и включение, и то, что общий выключатель сильнее
+  class FakeAudioContext {
+    constructor() { this.sampleRate = 100; this.state = 'running'; this.destination = {}; }
+    createBuffer(channels, length) { return { getChannelData: () => new Float32Array(length) }; }
+    createBufferSource() { return { loop: false, buffer: null, connect() {}, start() {}, stop() {}, disconnect() {} }; }
+    createBiquadFilter() { return { type: '', frequency: { value: 0 }, connect() {}, disconnect() {} }; }
+    createGain() { return { gain: { value: 0 }, connect() {}, disconnect() {} }; }
+  }
+  ctx.AudioContext = FakeAudioContext;
+  check('шум: с AudioContext включается', q('startBrownNoise()'), true);
+  check('шум: узел появился', q('Boolean(noiseNodes)'), true);
+  check('шум: громкость дошла до узла', q('noiseNodes.gain.gain.value'), 0.16);
+  q('setNoiseVolume(100);');
+  check('шум: ползунок меняет громкость на ходу', q('noiseNodes.gain.gain.value'), 0.4);
+  q('stopBrownNoise();');
+  check('шум: стоп убирает узел', q('Boolean(noiseNodes)'), false);
+
+  q('state.soundEnabled = false;');
+  q('toggleBrownNoise();');
+  check('шум: общий выключатель звука сильнее', q('Boolean(noiseNodes)'), false);
+  check('шум: и он об этом говорит', q("document.getElementById('flashToast').textContent"), q("t('breathe.noise.muted')"));
+  q('state.soundEnabled = true;');
+  q('toggleBrownNoise();');
+  check('шум: после возврата звука включается снова', q('Boolean(noiseNodes)'), true);
+  q("showSection('main');");
+  check('шум: уход с экрана дыхания глушит его', q('Boolean(noiseNodes)'), false);
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
