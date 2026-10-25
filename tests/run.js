@@ -660,6 +660,51 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('сферы: битый индекс сбрасывается', vm.runInContext('state.sphereIndex', clamped.ctx), 0);
 }
 
+// --- 23. Первый запуск: интервью ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('старт: интервью не пройдено', q('state.onboarded'), false);
+  check('старт: дневник пуст', q('state.logs.length'), 0);
+  check('старт: очки не начислены', q('state.points'), 0);
+  check('старт: шаблонов семь', q('ONBOARD_TEMPLATES.length'), 7);
+  check('старт: все шаблоны со своими задачами', q('ONBOARD_TEMPLATES.every(t => t.sphere.tasks.micro && t.sphere.steps.length === 3)'), true);
+
+  q("onboardToggle('study'); onboardToggle('body');");
+  check('интервью: выбраны два дела', q('onboard.picks.size'), 2);
+  q('onboardToggle(\'body\');');
+  check('интервью: повторный клик снимает выбор', q('onboard.picks.size'), 1);
+
+  q("onboard.picks = new Set(['study', 'body']); onboard.goal = 20; onboard.name = 'Курс по сетям'; onboard.step = 3;");
+  q('finishOnboarding(false);');
+  check('интервью: сферы собраны из выбора', q('state.spheres.length'), 2);
+  check('интервью: имя из ответа', q('state.spheres[0].name'), 'Курс по сетям');
+  check('интервью: вторая сфера из шаблона', q('state.spheres[1].name'), 'Тело и движение');
+  check('интервью: квота из ответа', q('state.goal'), 20);
+  check('интервью: отмечено пройденным', q('state.onboarded'), true);
+  check('интервью: индекс на первой сфере', q('state.sphereIndex'), 0);
+  check('интервью: на главной новое имя', q("document.getElementById('sphereBadgeText').textContent"), 'Курс по сетям (сменить)');
+
+  const saved = JSON.parse(store['flowCorePortfolioV5']);
+  check('интервью: результат на диске', saved.spheres.length, 2);
+  const next = makeContext(NOW + 1000, saved);
+  check('интервью: второй запуск без вопросов', vm.runInContext('state.onboarded', next.ctx), true);
+
+  const skipped = makeContext(NOW);
+  const qs = expr => vm.runInContext(expr, skipped.ctx);
+  qs('finishOnboarding(true);');
+  check('пропуск: одна нейтральная сфера', qs('state.spheres.length'), 1);
+  check('пропуск: сфера «Своё дело»', qs('state.spheres[0].name'), 'Своё дело');
+  check('пропуск: квота по умолчанию', qs('state.goal'), 12);
+
+  const legacy = makeContext(NOW, {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 4, goal: 12,
+    logs: [{ id: 1, ts: NOW, time: '24.10 12:00', kind: 'k', text: 'старое', pts: 4 }], weeks: [],
+  });
+  check('старые данные: интервью не всплывает', vm.runInContext('state.onboarded', legacy.ctx), true);
+  check('старые данные: дефолтные сферы сохранены', vm.runInContext('spheresOf()[0].name', legacy.ctx), 'Код и учеба');
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);

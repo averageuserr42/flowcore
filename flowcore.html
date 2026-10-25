@@ -1212,6 +1212,21 @@
     </div>
   </div>
 
+  <!-- ПЕРВЫЙ ЗАПУСК: короткое интервью вместо чужих примеров в дневнике -->
+  <div id="onboardScreen" class="lock-screen hidden">
+    <div class="glow-card" style="max-width: 460px; width: 100%;">
+      <div class="card-subtext" style="margin-bottom: 10px; font-size: 12px; letter-spacing: 0.04em;">
+        ШАГ <span id="onboardStepNo">1</span> ИЗ 3
+      </div>
+      <div id="onboardBody"></div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; align-items: center;">
+        <button id="onboardBack" class="action-btn-secondary" onclick="onboardBack()">Назад</button>
+        <button id="onboardNext" class="action-btn" onclick="onboardNext()">Дальше</button>
+        <button class="pill-btn" onclick="finishOnboarding(true)" style="margin-left: auto;">Пропустить</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ДИАЛОГ ПАРОЛЯ (включение замка, смена пароля) -->
   <div id="passModal" class="lock-screen hidden">
     <div class="glow-card" style="max-width: 400px; width: 100%;">
@@ -1900,15 +1915,11 @@
         reservePool: 0,
         weeks: [],
         timer: defaultTimer(modeTimers.draft * 60000),
-        points: 2,
-        logs: [{
-          id: nextLogId(),
-          ts: now.getTime(),
-          time: formatStamp(now),
-          kind: 'Вовремя остановился',
-          text: 'Поработал 5-10 минут, заметил слабое ощущение в груди и вовремя сделал паузу.',
-          pts: 2
-        }]
+        // Новый человек начинает с пустого дневника: чужая запись про тело
+        // в первом экране — худшее, что можно ему показать
+        onboarded: false,
+        points: 0,
+        logs: []
       });
     }
     // Тип записи: действие / телесный сигнал / ранний стоп
@@ -2028,6 +2039,9 @@
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
         lastStop: normalizeLastStop(raw.lastStop),
         skin: normalizeSkin(raw.skin || storedSkin()),
+        // Всё, что уже сохранено до появления интервью, считается пройденным:
+        // иначе у старого пользователя внезапно всплывёт первый экран
+        onboarded: raw.onboarded === true || logs.length > 0 || weeks.length > 0 || (Number(raw.points) || 0) > 0,
         restBonus: Math.max(0, Math.min(REST_CAP, Number(raw.restBonus) || 0)),
         lastRestCheckDay: typeof raw.lastRestCheckDay === 'string' ? raw.lastRestCheckDay : '',
         restBreathDay: typeof raw.restBreathDay === 'string' ? raw.restBreathDay : '',
@@ -3801,6 +3815,218 @@ ${rawText}` }] }]
       renderBreathe();
     }
 
+    // --- ПЕРВЫЙ ЗАПУСК: КОРОТКОЕ ИНТЕРВЬЮ ---
+    // Шаблоны намеренно нейтральные: человек выбирает своё, а не читает
+    // чужой дневник с записью про тяжесть в груди.
+    const ONBOARD_TEMPLATES = [
+      {
+        key: 'study', label: 'Учёба и курсы',
+        sphere: {
+          name: 'Учёба и курсы',
+          tasks: {
+            micro: 'Открыть конспект и перечитать одну страницу (2-5 мин)',
+            draft: 'Позаниматься 5-15 минут, не пытаясь освоить всё сразу',
+            wave: '30 минут занятия с остановкой, как только почувствуешь усталость'
+          },
+          steps: ['Открыть файл с конспектом', 'Выписать один вопрос по теме', 'Прочитать один абзац вслух'],
+          notes: {
+            micro: 'Сейчас достаточно просто коснуться темы.',
+            draft: 'Идёт в зачёт недели, даже если получилось мало.',
+            wave: 'Остановиться по сигналу важнее, чем досидеть.'
+          }
+        }
+      },
+      {
+        key: 'code', label: 'Код и проекты',
+        sphere: {
+          name: 'Код и проекты',
+          tasks: {
+            micro: 'Открыть проект и посмотреть, где остановился (2-5 мин)',
+            draft: 'Поковырять код 5-15 минут без цели доделать',
+            wave: '30 минут работы, остановиться до появления усталости'
+          },
+          steps: ['Открыть проект', 'Запустить тесты', 'Прочитать одну функцию'],
+          notes: {
+            micro: 'Коснуться проекта, ничего не решая.',
+            draft: 'Любое продвижение считается, без оценки.',
+            wave: 'Перерыв по сигналу — часть работы.'
+          }
+        }
+      },
+      {
+        key: 'writing', label: 'Текст и творчество',
+        sphere: {
+          name: 'Текст и творчество',
+          tasks: {
+            micro: 'Открыть файл и перечитать последний абзац (2-5 мин)',
+            draft: 'Написать пару абзацев или набросок 5-15 минут',
+            wave: '30 минут письма с остановкой по первому сигналу'
+          },
+          steps: ['Открыть файл', 'Написать одну фразу', 'Перечитать последний абзац'],
+          notes: {
+            micro: 'Пустая страница тоже результат: ты подошёл.',
+            draft: 'Черновик не обязан быть хорошим.',
+            wave: 'Остановиться, когда текст начинает раздражать.'
+          }
+        }
+      },
+      {
+        key: 'body', label: 'Тело и движение',
+        sphere: {
+          name: 'Тело и движение',
+          tasks: {
+            micro: 'Встать, опустить плечи и сделать 5 спокойных выдохов (2 мин)',
+            draft: 'Размяться 15 минут: шея, спина, спокойная ходьба',
+            wave: '30 минут движения без телефона: прогулка или растяжка'
+          },
+          steps: ['Встать со стула', 'Опустить плечи и выдохнуть', 'Отойти от экрана на десять шагов'],
+          notes: {
+            micro: 'Снять скованность важнее, чем сделать «зарядку».',
+            draft: 'Идёт в недельный зачёт вместе с остальными делами.',
+            wave: 'Тело задаёт темп, а не наоборот.'
+          }
+        }
+      },
+      {
+        key: 'home', label: 'Быт и порядок',
+        sphere: {
+          name: 'Быт и порядок',
+          tasks: {
+            micro: 'Выпить воды или убрать три предмета со стола (2 мин)',
+            draft: 'Одна небольшая бытовая задача на 15 минут',
+            wave: '30 минут порядка: заготовка еды или разбор одной зоны'
+          },
+          steps: ['Налить воды и поставить рядом', 'Убрать три вещи', 'Протереть стол'],
+          notes: {
+            micro: 'Бытовой шаг тоже шаг, он освобождает голову.',
+            draft: 'Спокойно, в своём темпе.',
+            wave: 'Заготовка экономит силы в следующие дни.'
+          }
+        }
+      },
+      {
+        key: 'rest', label: 'Отдых и тишина',
+        sphere: {
+          name: 'Отдых и тишина',
+          tasks: {
+            micro: 'Открыть окно и посидеть минуту без экрана',
+            draft: '15 минут без телефона: полежать, умыться, посмотреть в окно',
+            wave: '30 минут отдыха без новостей и лент'
+          },
+          steps: ['Отложить телефон', 'Сесть или лечь удобно', 'Сделать пять спокойных выдохов'],
+          notes: {
+            micro: 'Выйти из спешки на минуту — уже результат.',
+            draft: 'Отдых идёт в тот же зачёт, что и работа.',
+            wave: 'Качественный отдых не откат, а часть цикла.'
+          }
+        }
+      },
+      {
+        key: 'own', label: 'Своё дело',
+        sphere: {
+          name: 'Своё дело',
+          tasks: {
+            micro: 'Коснуться дела на 2-5 минут без цели закончить',
+            draft: 'Спокойные 5-15 минут в своём темпе',
+            wave: '30 минут работы с остановкой по первому сигналу усталости'
+          },
+          steps: ['Достать нужное', 'Сделать один шаг', 'Отметить, что вышло'],
+          notes: {
+            micro: 'Сейчас задача — просто подойти к делу.',
+            draft: 'Идёт в зачёт недели без оценки качества.',
+            wave: 'Остановиться по сигналу важнее, чем досидеть.'
+          }
+        }
+      }
+    ];
+    const onboard = { step: 1, picks: new Set(), goal: 12, name: '' };
+    function onboardTemplate(key) {
+      return ONBOARD_TEMPLATES.find(tpl => tpl.key === key) || ONBOARD_TEMPLATES[ONBOARD_TEMPLATES.length - 1];
+    }
+    function showOnboarding() {
+      const screen = document.getElementById('onboardScreen');
+      if (!screen) return;
+      screen.classList.remove('hidden');
+      onboard.step = 1;
+      onboard.goal = clampGoal(state.goal);
+      renderOnboarding();
+    }
+    function renderOnboarding() {
+      const host = document.getElementById('onboardBody');
+      if (!host) return;
+      const stepNo = document.getElementById('onboardStepNo');
+      if (stepNo) stepNo.textContent = String(onboard.step);
+      if (onboard.step === 1) {
+        host.innerHTML = '<h2 class="card-heading">Чем сейчас занята голова?</h2>'
+          + '<p class="card-subtext">Выбери одно или несколько дел — из них соберутся сферы. Потом можно поменять и добавить свои.</p>'
+          + '<div class="pill-row">' + ONBOARD_TEMPLATES.map(tpl => {
+            const on = onboard.picks.has(tpl.key);
+            return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" onclick="onboardToggle('${tpl.key}')">${tpl.label}</button>`;
+          }).join('') + '</div>';
+      } else if (onboard.step === 2) {
+        host.innerHTML = '<h2 class="card-heading">Сколько очков в неделю?</h2>'
+          + '<p class="card-subtext">Ориентир, а не план: 6 — спокойный темп, 12 — обычный, 20 — если неделя свободнее.</p>'
+          + '<div class="pill-row">' + [6, 12, 20].map(n => `<button class="pill-btn${onboard.goal === n ? ' active' : ''}" onclick="onboardGoal(${n})">${n} очков</button>`).join('') + '</div>'
+          + '<p class="card-subtext" style="margin-top: 10px;">Очко — это короткий отрезок работы на 2-5 минут. За день больше восьми всё равно не набирается: это защита от перегруза.</p>';
+      } else {
+        host.innerHTML = '<h2 class="card-heading">Как назвать главное дело?</h2>'
+          + '<p class="card-subtext">Название появится на карточке главного экрана. Можно оставить как есть и поменять позже.</p>'
+          + `<input id="onboardName" class="clean-input" value="${escapeHtml(onboard.name)}" maxlength="60" aria-label="Название дела" oninput="onboard.name = this.value" />`;
+      }
+      const back = document.getElementById('onboardBack');
+      const next = document.getElementById('onboardNext');
+      if (back) back.classList.toggle('hidden', onboard.step === 1);
+      if (next) {
+        next.textContent = onboard.step === 3 ? 'Начать' : 'Дальше';
+        next.disabled = onboard.step === 1 && onboard.picks.size === 0;
+      }
+    }
+    function onboardToggle(key) {
+      if (onboard.picks.has(key)) onboard.picks.delete(key);
+      else onboard.picks.add(key);
+      renderOnboarding();
+    }
+    function onboardGoal(value) {
+      onboard.goal = clampGoal(value);
+      renderOnboarding();
+    }
+    function onboardNext() {
+      if (onboard.step === 1 && !onboard.picks.size) return;
+      if (onboard.step === 1) {
+        onboard.step = 2;
+        renderOnboarding();
+        return;
+      }
+      if (onboard.step === 2) {
+        onboard.step = 3;
+        const first = onboardTemplate(Array.from(onboard.picks)[0] || 'own');
+        if (!onboard.name) onboard.name = first.sphere.name;
+        renderOnboarding();
+        return;
+      }
+      finishOnboarding(false);
+    }
+    function onboardBack() {
+      if (onboard.step === 1) return;
+      onboard.step -= 1;
+      renderOnboarding();
+    }
+    function finishOnboarding(skip) {
+      const picks = skip || !onboard.picks.size ? ['own'] : Array.from(onboard.picks);
+      const list = picks.slice(0, 12).map(key => normalizeSphere(onboardTemplate(key).sphere, DEFAULT_SPHERES[0]));
+      const name = String(onboard.name || '').trim();
+      if (name && list.length) list[0].name = name.slice(0, 60);
+      state.spheres = list;
+      state.sphereIndex = 0;
+      state.goal = clampGoal(skip ? 12 : onboard.goal);
+      state.onboarded = true;
+      const screen = document.getElementById('onboardScreen');
+      if (screen) screen.classList.add('hidden');
+      saveState();
+      renderAll();
+      flashMessage('Готово. Первый шаг — 2-5 минут, дальше видно будет');
+    }
+
     // --- BOOT ---
     function startApp() {
       if (!state) return;
@@ -3820,6 +4046,7 @@ ${rawText}` }] }]
       }
       renderAll();
       saveState(); // мигрированное состояние сразу ложится на диск
+      if (!state.onboarded) showOnboarding();
     }
     function bootFromStored() {
       // Палитра не ждёт разблокировки: экран пароля тоже в своём скине
