@@ -750,6 +750,14 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   const missing = referenced.filter(key => q(`Object.prototype.hasOwnProperty.call(STRINGS, ${JSON.stringify(key)})`) !== true);
   check('словарь: все ключи из разметки и кода есть', missing, []);
 
+  // Ключи скинов и режимов берутся из карт, а не из литералов в вызове t(),
+  // поэтому проверяем сами карты — иначе опечатка в них пройдёт мимо сканера.
+  const mapped = q('Object.values(SKIN_KEYS).concat(Object.values(SPHERE_MODE_KEYS))');
+  const missingMapped = mapped.filter(key => q(`Object.prototype.hasOwnProperty.call(STRINGS, ${JSON.stringify(key)})`) !== true);
+  check('словарь: ключи из карт скинов и режимов есть', missingMapped, []);
+  check('словарь: карта скинов покрывает весь набор', q('Object.keys(SKIN_KEYS).join()'), q('Object.keys(SKINS).join()'));
+  check('словарь: карта режимов покрывает все три', q('Object.keys(SPHERE_MODE_KEYS).join()'), 'micro,draft,wave');
+
   check('склонение ru: одна отметка', q("t('word.mark', { n: 1 })"), '1 отметка');
   check('склонение ru: три отметки', q("t('word.mark', { n: 3 })"), '3 отметки');
   check('склонение ru: пять отметок', q("t('word.mark', { n: 5 })"), '5 отметок');

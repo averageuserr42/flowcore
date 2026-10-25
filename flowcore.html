@@ -1533,36 +1533,36 @@
     <!-- 4. SYSTEM SETTINGS VIEW: SINGLE CENTERED CARD (Heart Toggle, API Key, E2EE, Backup) -->
     <section id="view-system" class="single-card-wrap hidden">
       <div class="glow-card">
-        <h2 class="card-heading">Система и безопасность</h2>
+        <h2 class="card-heading" data-i18n="sys.title">Система и безопасность</h2>
         <p class="card-subtext">
-          Свои сферы и тексты, фоновая пульсация, ИИ-сводка и резервные копии.
+          <span data-i18n="sys.hint">Свои сферы и тексты, фоновая пульсация, ИИ-сводка и резервные копии.</span>
         </p>
         <!-- 1. Second Heart Engine Control -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Фоновая пульсация (центр экрана)</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Мягкое свечение за карточками; в каждом скине своего цвета</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.heart.title">Фоновая пульсация (центр экрана)</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.heart.hint">Мягкое свечение за карточками; в каждом скине своего цвета</div>
           </div>
-          <button id="heartToggleBtn" class="pill-btn active" onclick="toggleHeartEngine()">Активно</button>
+          <button id="heartToggleBtn" class="pill-btn active" onclick="toggleHeartEngine()" data-i18n="sys.heart.on">Активно</button>
         </div>
         <hr class="green-divider" />
         <!-- 1b. Timer Sound Notification Control -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Звуковой сигнал таймера (Web Audio)</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Мягкий двойной сигнал по окончании таймера фокуса и дыхания</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.sound.title">Звуковой сигнал таймера (Web Audio)</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.sound.hint">Мягкий двойной сигнал по окончании таймера фокуса и дыхания</div>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="pill-btn" onclick="playTimerSound()">Проверить звук</button>
-            <button id="soundToggleBtn" class="pill-btn active" onclick="toggleSoundSetting()">Звук: Вкл</button>
+            <button class="pill-btn" onclick="playTimerSound()" data-i18n="sys.sound.test">Проверить звук</button>
+            <button id="soundToggleBtn" class="pill-btn active" onclick="toggleSoundSetting()" data-i18n="sys.sound.on">Звук: Вкл</button>
           </div>
         </div>
         <hr class="green-divider" />
         <!-- 2. Weekly Goal Setting -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Недельная квота очков</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Гибкая цель без привязки к дням недели</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.goal.title">Недельная квота очков</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.goal.hint">Гибкая цель без привязки к дням недели</div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <button class="pill-btn" onclick="adjustGoal(-2)">-</button>
@@ -1574,8 +1574,8 @@
         <!-- 2a. Скин панели: меняет только палитру, данные и уровень общие -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Скин панели</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Меняет фон, карточки и свечения разом. Записи и уровень от скина не зависят.</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.skin.title">Скин панели</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.skin.hint">Меняет фон, карточки и свечения разом. Записи и уровень от скина не зависят.</div>
           </div>
           <div id="skinRow" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"></div>
           <div id="skinHint" style="font-size: 12px; color: var(--text-muted); width: 100%; text-align: right;"></div>
@@ -1592,67 +1592,67 @@
         <hr class="green-divider" />
         <!-- 2a2. Свои сферы и формулировки -->
         <details>
-          <summary style="cursor: pointer; font-weight: 600; color: var(--text-white);">Сферы и задачи</summary>
+          <summary style="cursor: pointer; font-weight: 600; color: var(--text-white);" data-i18n="sys.spheres.title">Сферы и задачи</summary>
           <div style="font-size: 12.5px; color: var(--text-muted); margin: 8px 0 12px;">
-            Каждая сфера — своё дело с тремя уровнями сил. Текст пишется так, как удобно тебе: он сразу появится на главной.
+            <span data-i18n="sys.spheres.hint">Каждая сфера — своё дело с тремя уровнями сил. Текст пишется так, как удобно тебе: он сразу появится на главной.</span>
           </div>
           <div id="sphereEditor"></div>
-          <button class="pill-btn" onclick="addSphere()" style="margin-top: 4px;">+ Добавить сферу</button>
+          <button class="pill-btn" onclick="addSphere()" style="margin-top: 4px;" data-i18n="sys.spheres.add">+ Добавить сферу</button>
         </details>
         <hr class="green-divider" />
         <!-- 2b. Замок дневника -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Замок дневника (AES-256-GCM)</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Пароль превращается в ключ через PBKDF2. Без пароля записи на диске не читаются.</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.lock.title">Замок дневника (AES-256-GCM)</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.lock.hint">Пароль превращается в ключ через PBKDF2. Без пароля записи на диске не читаются.</div>
           </div>
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <span id="lockStatus" class="pill-btn" style="cursor: default; font-size: 12px;">Открыто</span>
-            <button id="lockNowBtn" class="pill-btn hidden" onclick="lockNow()">Заблокировать сейчас</button>
-            <button id="lockToggleBtn" class="action-btn-secondary" onclick="toggleLock()">Включить замок</button>
+            <span id="lockStatus" class="pill-btn" style="cursor: default; font-size: 12px;" data-i18n="sys.lock.status.open">Открыто</span>
+            <button id="lockNowBtn" class="pill-btn hidden" onclick="lockNow()" data-i18n="sys.lock.now">Заблокировать сейчас</button>
+            <button id="lockToggleBtn" class="action-btn-secondary" onclick="toggleLock()" data-i18n="sys.lock.enable">Включить замок</button>
           </div>
         </div>
         <hr class="green-divider" />
         <!-- 2c. Уведомление о конце таймера -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Уведомление о конце таймера</div>
-            <div style="font-size: 13px; color: var(--text-muted);">Системное уведомление, если вкладка не в фокусе</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.notify.title">Уведомление о конце таймера</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.notify.hint">Системное уведомление, если вкладка не в фокусе</div>
           </div>
-          <button id="notifyToggleBtn" class="pill-btn" onclick="toggleNotifications()">Уведомления: Выкл</button>
+          <button id="notifyToggleBtn" class="pill-btn" onclick="toggleNotifications()" data-i18n="sys.notify.off">Уведомления: Выкл</button>
         </div>
         <hr class="green-divider" />
         <!-- 2d. Очки за отработанное время -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <div>
-            <div style="font-weight: 600; color: var(--text-white);">Очки только за отработанное время</div>
-            <div style="font-size: 13px; color: var(--text-muted);">«Выполнено» даст очки, только если таймер отработал 5 минут</div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.gate.title">Очки только за отработанное время</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.gate.hint">«Выполнено» даст очки, только если таймер отработал 5 минут</div>
           </div>
-          <button id="timerGateBtn" class="pill-btn" onclick="toggleTimerGate()">Строго: Выкл</button>
+          <button id="timerGateBtn" class="pill-btn" onclick="toggleTimerGate()" data-i18n="sys.gate.off">Строго: Выкл</button>
         </div>
         <hr class="green-divider" />
         <!-- 3. Standalone Gemini API Key -->
         <div>
-          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;">Автономный Gemini API-ключ (по желанию)</div>
+          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;" data-i18n="sys.key.title">Автономный Gemini API-ключ (по желанию)</div>
           <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
-            Хранится только локально в твоем браузере для работы кнопки ИИ вне чата.
+            <span data-i18n="sys.key.hint">Хранится только локально в твоем браузере для работы кнопки ИИ вне чата.</span>
           </div>
           <div style="display: flex; gap: 8px;">
             <input id="apiKeyInput" type="password" class="clean-input" style="margin-bottom: 0;" placeholder="AIzaSy..." />
-            <button class="action-btn" style="white-space: nowrap;" onclick="saveApiKey()">Сохранить</button>
+            <button class="action-btn" style="white-space: nowrap;" onclick="saveApiKey()" data-i18n="sys.key.save">Сохранить</button>
           </div>
         </div>
         <hr class="green-divider" />
         <!-- 4. E2EE Passphrase & Backup Export -->
         <div>
-          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;">Локальный бэкап</div>
+          <div style="font-weight: 600; color: var(--text-white); margin-bottom: 4px;" data-i18n="sys.backup.title">Локальный бэкап</div>
           <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-            Без замка записи лежат открыто в этом браузере. Бэкап — обычный JSON: единственный путь назад, если пароль забудешь.
+            <span data-i18n="sys.backup.hint">Без замка записи лежат открыто в этом браузере. Бэкап — обычный JSON: единственный путь назад, если пароль забудешь.</span>
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <button class="action-btn-secondary" onclick="exportBackupJson()">Скачать бэкап (.json)</button>
+            <button class="action-btn-secondary" onclick="exportBackupJson()" data-i18n="sys.backup.download">Скачать бэкап (.json)</button>
             <label class="action-btn-secondary" style="cursor: pointer;">
-              Загрузить бэкап
+              <span data-i18n="sys.backup.upload">Загрузить бэкап</span>
               <input type="file" accept=".json" style="display: none;" onchange="importBackupJson(event)" />
             </label>
           </div>
@@ -1696,6 +1696,9 @@
       aurora: { name: 'Аврора', theme: '#050409', minLevel: 10 }
     };
     const SKIN_ALIASES = { ice: 'cyber' };
+    // Ключи имён — отдельной картой: склейка строки с ключом внутри вызова t()
+    // не видна словарному тесту, а здесь каждый ключ лежит целиком и проверяется.
+    const SKIN_KEYS = { emerald: 'skin.emerald', amber: 'skin.amber', cyber: 'skin.cyber', aurora: 'skin.aurora' };
     const SKIN_STORAGE = 'flowCoreSkinV1';
     const SKIN_DEFAULT = 'emerald';
     // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
@@ -1803,8 +1806,8 @@
         : 0;
       return list[index];
     }
-    const MODE_LABELS = { micro: 'Совсем мало сил', draft: 'Немного сил', wave: 'Полные силы' };
     const modePoints = { micro: 1, draft: 2, wave: 3 };
+    const SPHERE_MODE_KEYS = { micro: 'sys.sphere.mode.micro', draft: 'sys.sphere.mode.draft', wave: 'sys.sphere.mode.wave' };
     // 45 минут вызывали отторжение — теперь верхняя граница 30
     const modeTimers = { micro: 5, draft: 5, wave: 30 };
     const TIMER_MAX_MINUTES = 180;
@@ -2193,15 +2196,15 @@
     }
     async function enableLock() {
       if (!state) return;
-      const pass = await askPassword('Пароль для замка', 'Не короче 8 символов. Забытый пароль восстановить нельзя: перед включением автоматически скачается бэкап.');
+      const pass = await askPassword(t('sys.lock.ask'), t('sys.lock.ask.hint'));
       if (pass === null) return;
       if (pass.length < 8) {
-        flashMessage('Пароль короче 8 символов');
+        flashMessage(t('sys.lock.passShort'));
         return;
       }
-      const again = await askPassword('Повтори пароль', 'Ещё раз, чтобы не опечататься.');
+      const again = await askPassword(t('sys.lock.again'), t('sys.lock.again.hint'));
       if (again !== pass) {
-        flashMessage('Пароли не совпали');
+        flashMessage(t('sys.lock.passMismatch'));
         return;
       }
       try {
@@ -2218,17 +2221,17 @@
         vault.enabled = true;
         await saveState();
         renderSystem();
-        flashMessage('Замок включён: пароль нигде не сохранён');
+        flashMessage(t('sys.lock.enabled'));
       } catch (e) {
         vault.key = null;
         vault.salt = null;
         vault.enabled = false;
-        flashMessage('Не удалось включить шифрование в этом браузере');
+        flashMessage(t('sys.lock.failed'));
       }
     }
     async function disableLock() {
       const envelope = readStoredRaw();
-      const pass = await askPassword('Снять замок', 'Введи пароль: записи снова будут храниться открыто на этом устройстве.');
+      const pass = await askPassword(t('sys.lock.disable'), t('sys.lock.off.hint'));
       if (pass === null) return;
       try {
         if (envelope && envelope.enc) await decryptEnvelope(envelope, pass);
@@ -2237,9 +2240,9 @@
         vault.enabled = false;
         await saveState();
         renderSystem();
-        flashMessage('Замок снят: записи хранятся открыто');
+        flashMessage(t('sys.lock.disabled'));
       } catch (e) {
-        flashMessage('Пароль не подходит');
+        flashMessage(t('sys.lock.badPass'));
       }
     }
     function toggleLock() {
@@ -3110,10 +3113,10 @@
       const val = document.getElementById('apiKeyInput').value.trim();
       if (val) {
         localStorage.setItem(API_KEY_STORAGE, val);
-        flashMessage('API-ключ сохранен локально');
+        flashMessage(t('sys.key.saved'));
       } else {
         localStorage.removeItem(API_KEY_STORAGE);
-        flashMessage('API-ключ удален');
+        flashMessage(t('sys.key.removed'));
       }
     }
     // Бэкап — открытый JSON: единственный путь восстановления при забытом пароле
@@ -3198,7 +3201,7 @@
     }
     function exportBackupJson() {
       downloadBackup('flowcore-backup.json');
-      flashMessage('Бэкап скачан: это открытый JSON, храни его в надёжном месте');
+      flashMessage(t('sys.backup.downloaded'));
     }
     function importBackupJson(event) {
       const input = event.target;
@@ -3213,7 +3216,7 @@
         try {
           parsed = JSON.parse(e.target.result);
         } catch (err) {
-          alert('Ошибка чтения файла бэкапа');
+          alert(t('sys.backup.readError'));
           return;
         }
         try {
@@ -3221,17 +3224,17 @@
           let payload = parsed;
           let openedVault = null;
           if (payload && payload.enc) {
-            const pass = await askPassword('Бэкап зашифрован', 'Введи пароль этого бэкапа.');
+            const pass = await askPassword(t('sys.backup.ask'), t('sys.backup.ask.hint'));
             if (pass === null) return;
             openedVault = await decryptEnvelope(payload, pass);
             payload = openedVault.data;
           }
           if (!payload || (!Array.isArray(payload.logs) && !Array.isArray(payload.weeks))) {
-            alert('В файле нет дневника — это не бэкап FlowCore');
+            alert(t('sys.backup.wrongFile'));
             return;
           }
           if (state) {
-            const ok = confirm('Загрузить бэкап? Текущие записи будут заменены. Копия текущих данных скачается автоматически.');
+            const ok = confirm(t('sys.backup.confirm'));
             if (!ok) return;
             downloadBackup('flowcore-before-import.json', false);
           }
@@ -3250,9 +3253,9 @@
           hideLockScreen();
           if (!appStarted) startApp();
           else { saveState(); renderAll(); }
-          flashMessage(wasEncrypted && !vault.enabled ? 'Бэкап восстановлен. Замок снят: данные хранятся открыто' : 'Бэкап восстановлен');
+          flashMessage(wasEncrypted && !vault.enabled ? t('sys.backup.restoredUnlocked') : t('sys.backup.restored'));
         } catch (err) {
-          alert('Не удалось открыть бэкап: неверный пароль или повреждённый файл');
+          alert(t('sys.backup.failed'));
         }
       };
       reader.readAsText(file);
@@ -3324,7 +3327,7 @@
     function setSkin(value) {
       const wanted = normalizeSkin(value);
       if (!skinUnlocked(wanted)) {
-        flashMessage(`${SKINS[wanted].name} откроется на ${SKINS[wanted].minLevel} уровне`);
+        flashMessage(t('toast.skin.locked', { name: t(SKIN_KEYS[wanted]), n: SKINS[wanted].minLevel }));
         return;
       }
       const skin = applySkin(wanted);
@@ -3336,7 +3339,7 @@
         saveState();
       }
       renderSystem();
-      flashMessage(`Скин: ${SKINS[skin].name}`);
+      flashMessage(t('toast.skin', { name: t(SKIN_KEYS[skin]) }));
     }
 
     function renderHeaderQuota() {
@@ -3438,21 +3441,21 @@
     }
     async function toggleNotifications() {
       if (!notificationsSupported()) {
-        flashMessage('Этот браузер не умеет системные уведомления');
+        flashMessage(t('sys.notify.unsupported'));
         return;
       }
       if (state.notifyEnabled && Notification.permission === 'granted') {
         state.notifyEnabled = false;
         saveState();
         renderSystem();
-        flashMessage('Уведомления выключены');
+        flashMessage(t('sys.notify.disabled'));
         return;
       }
       const permission = await Notification.requestPermission();
       state.notifyEnabled = permission === 'granted';
       saveState();
       renderSystem();
-      flashMessage(state.notifyEnabled ? 'Уведомления включены' : 'Браузер не дал разрешение');
+      flashMessage(state.notifyEnabled ? t('sys.notify.enabled') : t('sys.notify.denied'));
     }
     function notify(title, body) {
       if (!state || !state.notifyEnabled || !notificationsSupported()) return;
@@ -3465,7 +3468,7 @@
       state.requireTimer = !state.requireTimer;
       saveState();
       renderSystem();
-      flashMessage(state.requireTimer ? 'Очки теперь только за отработанное время' : 'Снова по клику');
+      flashMessage(state.requireTimer ? t('sys.gate.toast.on') : t('sys.gate.toast.off'));
     }
     // --- РЕДАКТОР СФЕР ---
     // Универсальная формулировка всё равно не угадает, чем занята голова
@@ -3478,20 +3481,20 @@
         <div class="sphere-edit-block">
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
             <input class="clean-input" style="flex: 1;" value="${escapeHtml(sp.name)}"
-              aria-label="Название сферы ${i + 1}"
+              aria-label="${escapeHtml(t('sys.sphere.name.aria', { n: i + 1 }))}"
               oninput="queueSphereEdit(${i}, 'name', this.value)"
               onchange="updateSphere(${i}, 'name', this.value)" />
             <button class="pill-btn" onclick="removeSphere(${i})"
-              title="Удалить сферу" aria-label="Удалить сферу ${escapeHtml(sp.name)}">✖</button>
+              title="${escapeHtml(t('sys.sphere.remove'))}" aria-label="${escapeHtml(t('sys.sphere.remove.aria', { name: sp.name }))}">✖</button>
           </div>
           ${['micro', 'draft', 'wave'].map(mode => `
-            <label class="sphere-edit-label">${MODE_LABELS[mode]}</label>
+            <label class="sphere-edit-label">${escapeHtml(t(SPHERE_MODE_KEYS[mode]))}</label>
             <textarea class="clean-input sphere-edit-text" rows="2"
               oninput="queueSphereEdit(${i}, 'task.${mode}', this.value)"
               onchange="updateSphere(${i}, 'task.${mode}', this.value)">${escapeHtml(sp.tasks[mode])}</textarea>
           `).join('')}
           ${[0, 1, 2].map(step => `
-            <label class="sphere-edit-label">Первый шаг ${step + 1}</label>
+            <label class="sphere-edit-label">${escapeHtml(t('sys.sphere.step', { n: step + 1 }))}</label>
             <input class="clean-input" value="${escapeHtml(sp.steps[step] || '')}"
               oninput="queueSphereEdit(${i}, 'step.${step}', this.value)"
               onchange="updateSphere(${i}, 'step.${step}', this.value)" />
@@ -3511,7 +3514,7 @@
       const sphere = state.spheres[index];
       if (!sphere) return;
       const text = String(value == null ? '' : value).slice(0, 240);
-      if (path === 'name') sphere.name = text.slice(0, 60).trim() || 'Моё дело';
+      if (path === 'name') sphere.name = text.slice(0, 60).trim() || t('sys.sphere.fallbackName');
       else if (path.indexOf('task.') === 0) sphere.tasks[path.slice(5)] = text;
       else if (path.indexOf('note.') === 0) sphere.notes[path.slice(5)] = text;
       else if (path.indexOf('step.') === 0) {
@@ -3525,37 +3528,37 @@
       if (!state) return;
       if (!Array.isArray(state.spheres)) state.spheres = normalizeSpheres(null);
       state.spheres.push(normalizeSphere({
-        name: 'Новая сфера',
+        name: t('sys.sphere.seed.name'),
         tasks: {
-          micro: 'Коснуться дела на 2-5 минут без цели закончить',
-          draft: 'Спокойные 5-15 минут в своём темпе',
-          wave: '30 минут работы с остановкой по первому сигналу усталости'
+          micro: t('sys.sphere.seed.micro'),
+          draft: t('sys.sphere.seed.draft'),
+          wave: t('sys.sphere.seed.wave')
         },
-        steps: ['Открыть нужный файл или вещь', 'Сделать самое маленькое действие', 'Отметить, что получилось'],
+        steps: [t('sys.sphere.seed.step1'), t('sys.sphere.seed.step2'), t('sys.sphere.seed.step3')],
         notes: {
-          micro: 'Сейчас задача — просто коснуться темы.',
-          draft: 'Идёт в общий зачёт недели без оценки качества.',
-          wave: 'Остановиться по сигналу важнее, чем досидеть.'
+          micro: t('sys.sphere.seed.note.micro'),
+          draft: t('sys.sphere.seed.note.draft'),
+          wave: t('sys.sphere.seed.note.wave')
         }
       }, DEFAULT_SPHERES[0]));
       state.sphereIndex = state.spheres.length - 1;
       saveState();
       renderAll();
-      flashMessage('Сфера добавлена');
+      flashMessage(t('sys.sphere.added'));
     }
     function removeSphere(index) {
       if (!state || !Array.isArray(state.spheres)) return;
       if (state.spheres.length <= 1) {
-        flashMessage('Нужна хотя бы одна сфера');
+        flashMessage(t('sys.sphere.needOne'));
         return;
       }
       const name = state.spheres[index] ? state.spheres[index].name : '';
-      if (!confirm(`Удалить сферу «${name}»?`)) return;
+      if (!confirm(t('sys.sphere.remove.confirm', { name: name }))) return;
       state.spheres.splice(index, 1);
       state.sphereIndex = Math.min(state.sphereIndex, state.spheres.length - 1);
       saveState();
       renderAll();
-      flashMessage('Сфера удалена');
+      flashMessage(t('sys.sphere.removed'));
     }
 
     function renderSystem() {
@@ -3563,24 +3566,24 @@
       const btn = document.getElementById('heartToggleBtn');
       wrap.classList.toggle('engine-paused', !state.heartActive);
       btn.classList.toggle('active', state.heartActive);
-      btn.textContent = state.heartActive ? 'Активно' : 'На паузе';
+      btn.textContent = state.heartActive ? t('sys.heart.on') : t('sys.heart.off');
       const soundBtn = document.getElementById('soundToggleBtn');
       if (soundBtn) {
         const isSoundOn = state.soundEnabled !== false;
         soundBtn.classList.toggle('active', isSoundOn);
-        soundBtn.textContent = isSoundOn ? 'Звук: Вкл' : 'Звук: Выкл';
+        soundBtn.textContent = isSoundOn ? t('sys.sound.on') : t('sys.sound.off');
       }
       document.getElementById('sysGoalValue').textContent = state.goal;
 
       const lockStatus = document.getElementById('lockStatus');
       const lockBtn = document.getElementById('lockToggleBtn');
       if (lockStatus && lockBtn) {
-        lockStatus.textContent = vault.enabled ? 'Зашифровано' : 'Открыто';
+        lockStatus.textContent = vault.enabled ? t('sys.lock.status.locked') : t('sys.lock.status.open');
         lockStatus.classList.toggle('active', vault.enabled);
         lockStatus.title = vault.enabled
-          ? 'На диске лежит AES-256-GCM конверт, ключ выводится из пароля'
-          : 'Записи лежат открыто в localStorage этого браузера';
-        lockBtn.textContent = vault.enabled ? 'Снять замок' : 'Включить замок';
+          ? t('sys.lock.status.title.locked')
+          : t('sys.lock.status.title.open');
+        lockBtn.textContent = vault.enabled ? t('sys.lock.disable') : t('sys.lock.enable');
         const lockNowBtn = document.getElementById('lockNowBtn');
         if (lockNowBtn) lockNowBtn.classList.toggle('hidden', !vault.enabled);
       }
@@ -3591,18 +3594,18 @@
       if (notifyBtn) {
         const on = !!state.notifyEnabled && notificationsSupported() && Notification.permission === 'granted';
         notifyBtn.classList.toggle('active', on);
-        notifyBtn.textContent = on ? 'Уведомления: Вкл' : 'Уведомления: Выкл';
+        notifyBtn.textContent = on ? t('sys.notify.on') : t('sys.notify.off');
       }
       const gateBtn = document.getElementById('timerGateBtn');
       if (gateBtn) {
         gateBtn.classList.toggle('active', !!state.requireTimer);
-        gateBtn.textContent = state.requireTimer ? 'Строго: Вкл' : 'Строго: Выкл';
+        gateBtn.textContent = state.requireTimer ? t('sys.gate.on') : t('sys.gate.off');
       }
       const backupInfo = document.getElementById('backupInfo');
       if (backupInfo) {
         backupInfo.textContent = state.lastExportAt
-          ? `Последний бэкап: ${formatStamp(new Date(state.lastExportAt))}`
-          : 'Бэкап ещё не скачивался. Данные браузера можно потерять вместе с профилем.';
+          ? t('sys.backup.last', { stamp: formatStamp(new Date(state.lastExportAt)) })
+          : t('sys.backup.never');
       }
 
       const langRow = document.getElementById('langRow');
@@ -3623,20 +3626,20 @@
           const skin = SKINS[key];
           const on = current === key;
           const locked = level < (skin.minLevel || 1);
-          const label = locked ? `${skin.name} · Ур. ${skin.minLevel}` : skin.name;
-          const title = locked ? `Откроется на ${skin.minLevel} уровне` : skin.name;
+          const name = t(SKIN_KEYS[key]);
+          const label = locked ? t('sys.skin.locked', { name: name, n: skin.minLevel }) : name;
+          const title = locked ? t('sys.skin.locked.title', { n: skin.minLevel }) : name;
           return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" title="${title}"`
             + `${locked ? ' disabled aria-disabled="true"' : ''} onclick="setSkin('${key}')">${label}</button>`;
         }).join('');
         const hint = document.getElementById('skinHint');
         if (hint) {
-          const nextLocked = Object.keys(SKINS)
-            .map(key => SKINS[key])
-            .filter(skin => level < (skin.minLevel || 1))
-            .sort((a, b) => a.minLevel - b.minLevel)[0];
-          hint.textContent = nextLocked
-            ? `Следующий: ${nextLocked.name} на ${nextLocked.minLevel} уровне`
-            : 'Все скины открыты';
+          const nextKey = Object.keys(SKINS)
+            .filter(key => level < (SKINS[key].minLevel || 1))
+            .sort((a, b) => SKINS[a].minLevel - SKINS[b].minLevel)[0];
+          hint.textContent = nextKey
+            ? t('sys.skin.next', { name: t(SKIN_KEYS[nextKey]), n: SKINS[nextKey].minLevel })
+            : t('sys.skin.all');
         }
       }
       renderSphereEditor();
@@ -4312,6 +4315,112 @@
       'diary.export.done': ['Файл {name} скачан', 'Файл {name} завантажено', 'Saved {name}', '{name} gespeichert'],
       'lock.badge.open': ['Локально, без пароля', 'Локально, без пароля', 'Local, no password', 'Lokal, ohne Passwort'],
       'lock.badge.locked': ['AES-256-GCM · замок включён', 'AES-256-GCM · замок увімкнено', 'AES-256-GCM · lock is on', 'AES-256-GCM · Schloss aktiv'],
+
+      // Система
+      'sys.title': ['Система и безопасность', 'Система й безпека', 'System and security', 'System und Sicherheit'],
+      'sys.hint': ['Свои сферы и тексты, фоновая пульсация, ИИ-сводка и резервные копии.', 'Свої сфери й тексти, фонова пульсація, ШІ-зведення та резервні копії.', 'Your own areas and wording, the background pulse, AI summaries and backups.', 'Deine Bereiche und Texte, die Hintergrundpulsation, KI-Übersichten und Sicherungen.'],
+      'sys.heart.title': ['Фоновая пульсация (центр экрана)', 'Фонова пульсація (центр екрана)', 'Background pulse (centre of the screen)', 'Hintergrundpulsation (Bildschirmmitte)'],
+      'sys.heart.hint': ['Мягкое свечение за карточками; в каждом скине своего цвета', 'М’яке світіння за картками; у кожному скіні свого кольору', 'A soft glow behind the cards, a colour of its own in every skin', 'Ein weiches Leuchten hinter den Karten, in jedem Skin eine eigene Farbe'],
+      'sys.heart.on': ['Активно', 'Активно', 'On', 'Aktiv'],
+      'sys.heart.off': ['На паузе', 'На паузі', 'Paused', 'Pausiert'],
+      'sys.sound.title': ['Звуковой сигнал таймера (Web Audio)', 'Звуковий сигнал таймера (Web Audio)', 'Timer chime (Web Audio)', 'Timer-Ton (Web Audio)'],
+      'sys.sound.hint': ['Мягкий двойной сигнал по окончании таймера фокуса и дыхания', 'М’який подвійний сигнал після таймера фокусу й дихання', 'A soft two-note chime when the focus or breathing timer ends', 'Ein weicher Doppelton am Ende von Fokus- und Atem-Timer'],
+      'sys.sound.test': ['Проверить звук', 'Перевірити звук', 'Test the sound', 'Ton prüfen'],
+      'sys.sound.on': ['Звук: Вкл', 'Звук: Увімк.', 'Sound: on', 'Ton: an'],
+      'sys.sound.off': ['Звук: Выкл', 'Звук: Вимк.', 'Sound: off', 'Ton: aus'],
+      'sys.goal.title': ['Недельная квота очков', 'Тижнева квота очок', 'Weekly point quota', 'Wochenquote an Punkten'],
+      'sys.goal.hint': ['Гибкая цель без привязки к дням недели', 'Гнучка мета без прив’язки до днів тижня', 'A flexible goal, not tied to days of the week', 'Ein flexibles Ziel, nicht an Wochentage gebunden'],
+      'sys.skin.title': ['Скин панели', 'Скін панелі', 'Panel skin', 'Skin der Oberfläche'],
+      'sys.skin.hint': ['Меняет фон, карточки и свечения разом. Записи и уровень от скина не зависят.', 'Змінює фон, картки й світіння одразу. Записи й рівень від скіна не залежать.', 'Changes the background, the cards and the glow at once. Entries and level do not depend on the skin.', 'Ändert Hintergrund, Karten und Leuchten auf einmal. Einträge und Level hängen nicht vom Skin ab.'],
+      'sys.skin.locked': ['{name} · Ур. {n}', '{name} · Рів. {n}', '{name} · Lv. {n}', '{name} · Lv. {n}'],
+      'sys.skin.locked.title': ['Откроется на {n} уровне', 'Відкриється на {n} рівні', 'Unlocks at level {n}', 'Schaltet auf Level {n} frei'],
+      'sys.skin.next': ['Следующий: {name} на {n} уровне', 'Наступний: {name} на {n} рівні', 'Next: {name} at level {n}', 'Als Nächstes: {name} auf Level {n}'],
+      'sys.skin.all': ['Все скины открыты', 'Усі скіни відкрито', 'Every skin is unlocked', 'Alle Skins sind frei'],
+      'skin.emerald': ['Изумруд', 'Смарагд', 'Emerald', 'Smaragd'],
+      'skin.amber': ['Янтарь', 'Бурштин', 'Amber', 'Bernstein'],
+      'skin.cyber': ['Кибер', 'Кібер', 'Cyber', 'Cyber'],
+      'skin.aurora': ['Аврора', 'Аврора', 'Aurora', 'Aurora'],
+      'toast.skin': ['Скин: {name}', 'Скін: {name}', 'Skin: {name}', 'Skin: {name}'],
+      'toast.skin.locked': ['{name} откроется на {n} уровне', '{name} відкриється на {n} рівні', '{name} unlocks at level {n}', '{name} schaltet auf Level {n} frei'],
+      'sys.spheres.title': ['Сферы и задачи', 'Сфери й задачі', 'Areas and tasks', 'Bereiche und Aufgaben'],
+      'sys.spheres.hint': ['Каждая сфера — своё дело с тремя уровнями сил. Текст пишется так, как удобно тебе: он сразу появится на главной.', 'Кожна сфера — своя справа з трьома рівнями сил. Текст пишеться так, як зручно тобі: він одразу з’явиться на головній.', 'Each area is a thing of its own with three energy levels. Write the text the way it suits you: it appears on the main screen at once.', 'Jeder Bereich ist eine eigene Sache mit drei Energiestufen. Schreib den Text so, wie er dir passt: er erscheint sofort auf dem Hauptschirm.'],
+      'sys.spheres.add': ['+ Добавить сферу', '+ Додати сферу', '+ Add an area', '+ Bereich hinzufügen'],
+      'sys.sphere.name.aria': ['Название сферы {n}', 'Назва сфери {n}', 'Name of area {n}', 'Name von Bereich {n}'],
+      'sys.sphere.remove': ['Удалить сферу', 'Видалити сферу', 'Delete the area', 'Bereich löschen'],
+      'sys.sphere.remove.aria': ['Удалить сферу {name}', 'Видалити сферу {name}', 'Delete the area {name}', 'Bereich {name} löschen'],
+      'sys.sphere.remove.confirm': ['Удалить сферу «{name}»?', 'Видалити сферу «{name}»?', 'Delete the area “{name}”?', 'Bereich „{name}“ löschen?'],
+      'sys.sphere.needOne': ['Нужна хотя бы одна сфера', 'Потрібна хоча б одна сфера', 'At least one area has to stay', 'Mindestens ein Bereich muss bleiben'],
+      'sys.sphere.added': ['Сфера добавлена', 'Сферу додано', 'Area added', 'Bereich hinzugefügt'],
+      'sys.sphere.removed': ['Сфера удалена', 'Сферу видалено', 'Area deleted', 'Bereich gelöscht'],
+      'sys.sphere.step': ['Первый шаг {n}', 'Перший крок {n}', 'First step {n}', 'Erster Schritt {n}'],
+      'sys.sphere.mode.micro': ['Совсем мало сил', 'Зовсім мало сил', 'Barely any energy', 'Kaum Energie'],
+      'sys.sphere.mode.draft': ['Немного сил', 'Трохи сил', 'Some energy', 'Etwas Energie'],
+      'sys.sphere.mode.wave': ['Полные силы', 'Повні сили', 'Full energy', 'Volle Energie'],
+      'sys.sphere.fallbackName': ['Моё дело', 'Моя справа', 'My own thing', 'Meine eigene Sache'],
+      'sys.sphere.seed.name': ['Новая сфера', 'Нова сфера', 'New area', 'Neuer Bereich'],
+      'sys.sphere.seed.micro': ['Коснуться дела на 2-5 минут без цели закончить', 'Торкнутися справи на 2-5 хвилин без мети закінчити', 'Touch the thing for 2-5 minutes, with no aim to finish', 'Die Sache 2-5 Minuten berühren, ohne sie abschließen zu wollen'],
+      'sys.sphere.seed.draft': ['Спокойные 5-15 минут в своём темпе', 'Спокійні 5-15 хвилин у своєму темпі', 'An easy 5-15 minutes at your own pace', 'Entspannte 5-15 Minuten im eigenen Tempo'],
+      'sys.sphere.seed.wave': ['30 минут работы с остановкой по первому сигналу усталости', '30 хвилин роботи із зупинкою за першим сигналом утоми', '30 minutes of work, stopping at the first sign of fatigue', '30 Minuten Arbeit, mit Stopp beim ersten Müdigkeitssignal'],
+      'sys.sphere.seed.step1': ['Открыть нужный файл или вещь', 'Відкрити потрібний файл або річ', 'Open the file or the thing you need', 'Die passende Datei oder Sache öffnen'],
+      'sys.sphere.seed.step2': ['Сделать самое маленькое действие', 'Зробити найменшу дію', 'Do the smallest possible action', 'Die kleinstmögliche Handlung tun'],
+      'sys.sphere.seed.step3': ['Отметить, что получилось', 'Позначити, що вдалося', 'Note what worked', 'Notieren, was geklappt hat'],
+      'sys.sphere.seed.note.micro': ['Сейчас задача — просто коснуться темы.', 'Зараз задача — просто торкнутися теми.', 'Right now the task is only to touch the topic.', 'Im Moment besteht die Aufgabe nur darin, das Thema zu berühren.'],
+      'sys.sphere.seed.note.draft': ['Идёт в общий зачёт недели без оценки качества.', 'Іде в загальний залік тижня без оцінки якості.', 'Counts towards the week without judging quality.', 'Zählt für die Woche, ohne die Qualität zu bewerten.'],
+      'sys.sphere.seed.note.wave': ['Остановиться по сигналу важнее, чем досидеть.', 'Зупинитися за сигналом важливіше, ніж досидіти.', 'Stopping at the signal matters more than pushing through.', 'Beim Signal zu stoppen zählt mehr als durchzuhalten.'],
+      'sys.lock.title': ['Замок дневника (AES-256-GCM)', 'Замок щоденника (AES-256-GCM)', 'Diary lock (AES-256-GCM)', 'Tagebuchschloss (AES-256-GCM)'],
+      'sys.lock.hint': ['Пароль превращается в ключ через PBKDF2. Без пароля записи на диске не читаются.', 'Пароль перетворюється на ключ через PBKDF2. Без пароля записи на диску не читаються.', 'Your password becomes the key through PBKDF2. Without it the entries on disk cannot be read.', 'Dein Passwort wird über PBKDF2 zum Schlüssel. Ohne ihn sind die Einträge auf der Platte nicht lesbar.'],
+      'sys.lock.status.locked': ['Зашифровано', 'Зашифровано', 'Encrypted', 'Verschlüsselt'],
+      'sys.lock.status.open': ['Открыто', 'Відкрито', 'Open', 'Offen'],
+      'sys.lock.status.title.locked': ['На диске лежит AES-256-GCM конверт, ключ выводится из пароля', 'На диску лежить AES-256-GCM конверт, ключ виводиться з пароля', 'Disk holds an AES-256-GCM envelope, the key is derived from your password', 'Auf der Platte liegt ein AES-256-GCM-Umschlag, der Schlüssel kommt aus dem Passwort'],
+      'sys.lock.status.title.open': ['Записи лежат открыто в localStorage этого браузера', 'Записи лежать відкрито в localStorage цього браузера', 'Entries sit in plain text in this browser’s localStorage', 'Die Einträge liegen im Klartext im localStorage dieses Browsers'],
+      'sys.lock.enable': ['Включить замок', 'Увімкнути замок', 'Turn the lock on', 'Schloss einschalten'],
+      'sys.lock.disable': ['Снять замок', 'Зняти замок', 'Turn the lock off', 'Schloss ausschalten'],
+      'sys.lock.now': ['Заблокировать сейчас', 'Заблокувати зараз', 'Lock now', 'Jetzt sperren'],
+      'sys.lock.passShort': ['Пароль короче 8 символов', 'Пароль коротший за 8 символів', 'The password is shorter than 8 characters', 'Das Passwort ist kürzer als 8 Zeichen'],
+      'sys.lock.passMismatch': ['Пароли не совпали', 'Паролі не збіглися', 'The passwords do not match', 'Die Passwörter stimmen nicht überein'],
+      'sys.lock.enabled': ['Замок включён: пароль нигде не сохранён', 'Замок увімкнено: пароль ніде не збережено', 'The lock is on: the password is stored nowhere', 'Das Schloss ist an: das Passwort wird nirgends gespeichert'],
+      'sys.lock.disabled': ['Замок снят: записи хранятся открыто', 'Замок знято: записи зберігаються відкрито', 'The lock is off: entries are stored in plain text', 'Das Schloss ist aus: die Einträge liegen im Klartext'],
+      'sys.lock.badPass': ['Пароль не подходит', 'Пароль не підходить', 'That password does not work', 'Das Passwort passt nicht'],
+      'sys.lock.failed': ['Не удалось включить шифрование в этом браузере', 'Не вдалося увімкнути шифрування в цьому браузері', 'Encryption could not be switched on in this browser', 'Verschlüsselung ließ sich in diesem Browser nicht einschalten'],
+      'sys.lock.ask': ['Пароль для замка', 'Пароль для замка', 'A password for the lock', 'Ein Passwort für das Schloss'],
+      'sys.lock.ask.hint': ['Не короче 8 символов. Забытый пароль восстановить нельзя: перед включением автоматически скачается бэкап.', 'Не коротше 8 символів. Забутий пароль відновити неможливо: перед увімкненням автоматично завантажиться резервна копія.', 'At least 8 characters. A forgotten password cannot be recovered: a backup downloads automatically before the lock goes on.', 'Mindestens 8 Zeichen. Ein vergessenes Passwort lässt sich nicht wiederherstellen: vor dem Einschalten wird automatisch eine Sicherung geladen.'],
+      'sys.lock.again': ['Повтори пароль', 'Повтори пароль', 'Repeat the password', 'Passwort wiederholen'],
+      'sys.lock.again.hint': ['Ещё раз, чтобы не опечататься.', 'Ще раз, щоб не помилитися.', 'Once more, so a typo cannot sneak in.', 'Noch einmal, damit kein Tippfehler durchrutscht.'],
+      'sys.lock.off.hint': ['Введи пароль: записи снова будут храниться открыто на этом устройстве.', 'Введи пароль: записи знову зберігатимуться відкрито на цьому пристрої.', 'Enter the password: entries will again be stored in plain text on this device.', 'Gib das Passwort ein: die Einträge liegen danach wieder im Klartext auf diesem Gerät.'],
+      'sys.notify.title': ['Уведомление о конце таймера', 'Сповіщення про кінець таймера', 'Notification when the timer ends', 'Mitteilung am Timer-Ende'],
+      'sys.notify.hint': ['Системное уведомление, если вкладка не в фокусе', 'Системне сповіщення, якщо вкладка не в фокусі', 'A system notification when the tab is not in focus', 'Eine Systemmitteilung, wenn der Tab nicht im Vordergrund ist'],
+      'sys.notify.on': ['Уведомления: Вкл', 'Сповіщення: Увімк.', 'Notifications: on', 'Mitteilungen: an'],
+      'sys.notify.off': ['Уведомления: Выкл', 'Сповіщення: Вимк.', 'Notifications: off', 'Mitteilungen: aus'],
+      'sys.notify.unsupported': ['Этот браузер не умеет системные уведомления', 'Цей браузер не вміє системних сповіщень', 'This browser does not do system notifications', 'Dieser Browser kann keine Systemmitteilungen'],
+      'sys.notify.denied': ['Браузер не дал разрешение', 'Браузер не дав дозволу', 'The browser refused permission', 'Der Browser hat die Erlaubnis verweigert'],
+      'sys.notify.enabled': ['Уведомления включены', 'Сповіщення увімкнено', 'Notifications are on', 'Mitteilungen sind an'],
+      'sys.notify.disabled': ['Уведомления выключены', 'Сповіщення вимкнено', 'Notifications are off', 'Mitteilungen sind aus'],
+      'sys.gate.title': ['Очки только за отработанное время', 'Очки лише за відпрацьований час', 'Points only for time actually worked', 'Punkte nur für tatsächlich gearbeitete Zeit'],
+      'sys.gate.hint': ['«Выполнено» даст очки, только если таймер отработал 5 минут', '«Виконано» дасть очки, лише якщо таймер відпрацював 5 хвилин', '“Done” only counts once the timer has run for 5 minutes', '„Erledigt“ zählt erst, wenn der Timer 5 Minuten gelaufen ist'],
+      'sys.gate.on': ['Строго: Вкл', 'Суворо: Увімк.', 'Strict: on', 'Streng: an'],
+      'sys.gate.off': ['Строго: Выкл', 'Суворо: Вимк.', 'Strict: off', 'Streng: aus'],
+      'sys.gate.toast.on': ['Очки теперь только за отработанное время', 'Очки тепер лише за відпрацьований час', 'Points now come only from time actually worked', 'Punkte gibt es jetzt nur für tatsächlich gearbeitete Zeit'],
+      'sys.gate.toast.off': ['Снова по клику', 'Знову за кліком', 'Back to counting on a click', 'Wieder zählt der Klick'],
+      'sys.key.title': ['Автономный Gemini API-ключ (по желанию)', 'Автономний Gemini API-ключ (за бажанням)', 'A standalone Gemini API key (optional)', 'Eigener Gemini-API-Schlüssel (optional)'],
+      'sys.key.hint': ['Хранится только локально в твоем браузере для работы кнопки ИИ вне чата.', 'Зберігається лише локально в твоєму браузері для роботи кнопки ШІ поза чатом.', 'Kept only in this browser, so the AI button works outside a chat.', 'Liegt nur lokal in deinem Browser, damit der KI-Knopf außerhalb eines Chats funktioniert.'],
+      'sys.key.save': ['Сохранить', 'Зберегти', 'Save', 'Speichern'],
+      'sys.key.saved': ['API-ключ сохранён локально', 'API-ключ збережено локально', 'API key saved locally', 'API-Schlüssel lokal gespeichert'],
+      'sys.key.removed': ['API-ключ удалён', 'API-ключ видалено', 'API key removed', 'API-Schlüssel entfernt'],
+      'sys.backup.title': ['Локальный бэкап', 'Локальна резервна копія', 'Local backup', 'Lokale Sicherung'],
+      'sys.backup.hint': ['Без замка записи лежат открыто в этом браузере. Бэкап — обычный JSON: единственный путь назад, если пароль забудешь.', 'Без замка записи лежать відкрито в цьому браузері. Копія — звичайний JSON: єдиний шлях назад, якщо забудеш пароль.', 'Without the lock the entries sit in plain text in this browser. The backup is plain JSON: the only way back if you forget the password.', 'Ohne Schloss liegen die Einträge im Klartext in diesem Browser. Die Sicherung ist reines JSON: der einzige Weg zurück bei vergessenem Passwort.'],
+      'sys.backup.download': ['Скачать бэкап (.json)', 'Зберегти копію (.json)', 'Download the backup (.json)', 'Sicherung herunterladen (.json)'],
+      'sys.backup.upload': ['Загрузить бэкап', 'Відновити з копії', 'Restore from a backup', 'Sicherung einspielen'],
+      'sys.backup.never': ['Бэкап ещё не скачивался. Данные браузера можно потерять вместе с профилем.', 'Копію ще жодного разу не завантажували. Дані браузера можна втратити разом із профілем.', 'No backup has ever been taken. Browser data can vanish with the profile.', 'Es wurde noch nie eine Sicherung geladen. Browserdaten können mit dem Profil verloren gehen.'],
+      'sys.backup.last': ['Последний бэкап: {stamp}', 'Остання копія: {stamp}', 'Last backup: {stamp}', 'Letzte Sicherung: {stamp}'],
+      'sys.backup.downloaded': ['Бэкап скачан: это открытый JSON, храни его в надёжном месте', 'Копію завантажено: це відкритий JSON, тримай його в надійному місці', 'Backup downloaded: it is plain JSON, keep it somewhere safe', 'Sicherung geladen: reines JSON, bewahre sie sicher auf'],
+      'sys.backup.readError': ['Ошибка чтения файла бэкапа', 'Помилка читання файлу копії', 'The backup file could not be read', 'Die Sicherungsdatei ließ sich nicht lesen'],
+      'sys.backup.wrongFile': ['В файле нет дневника — это не бэкап FlowCore', 'У файлі немає щоденника — це не копія FlowCore', 'There is no diary in this file — it is not a FlowCore backup', 'In dieser Datei steckt kein Tagebuch — es ist keine FlowCore-Sicherung'],
+      'sys.backup.confirm': ['Загрузить бэкап? Текущие записи будут заменены. Копия текущих данных скачается автоматически.', 'Завантажити копію? Поточні записи буде замінено. Копія поточних даних завантажиться автоматично.', 'Load the backup? The current entries will be replaced. A copy of the current data downloads automatically.', 'Sicherung laden? Die jetzigen Einträge werden ersetzt. Eine Kopie der aktuellen Daten wird automatisch geladen.'],
+      'sys.backup.restored': ['Бэкап восстановлен', 'Копію відновлено', 'Backup restored', 'Sicherung wiederhergestellt'],
+      'sys.backup.restoredUnlocked': ['Бэкап восстановлен. Замок снят: данные хранятся открыто', 'Копію відновлено. Замок знято: дані зберігаються відкрито', 'Backup restored. The lock is off: data is stored in plain text', 'Sicherung wiederhergestellt. Das Schloss ist aus: die Daten liegen im Klartext'],
+      'sys.backup.failed': ['Не удалось открыть бэкап: неверный пароль или повреждённый файл', 'Не вдалося відкрити копію: неправильний пароль або пошкоджений файл', 'The backup would not open: wrong password or damaged file', 'Die Sicherung ließ sich nicht öffnen: falsches Passwort oder beschädigte Datei'],
+      'sys.backup.ask': ['Бэкап зашифрован', 'Копія зашифрована', 'The backup is encrypted', 'Die Sicherung ist verschlüsselt'],
+      'sys.backup.ask.hint': ['Введи пароль этого бэкапа.', 'Введи пароль цієї копії.', 'Enter the password for this backup.', 'Gib das Passwort dieser Sicherung ein.'],
     };
     let uiLang = detectLang();
 
