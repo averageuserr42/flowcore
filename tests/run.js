@@ -534,6 +534,58 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('отдых: мусорное число зарядов ужато', vm.runInContext('state.restBonus', seeded.ctx), 3);
 }
 
+// --- 20. Страховочный буфер недели ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  const setup = (points, goal, logs) => {
+    q(`state.weeks = []; state.reservePool = 0; state.weekKey = '2026-W43'; state.weekStart = '2026-10-19';
+       state.points = ${points}; state.goal = ${goal}; state.logs = ${JSON.stringify(logs)};`);
+  };
+  const log = (pts, type) => ({ id: 1, ts: new Date(2026, 9, 20, 12, 0).getTime(), time: '20.10 12:00', kind: 'k', text: 'x', pts, type });
+  check('резерв: потолок 4', q('RESERVE_CAP'), 4);
+  check('резерв: стартует с нуля', q('state.reservePool'), 0);
+
+  setup(5, 12, [log(5, 'action')]);
+  q('ensureCurrentWeek(state, new Date(2026,9,26));');
+  check('резерв: тихая неделя без остановок буфера не даёт', q('state.reservePool'), 0);
+  check('резерв: неделя всё равно в архиве', q('state.weeks.length'), 1);
+
+  setup(14, 12, [log(14, 'action')]);
+  q('ensureCurrentWeek(state, new Date(2026,9,26));');
+  check('резерв: перевыполненная неделя даёт +1', q('state.reservePool'), 1);
+
+  setup(3, 12, [log(3, 'stop')]);
+  q('ensureCurrentWeek(state, new Date(2026,9,26));');
+  check('резерв: неделя с ранней остановкой даёт +1', q('state.reservePool'), 1);
+
+  setup(20, 12, [log(20, 'action')]);
+  q('state.reservePool = 4;');
+  q('ensureCurrentWeek(state, new Date(2026,9,26));');
+  check('резерв: выше четырёх не поднимается', q('state.reservePool'), 4);
+
+  setup(13, 12, [log(13, 'action')]);
+  q('state.logs[0].ts = Date.now();');
+  q('archiveCurrentWeek();');
+  check('резерв: ручное закрытие недели тоже даёт +1', q('state.reservePool'), 1);
+
+  q("state.reservePool = 2; state.points = 3; state.goal = 12; state.logs = []; state.weeks = []; state.weekKey = '2026-W43'; state.weekStart = '2026-10-19';");
+  check('резерв: использование возвращает очко в неделю', q('claimReservePoint(); state.points'), 4);
+  check('резерв: пул уменьшился', q('state.reservePool'), 1);
+  check('резерв: в записи ноль очков', q('state.logs[0].pts'), 0);
+  check('резерв: потолок дня не тронут', q('pointsToday()'), 0);
+  q('claimReservePoint();');
+  check('резерв: второе использование работает', q('state.points'), 5);
+  q('claimReservePoint();');
+  check('резерв: пустой пул очков не даёт', q('state.points'), 5);
+
+  const seeded = makeContext(NOW, {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 0, goal: 12,
+    reservePool: 9, logs: [], weeks: [],
+  });
+  check('резерв: мусорное число ужато', vm.runInContext('state.reservePool', seeded.ctx), 4);
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);

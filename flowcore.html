@@ -1413,6 +1413,9 @@
             <button class="action-btn-secondary" onclick="copyForDoctor()">
               Скопировать текст
             </button>
+            <button id="reserveBtn" class="action-btn-secondary hidden" onclick="claimReservePoint()">
+              <span id="reserveBtnText">Резерв недели</span>
+            </button>
           </div>
           <!-- Output box for structured summary -->
           <div id="summaryResultBox" class="hidden" style="background: rgba(6, 14, 9, 0.92); border: 1px solid var(--green-neon); border-radius: 10px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; font-size: 13.5px; color: var(--text-white);"></div>
@@ -1614,6 +1617,8 @@
     // и тратится как +1 очко внутри дневного потолка, а не сверх него.
     const REST_CAP = 3;
     const REST_LIGHT_DAY = 6;
+    // Страховочный буфер недели: немного очков переезжает в тяжёлую неделю
+    const RESERVE_CAP = 4;
     const XP_PER_LEVEL = 10;
     // Скин — это только палитра. Набор держим одним словарём, чтобы
     // нормализация, меню и атрибут на <html> не могли разойтись.
@@ -1814,6 +1819,7 @@
         restBonus: 0,
         lastRestCheckDay: '',
         restBreathDay: '',
+        reservePool: 0,
         weeks: [],
         timer: defaultTimer(modeTimers.draft * 60000),
         points: 2,
@@ -1945,6 +1951,7 @@
         restBonus: Math.max(0, Math.min(REST_CAP, Number(raw.restBonus) || 0)),
         lastRestCheckDay: typeof raw.lastRestCheckDay === 'string' ? raw.lastRestCheckDay : '',
         restBreathDay: typeof raw.restBreathDay === 'string' ? raw.restBreathDay : '',
+        reservePool: Math.max(0, Math.min(RESERVE_CAP, Number(raw.reservePool) || 0)),
         weeks: dedupeWeeks(weeks),
         timer: normalizeTimer(raw.timer)
       };
@@ -2138,19 +2145,36 @@
       location.reload();
     }
 
+    // Неделя заслужила буфер, если в ней были ранние остановки или перевыполнена квота:
+    // именно такие недели не должны сгорать целиком
+    function weekEarnsReserve(bucket) {
+      const logs = bucket.logs || [];
+      const stopped = logs.some(log => (log.type || inferLogType(log.kind, log.text)) === 'stop');
+      return stopped || (Number(bucket.points) || 0) > (Number(bucket.goal) || 0);
+    }
+    function bumpReserve(target) {
+      if (!target) return false;
+      const pool = Number(target.reservePool) || 0;
+      if (pool >= RESERVE_CAP) return false;
+      target.reservePool = pool + 1;
+      return true;
+    }
     // Недельный ролловер: текущий бакет уходит в архив, счет начинается с нуля
     function ensureCurrentWeek(target = state, now = new Date()) {
       if (!target) return false;
       const key = isoWeekKey(now);
       if (target.weekKey === key) return false;
       if ((target.logs || []).length || (Number(target.points) || 0) > 0) {
-        target.weeks = dedupeWeeks([{
+        const closing = {
           weekKey: target.weekKey,
           weekStart: target.weekStart || weekStartKey(now),
           goal: clampGoal(target.goal),
           points: Number(target.points) || 0,
           logs: target.logs || []
-        }].concat(target.weeks || []));
+        };
+        // Буфер считается по закрываемой неделе; ручное закрытие ниже делает то же самое
+        if (weekEarnsReserve(closing)) bumpReserve(target);
+        target.weeks = dedupeWeeks([closing].concat(target.weeks || []));
       }
       const fresh = emptyWeek(now);
       target.weekKey = fresh.weekKey;
@@ -2865,6 +2889,7 @@ ${rawText}` }] }]
     }
     // Архив: ручное закрытие недели ничего не стирает
     function archiveCurrentWeek() {
+      if (weekEarnsReserve(state)) bumpReserve(state);
       state.weeks = dedupeWeeks([{
         weekKey: state.weekKey,
         weekStart: state.weekStart,
@@ -3180,6 +3205,41 @@ ${rawText}` }] }]
         stepsRow.innerHTML = '<span class="steps-label">Первый шаг:</span>' +
           (sp.steps || []).map((step, i) => `<button class="pill-btn${state.firstStep === step ? ' active' : ''}" onclick="pickFirstStep(${i})" aria-pressed="${state.firstStep === step}">${escapeHtml(step)}</button>`).join('');
       }
+    }
+    // Резерв показывается только там, где он может помочь: когда неделя недобрана
+    function renderReserve() {
+      const btn = document.getElementById('reserveBtn');
+      if (!btn) return;
+      const pool = Number(state.reservePool) || 0;
+      const useful = pool > 0 && (Number(state.points) || 0) < (Number(state.goal) || 0);
+      btn.classList.toggle('hidden', !useful);
+      const label = document.getElementById('reserveBtnText');
+      if (label) label.textContent = `Резерв недели (+1 из ${pool})`;
+    }
+    function claimReservePoint() {
+      if (!state) return;
+      const pool = Number(state.reservePool) || 0;
+      if (pool <= 0) {
+        flashMessage('Резерв пуст');
+        return;
+      }
+      state.reservePool = pool - 1;
+      // Очко пришло из пула, а не за сегодняшнюю работу: в потолок дня оно
+      // не входит и в записи стоит нулём, иначе потолок съел бы его сам
+      state.points += 1;
+      state.logs.unshift({
+        id: nextLogId(),
+        ts: Date.now(),
+        time: formatStamp(new Date()),
+        kind: 'Резерв недели',
+        text: 'Использован страховочный буфер прошлой недели (+1)',
+        pts: 0,
+        type: 'action',
+        spentMs: 0
+      });
+      saveState();
+      renderAll();
+      flashMessage(`Резерв: +1 к неделе, осталось ${state.reservePool}`);
     }
     function renderDiary() {
       const list = document.getElementById('logList');
@@ -3511,6 +3571,7 @@ ${rawText}` }] }]
       renderLevel();
       renderMain();
       renderDiary();
+      renderReserve();
       renderArchive();
       renderSparkline();
       renderProgress();
