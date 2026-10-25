@@ -2,15 +2,22 @@
 
 [![tests](https://github.com/averageuserr42/flowcore/actions/workflows/tests.yml/badge.svg)](https://github.com/averageuserr42/flowcore/actions/workflows/tests.yml)
 
+**A focus and recovery diary for the days when an hour of work is not possible.**
+
+**[Open it in the browser →](https://averageuserr42.github.io/flowcore/)** — nothing to install, no account, the diary stays on your device.
+
 *Русская версия: [README.ru.md](README.ru.md).*
 
-**A focus and recovery diary.** One HTML file with no build step, no server and no account: short stretches of work, body signals, and a weekly score that does not turn into a race.
-
-It is built for the days when "sit down and work for an hour" is not an option and five minutes is. The app takes five minutes, it takes full strength, and it records "today did not work out" without turning it into a verdict.
-
-![The Focus screen](screenshots/01-focus.png)
+Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 306 KB HTML file: no build, no server, no dependencies.
 
 ## What it does
+
+If you are in a hurry:
+
+- Five minutes counts as work, and stopping there is a full result.
+- A task remembers where you stopped and offers to start from that exact place.
+- A missed day costs nothing: points live on the week, not the day.
+- Your diary stays in the browser: no account, no server, works offline.
 
 **Three levels of energy.** Barely any (+1), some (+2), full (+3). Every area keeps its own task for each level, so you never invent the wording again.
 
@@ -60,7 +67,7 @@ The interface in the shots is English, which is the default, and the other three
 
 **Online.** https://averageuserr42.github.io/flowcore/ is a permanent address: add it to your home screen once and forget it. Your own copy is described below.
 
-**Locally.** Download the folder and open `flowcore.html` with a double click. Everything works without a server except installing it as an app, which needs http(s).
+**Locally.** On GitHub take `Code → Download ZIP`, unzip it and open `flowcore.html` with a double click. Everything works without a server except installing it as an app, which needs http(s).
 
 **With a server and an address for your phone.**
 
