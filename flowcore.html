@@ -1947,13 +1947,17 @@
       }
       return timer;
     }
-    // Стартовый набор нового профиля собирается из словаря: DEFAULT_SPHERES —
-    // русский набор и живёт только для миграции старых данных, а новый человек
-    // в английском интерфейсе видел до конца интервью «Код и учеба»
+    // Стартовый набор нового профиля — два нейтральных дела: своё дело и отдых.
+    // Собираются из словаря: DEFAULT_SPHERES — русский набор, он живёт только
+    // для миграции старых данных, а новый человек в английском интерфейсе видел
+    // до конца интервью «Код и учеба»
+    const STARTER_TEMPLATES = ['own', 'rest'];
     function starterSpheres() {
-      const own = ONBOARD_TEMPLATES.find(item => item.key === 'own');
-      const sphere = own ? own.build().sphere : DEFAULT_SPHERES[0];
-      return [normalizeSphere(sphere, DEFAULT_SPHERES[0])];
+      return STARTER_TEMPLATES.map(key => {
+        const tpl = ONBOARD_TEMPLATES.find(item => item.key === key);
+        const sphere = tpl ? tpl.build().sphere : DEFAULT_SPHERES[0];
+        return normalizeSphere(sphere, DEFAULT_SPHERES[0]);
+      });
     }
     function createInitialState() {
       const now = new Date();
@@ -4196,7 +4200,9 @@
       renderOnboarding();
     }
     function finishOnboarding(skip) {
-      const picks = skip || !onboard.picks.size ? ['own'] : Array.from(onboard.picks);
+      // Пропуск даёт готовый стартовый набор: одно дело без отдыха — это
+      // панель, которая учит только работать
+      const picks = skip || !onboard.picks.size ? STARTER_TEMPLATES.slice() : Array.from(onboard.picks);
       const list = picks.slice(0, 12).map(key => normalizeSphere(onboardTemplate(key).sphere, DEFAULT_SPHERES[0]));
       const name = String(onboard.name || '').trim();
       if (name && list.length) list[0].name = name.slice(0, 60);

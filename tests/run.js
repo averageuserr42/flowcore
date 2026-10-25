@@ -628,7 +628,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const q = expr => vm.runInContext(expr, ctx);
   // Новый профиль стартует с одной нейтральной сферой из словаря, а не
   // с русским набором из кода: тот остался только для миграции
-  check('сферы: стартовый набор — одна сфера', q('spheresOf().length'), 1);
+  check('сферы: стартовый набор — дело и отдых', q('spheresOf().length'), 2);
   check('сферы: стартовая сфера на языке интерфейса', q('spheresOf()[0].name'), 'Своё дело');
   check('сферы: активная по индексу', q('currentSphere().name'), 'Своё дело');
 
@@ -650,10 +650,10 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('правка: первый шаг изменился', q('spheresOf()[0].steps[1]'), 'Открыть конспект');
 
   q('addSphere();');
-  check('добавление: сфер стало две', q('spheresOf().length'), 2);
+  check('добавление: сфер стало три', q('spheresOf().length'), 3);
   check('добавление: новая выбрана', q('currentSphere().name'), 'Новая сфера');
-  q('removeSphere(1);');
-  check('удаление: сфер снова одна', q('spheresOf().length'), 1);
+  q('removeSphere(2);');
+  check('удаление: сфер снова две', q('spheresOf().length'), 2);
   q('state.spheres = [state.spheres[0]]; removeSphere(0);');
   check('удаление: последнюю сферу не удалить', q('state.spheres.length'), 1);
 
@@ -710,8 +710,9 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const skipped = makeContext(NOW);
   const qs = expr => vm.runInContext(expr, skipped.ctx);
   qs('finishOnboarding(true);');
-  check('пропуск: одна нейтральная сфера', qs('state.spheres.length'), 1);
-  check('пропуск: сфера «Своё дело»', qs('state.spheres[0].name'), 'Своё дело');
+  check('пропуск: две нейтральные сферы', qs('state.spheres.length'), 2);
+  check('пропуск: дело и отдых', qs('state.spheres.map(s => s.name).join()'), 'Своё дело,Отдых и тишина');
+  check('пропуск: у отдыха свои задачи', qs('state.spheres[1].tasks.micro'), qs("t('tpl.rest.micro')"));
   check('пропуск: квота по умолчанию', qs('state.goal'), 12);
 
   const legacy = makeContext(NOW, {
@@ -726,6 +727,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const en = makeContext(NOW, undefined, 'en');
   const qe = expr => vm.runInContext(expr, en.ctx);
   check('старт: английский профиль начинает по-английски', qe('spheresOf()[0].name'), 'My own thing');
+  check('старт: и отдых тоже по-английски', qe('spheresOf()[1].name'), 'Rest and quiet');
   check('старт: в стартовом наборе нет кириллицы', qe('/[а-яёіїєґ]/i.test(JSON.stringify(spheresOf()))'), false);
   check('старт: и задачи из словаря', qe('spheresOf()[0].tasks.micro'), qe("t('tpl.own.micro')"));
   const de = makeContext(NOW, undefined, 'de');
