@@ -1413,6 +1413,9 @@
             <button class="action-btn-secondary" onclick="copyForDoctor()">
               Скопировать текст
             </button>
+            <button class="action-btn-secondary" onclick="exportObsidianMarkdown()">
+              Скачать .md (Obsidian)
+            </button>
             <button id="reserveBtn" class="action-btn-secondary hidden" onclick="claimReservePoint()">
               <span id="reserveBtnText">Резерв недели</span>
             </button>
@@ -3013,6 +3016,62 @@ ${rawText}` }] }]
       }
     }
     // Бэкап — открытый JSON: единственный путь восстановления при забытом пароле
+    // --- ЭКСПОРТ ДЛЯ OBSIDIAN ---
+    // Чистая сборка текста без побочных эффектов: её можно проверить тестом
+    function buildObsidianMarkdown(now = new Date()) {
+      const typeOf = log => log.type || inferLogType(log.kind, log.text);
+      const oneLine = value => String(value == null ? '' : value).replace(/\s*\n\s*/g, ' ').trim();
+      const logs = (state.logs || []).slice().sort((a, b) => (Number(a.ts) || 0) - (Number(b.ts) || 0));
+      const info = levelInfo();
+      const lines = [
+        '---',
+        'tags: [flowcore, regulation, log]',
+        `week: ${state.weekKey}`,
+        `score: ${Number(state.points) || 0}/${Number(state.goal) || 0}`,
+        `level: ${info.level}`,
+        `xp: ${info.xp}`,
+        `exported: ${dayKey(now)}`,
+        '---',
+        '',
+        `# FlowCore · ${state.weekKey}`,
+        '',
+        `${formatWeekRange(state.weekStart)} · ${Number(state.points) || 0} из ${Number(state.goal) || 0} очков · Ур. ${info.level} (${info.xp} за всё время)`,
+        ''
+      ];
+      // Замок шифрует только хранилище браузера: об этом лучше сказать на входе в файл
+      if (vault.enabled) {
+        lines.push('> Экспорт открытым текстом: замок защищает хранилище браузера, а не этот файл.', '');
+      }
+      const section = (title, list) => {
+        lines.push(`## ${title}`, '');
+        if (!list.length) {
+          lines.push('_Пусто._', '');
+          return;
+        }
+        list.forEach(log => {
+          const pts = Number(log.pts) || 0;
+          lines.push(`- **${log.time}** — ${oneLine(log.text)}${pts ? ` (+${pts})` : ''}`);
+        });
+        lines.push('');
+      };
+      section('Выполненные шаги', logs.filter(log => typeOf(log) === 'action'));
+      section('Телесные сигналы', logs.filter(log => typeOf(log) === 'signal'));
+      section('Ранний стоп и саморегуляция', logs.filter(log => typeOf(log) === 'stop'));
+      return lines.join('\n');
+    }
+    function exportObsidianMarkdown() {
+      if (!state) return;
+      const name = `FlowCore-${state.weekKey}.md`;
+      const blob = new Blob([buildObsidianMarkdown()], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+      flashMessage(`Файл ${name} скачан`);
+    }
+
     function downloadBackup(filename, markExported = true) {
       if (!state) return;
       const data = Object.assign({}, state, { exportedAt: new Date().toISOString() });

@@ -586,6 +586,34 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('резерв: мусорное число ужато', vm.runInContext('state.reservePool', seeded.ctx), 4);
 }
 
+// --- 21. Markdown для Obsidian ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q(`state.weekKey = '2026-W43'; state.weekStart = '2026-10-19'; state.points = 5; state.goal = 12;
+     state.weeks = [{ weekKey: '2026-W41', weekStart: '2026-10-05', points: 30, goal: 12, logs: [] }];
+     state.logs = [
+       { id: 1, ts: new Date(2026,9,22,9,0).getTime(), time: '22.10 09:00', kind: 'Код и учеба', text: 'первый шаг', pts: 2, type: 'action' },
+       { id: 2, ts: new Date(2026,9,24,10,0).getTime(), time: '24.10 10:00', kind: 'Заметка', text: 'ком' + String.fromCharCode(10) + 'в груди', pts: 0, type: 'signal' },
+       { id: 3, ts: new Date(2026,9,23,11,0).getTime(), time: '23.10 11:00', kind: 'Вовремя остановился', text: 'остановился', pts: 3, type: 'stop' }
+     ];`);
+  const md = q('buildObsidianMarkdown()');
+  check('md: YAML-шапка на месте', md.split('\n')[0], '---');
+  check('md: теги', md.includes('tags: [flowcore, regulation, log]'), true);
+  check('md: неделя в шапке', md.includes('week: 2026-W43'), true);
+  check('md: счёт в шапке', md.includes('score: 5/12'), true);
+  check('md: уровень учитывает архив', md.includes('level: 4'), true);
+  check('md: три секции', ['## Выполненные шаги', '## Телесные сигналы', '## Ранний стоп и саморегуляция'].every(t => md.includes(t)), true);
+  check('md: запись шага на месте', md.includes('- **22.10 09:00** — первый шаг (+2)'), true);
+  check('md: перевод строки в записи склеен', md.includes('ком в груди'), true);
+  check('md: записи по времени, а не наоборот', md.indexOf('22.10 09:00') < md.indexOf('23.10 11:00'), true);
+  check('md: без замка нет предупреждения', md.includes('Экспорт открытым текстом'), false);
+  q('vault.enabled = true;');
+  check('md: с замком честно предупреждает', q('buildObsidianMarkdown()').includes('Экспорт открытым текстом'), true);
+  q('vault.enabled = false; state.logs = [];');
+  check('md: пустые секции не ломают файл', q('buildObsidianMarkdown()').includes('_Пусто._'), true);
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
