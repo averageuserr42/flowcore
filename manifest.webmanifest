@@ -1,8 +1,8 @@
 {
-  "name": "FlowCore — панель регуляции и фокуса",
+  "name": "FlowCore: a focus and recovery diary",
   "short_name": "FlowCore",
-  "description": "Личный дневник регуляции: таймер фокуса, сигналы тела и недельный зачёт без давления.",
-  "lang": "ru",
+  "description": "Short stretches of work, body signals and a weekly score without pressure. Offline, no account.",
+  "lang": "en",
   "start_url": "./flowcore.html",
   "scope": "./",
   "display": "standalone",

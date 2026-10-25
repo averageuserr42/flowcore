@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Сеть ограничена одним адресом: ИИ-сводка. Инлайн скрипт и стили нужны
        потому, что весь проект — один файл без сборки. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-  <title>FlowCore | Дневник фокуса и восстановления</title>
+  <title>FlowCore | A focus and recovery diary</title>
   <meta name="theme-color" content="#030704">
   <script>
     /* Скин читается до первой отрисовки: иначе владелец янтаря видит
@@ -22,8 +22,10 @@
       }
     } catch (e) {}
   </script>
-  <meta name="description" content="Дневник фокуса и восстановления: короткие отрезки работы, сигналы тела и недельный зачёт без давления.">
+  <meta name="description" content="A focus and recovery diary: short stretches of work, body signals and a weekly score without pressure.">
   <link rel="manifest" href="manifest.webmanifest">
+  <!-- Без rel=icon браузер сам просит /favicon.ico и получает 404 в консоли -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="FlowCore">
