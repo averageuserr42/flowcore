@@ -63,7 +63,7 @@ function makeContext(fixedTs, seed) {
     },
     btoa: s => Buffer.from(s, 'binary').toString('base64'),
     TextEncoder,
-    setTimeout: () => 0, setInterval: () => 0, clearInterval: () => {},
+    setTimeout: () => 0, setInterval: () => 0, clearInterval: () => {}, clearTimeout: () => {},
     alert: () => {}, confirm: () => true, prompt: () => null,
     navigator: { clipboard: { writeText: async () => {} } },
     Blob: function () {}, URL: { createObjectURL: () => '', revokeObjectURL: () => {} },
@@ -418,6 +418,53 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   q3('dismissBridge()');
   check('после «не сейчас» мост скрыт', q3('bridgeDue()'), false);
   check('«не сейчас» пишется в состояние', q3('state.lastStop.resumed'), true);
+}
+
+// --- 17. Сквозной опыт и уровень ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('уровень: 10 очков на шаг', q('XP_PER_LEVEL'), 10);
+  q('state.points = 0; state.weeks = [];');
+  check('опыт: пустая панель — 0', q('lifetimeXp()'), 0);
+  check('уровень: с нуля — первый', q('levelInfo().level'), 1);
+  check('уровень: порог первого 10', q('levelInfo().next'), 10);
+  q('state.points = 9;');
+  check('опыт: текущая неделя в счёте', q('lifetimeXp()'), 9);
+  check('уровень: 9 — всё ещё первый', q('levelInfo().level'), 1);
+  q('state.points = 10;');
+  check('уровень: 10 — второй', q('levelInfo().level'), 2);
+  check('уровень: до следующего 20', q('levelInfo().next'), 20);
+  q("state.weeks = [{ weekKey: '2026-W41', weekStart: '2026-10-05', points: 14, goal: 12, logs: [] }]; state.points = 10;");
+  check('опыт: архив прибавляется', q('lifetimeXp()'), 24);
+  check('уровень: 24 — третий', q('levelInfo().level'), 3);
+  check('уровень: порог третьего 30', q('levelInfo().next'), 30);
+  check('уровень: внутри уровня 4 из 10', q('levelInfo().into'), 4);
+  check('уровень: до следующего 6', q('levelInfo().next - levelInfo().xp'), 6);
+  check('уровень: отрицательный опыт не уводит ниже 1', q('levelInfo(-5).level'), 1);
+  // Удаление записи обязано честно опустить опыт: он не хранится, а считается
+  q("state.weeks = [{ weekKey: '2026-W41', weekStart: '2026-10-05', points: 14, goal: 12, logs: [] }]; state.points = 4; state.logs = [{ id: 9, ts: Date.now(), time: '24.10 12:00', kind: 'k', text: 'x', pts: 4 }];");
+  q('deleteLogEntry(9);');
+  check('удаление: опыт пересчитан по бакетам', q('lifetimeXp()'), 14);
+  check('удаление: уровень опустился честно', q('levelInfo().level'), 2);
+}
+
+// --- 18. Скин: набор, хранение, мусор ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('скин по умолчанию', q('state.skin'), 'emerald');
+  check('в наборе три скина', q('Object.keys(SKINS).length'), 3);
+  q("setSkin('ice');");
+  check('скин выбран', q('state.skin'), 'ice');
+  check('скин лёг отдельным ключом', store['flowCoreSkinV1'], 'ice');
+  const saved = JSON.parse(store['flowCorePortfolioV5']);
+  check('скин попал в состояние (переживёт бэкап)', saved.skin, 'ice');
+  const next = makeContext(NOW + 1000, saved);
+  check('скин восстановлен из состояния', vm.runInContext('state.skin', next.ctx), 'ice');
+  q("setSkin('нет-такого');");
+  check('мусорный скин откатывается к базовому', q('state.skin'), 'emerald');
+  check('у каждого скина есть цвет адресной строки', q('SKINS.emerald.theme'), '#030704');
 }
 
 const failed = results.filter(r => !r.ok);
