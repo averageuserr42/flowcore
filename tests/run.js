@@ -449,22 +449,36 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('удаление: уровень опустился честно', q('levelInfo().level'), 2);
 }
 
-// --- 18. Скин: набор, хранение, мусор ---
+// --- 18. Скин: набор, уровни, хранение, мусор ---
 {
   const { ctx, store } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
   check('скин по умолчанию', q('state.skin'), 'emerald');
-  check('в наборе три скина', q('Object.keys(SKINS).length'), 3);
-  q("setSkin('ice');");
-  check('скин выбран', q('state.skin'), 'ice');
-  check('скин лёг отдельным ключом', store['flowCoreSkinV1'], 'ice');
+  check('в наборе четыре скина', q('Object.keys(SKINS).length'), 4);
+  check('пороги: янтарь на 3 уровне', q('SKINS.amber.minLevel'), 3);
+  check('пороги: кибер на 6, аврора на 10', q('[SKINS.cyber.minLevel, SKINS.aurora.minLevel]'), [6, 10]);
+  check('на первом уровне изумруд открыт', q('skinUnlocked("emerald")'), true);
+  check('на первом уровне янтарь заперт', q('skinUnlocked("amber")'), false);
+  q("setSkin('amber');");
+  check('запертый скин не выбирается', q('state.skin'), 'emerald');
+  q('state.weeks = [{ weekKey: "2026-W41", weekStart: "2026-10-05", points: 20, goal: 12, logs: [] }]; state.points = 0;');
+  check('на 20 очках — третий уровень', q('levelInfo().level'), 3);
+  check('янтарь открылся вместе с уровнем', q('skinUnlocked("amber")'), true);
+  q("setSkin('amber');");
+  check('скин выбран', q('state.skin'), 'amber');
+  check('скин лёг отдельным ключом', store['flowCoreSkinV1'], 'amber');
   const saved = JSON.parse(store['flowCorePortfolioV5']);
-  check('скин попал в состояние (переживёт бэкап)', saved.skin, 'ice');
+  check('скин попал в состояние (переживёт бэкап)', saved.skin, 'amber');
   const next = makeContext(NOW + 1000, saved);
-  check('скин восстановлен из состояния', vm.runInContext('state.skin', next.ctx), 'ice');
+  check('скин восстановлен из состояния', vm.runInContext('state.skin', next.ctx), 'amber');
+  check('старое имя ice переезжает в кибер', vm.runInContext('normalizeSkin("ice")', next.ctx), 'cyber');
   q("setSkin('нет-такого');");
   check('мусорный скин откатывается к базовому', q('state.skin'), 'emerald');
   check('у каждого скина есть цвет адресной строки', q('SKINS.emerald.theme'), '#030704');
+  // Уровень упал — выбранный скин не отбираем, панель не должна менять лицо под рукой
+  q('state.weeks = []; state.points = 0; applySkin("aurora"); state.skin = "aurora";');
+  check('упавший уровень не отбирает выбранный скин', q('state.skin'), 'aurora');
+  check('но новый выбор снова заперт', q('skinUnlocked("cyber")'), false);
 }
 
 const failed = results.filter(r => !r.ok);

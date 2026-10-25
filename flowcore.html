@@ -46,6 +46,10 @@
       --surface-deep-rgb: 5, 11, 7;
       --surface-mid-rgb: 12, 25, 16;
       --accent-rgb: 44, 230, 102;
+      /* Второй цвет ядра: по умолчанию повторяет акцент, автономная тема
+         перекрашивает только его — так градиент получает два оттенка
+         без дублирования десятка переменных. */
+      --accent-second-rgb: var(--accent-rgb);
       --accent-alt-rgb: 56, 235, 107;
       --accent-light-rgb: 104, 247, 150;
       --text-white-rgb: 244, 248, 245;
@@ -86,20 +90,43 @@
       --tint-active-rgb: 88, 60, 26;
       --tint-nav-rgb: 46, 31, 13;
     }
-    html[data-skin="ice"] {
-      --void-rgb: 3, 6, 9;
-      --surface-rgb: 9, 16, 20;
-      --surface-inner-rgb: 14, 24, 29;
-      --surface-deep-rgb: 6, 11, 14;
-      --surface-mid-rgb: 12, 22, 27;
-      --accent-rgb: 74, 196, 255;
-      --accent-alt-rgb: 96, 210, 255;
-      --accent-light-rgb: 168, 231, 255;
-      --text-white-rgb: 240, 248, 252;
-      --tint-bg-rgb: 18, 42, 56;
-      --tint-hover-rgb: 28, 62, 82;
-      --tint-active-rgb: 34, 74, 96;
-      --tint-nav-rgb: 22, 48, 62;
+    /* Уровень 6: биолюминесцентный циан */
+    html[data-skin="cyber"] {
+      --void-rgb: 2, 6, 9;
+      --surface-rgb: 6, 14, 18;
+      --surface-inner-rgb: 10, 22, 27;
+      --surface-deep-rgb: 4, 9, 12;
+      --surface-mid-rgb: 8, 18, 22;
+      --accent-rgb: 44, 197, 230;
+      --accent-alt-rgb: 60, 210, 240;
+      --accent-light-rgb: 104, 232, 247;
+      --text-white-rgb: 240, 250, 252;
+      --tint-bg-rgb: 14, 36, 44;
+      --tint-hover-rgb: 22, 54, 66;
+      --tint-active-rgb: 28, 66, 80;
+      --tint-nav-rgb: 18, 42, 52;
+    }
+    /* Второе пунктирное кольцо — только у кибера */
+    html[data-skin="cyber"] .engine-heart-ring {
+      outline: 1px dashed rgba(var(--accent-light-rgb), 0.22);
+      outline-offset: 28px;
+    }
+    /* Уровень 10: аметистовое ядро с изумрудным дыханием */
+    html[data-skin="aurora"] {
+      --void-rgb: 5, 4, 9;
+      --surface-rgb: 12, 10, 18;
+      --surface-inner-rgb: 19, 15, 28;
+      --surface-deep-rgb: 8, 6, 12;
+      --surface-mid-rgb: 16, 13, 24;
+      --accent-rgb: 168, 120, 255;
+      --accent-alt-rgb: 190, 156, 255;
+      --accent-light-rgb: 214, 190, 255;
+      --accent-second-rgb: 44, 230, 102;
+      --text-white-rgb: 246, 243, 252;
+      --tint-bg-rgb: 36, 26, 56;
+      --tint-hover-rgb: 52, 38, 80;
+      --tint-active-rgb: 62, 46, 96;
+      --tint-nav-rgb: 32, 24, 50;
     }
     * {
       box-sizing: border-box;
@@ -138,7 +165,7 @@
         circle,
         rgba(var(--accent-rgb), 0.17) 0%,
         rgba(var(--accent-rgb), 0.08) 32%,
-        rgba(var(--accent-rgb), 0.03) 58%,
+        rgba(var(--accent-second-rgb), 0.03) 58%,
         transparent 75%
       );
       filter: blur(18px);
@@ -265,6 +292,10 @@
       font-weight: 700;
       color: var(--green-title);
       letter-spacing: 0.04em;
+    }
+    .pill-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
     .level-badge .lv-sep {
       color: var(--text-muted);
@@ -1489,6 +1520,7 @@
             <div style="font-size: 13px; color: var(--text-muted);">Меняет фон, карточки и свечения разом. Записи и уровень от скина не зависят.</div>
           </div>
           <div id="skinRow" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"></div>
+          <div id="skinHint" style="font-size: 12px; color: var(--text-muted); width: 100%; text-align: right;"></div>
         </div>
         <hr class="green-divider" />
         <!-- 2b. Замок дневника -->
@@ -1571,11 +1603,16 @@
     const XP_PER_LEVEL = 10;
     // Скин — это только палитра. Набор держим одним словарём, чтобы
     // нормализация, меню и атрибут на <html> не могли разойтись.
+    // minLevel — порог открытия. Скин только выбирается по уровню: если уровень
+    // упадёт после удаления записи, уже выбранный скин не отбираем — панель не
+    // должна менять лицо под рукой.
     const SKINS = {
-      emerald: { name: 'Изумруд', theme: '#030704' },
-      amber: { name: 'Янтарь', theme: '#0a0703' },
-      ice: { name: 'Лёд', theme: '#030709' }
+      emerald: { name: 'Изумруд', theme: '#030704', minLevel: 1 },
+      amber: { name: 'Янтарь', theme: '#070503', minLevel: 3 },
+      cyber: { name: 'Кибер', theme: '#020609', minLevel: 6 },
+      aurora: { name: 'Аврора', theme: '#050409', minLevel: 10 }
     };
+    const SKIN_ALIASES = { ice: 'cyber' };
     const SKIN_STORAGE = 'flowCoreSkinV1';
     const SKIN_DEFAULT = 'emerald';
     // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
@@ -2983,7 +3020,12 @@ ${rawText}` }] }]
 
     // --- СКИН ---
     function normalizeSkin(value) {
-      return Object.prototype.hasOwnProperty.call(SKINS, value) ? value : SKIN_DEFAULT;
+      const key = SKIN_ALIASES[value] || value;
+      return Object.prototype.hasOwnProperty.call(SKINS, key) ? key : SKIN_DEFAULT;
+    }
+    function skinUnlocked(value) {
+      const skin = SKINS[normalizeSkin(value)];
+      return levelInfo().level >= (skin.minLevel || 1);
     }
     function storedSkin() {
       try {
@@ -3006,7 +3048,12 @@ ${rawText}` }] }]
       return skin;
     }
     function setSkin(value) {
-      const skin = applySkin(value);
+      const wanted = normalizeSkin(value);
+      if (!skinUnlocked(wanted)) {
+        flashMessage(`${SKINS[wanted].name} откроется на ${SKINS[wanted].minLevel} уровне`);
+        return;
+      }
+      const skin = applySkin(wanted);
       try {
         localStorage.setItem(SKIN_STORAGE, skin);
       } catch (e) {}
@@ -3161,10 +3208,26 @@ ${rawText}` }] }]
       const skinRow = document.getElementById('skinRow');
       if (skinRow) {
         const current = normalizeSkin(state.skin);
+        const level = levelInfo().level;
         skinRow.innerHTML = Object.keys(SKINS).map(key => {
+          const skin = SKINS[key];
           const on = current === key;
-          return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" onclick="setSkin('${key}')">${SKINS[key].name}</button>`;
+          const locked = level < (skin.minLevel || 1);
+          const label = locked ? `${skin.name} · Ур. ${skin.minLevel}` : skin.name;
+          const title = locked ? `Откроется на ${skin.minLevel} уровне` : skin.name;
+          return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" title="${title}"`
+            + `${locked ? ' disabled aria-disabled="true"' : ''} onclick="setSkin('${key}')">${label}</button>`;
         }).join('');
+        const hint = document.getElementById('skinHint');
+        if (hint) {
+          const nextLocked = Object.keys(SKINS)
+            .map(key => SKINS[key])
+            .filter(skin => level < (skin.minLevel || 1))
+            .sort((a, b) => a.minLevel - b.minLevel)[0];
+          hint.textContent = nextLocked
+            ? `Следующий: ${nextLocked.name} на ${nextLocked.minLevel} уровне`
+            : 'Все скины открыты';
+        }
       }
 
       const keyInput = document.getElementById('apiKeyInput');
