@@ -1198,19 +1198,19 @@
   <!-- ЗАМОК ДНЕВНИКА: перекрывает все, пока не введен пароль -->
   <div id="lockScreen" class="lock-screen hidden">
     <div class="glow-card" style="max-width: 400px; width: 100%;">
-      <h2 class="card-heading">Дневник заперт</h2>
-      <p class="card-subtext">Записи на этом устройстве зашифрованы. Введи пароль, чтобы открыть их.</p>
-      <input id="lockPass" type="password" class="clean-input" autocomplete="current-password" placeholder="Пароль" onkeydown="if(event.key === 'Enter') unlockVault()" />
+      <h2 class="card-heading" data-i18n="lock.title">Дневник заперт</h2>
+      <p class="card-subtext" data-i18n="lock.hint">Записи на этом устройстве зашифрованы. Введи пароль, чтобы открыть их.</p>
+      <input id="lockPass" type="password" class="clean-input" autocomplete="current-password" placeholder="Пароль" data-i18n-ph="lock.pass.placeholder" onkeydown="if(event.key === 'Enter') unlockVault()" />
       <div id="lockError" class="lock-error" role="alert"></div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button class="action-btn" onclick="unlockVault()">Открыть</button>
+        <button class="action-btn" onclick="unlockVault()" data-i18n="lock.open">Открыть</button>
         <label class="action-btn-secondary" style="cursor: pointer;">
-          Загрузить бэкап
+          <span data-i18n="sys.backup.upload">Загрузить бэкап</span>
           <input type="file" accept=".json" style="display: none;" onchange="importBackupJson(event)" />
         </label>
       </div>
       <div style="font-size: 12px; color: var(--text-muted); margin-top: 12px;">
-        Пароль нигде не хранится: без него записи не восстановить. Бэкап — единственный путь назад.
+        <span data-i18n="lock.footnote">Пароль нигде не хранится: без него записи не восстановить. Бэкап — единственный путь назад.</span>
       </div>
     </div>
   </div>
@@ -1218,14 +1218,12 @@
   <!-- ПЕРВЫЙ ЗАПУСК: короткое интервью вместо чужих примеров в дневнике -->
   <div id="onboardScreen" class="lock-screen hidden">
     <div class="glow-card" style="max-width: 460px; width: 100%;">
-      <div class="card-subtext" style="margin-bottom: 10px; font-size: 12px; letter-spacing: 0.04em;">
-        ШАГ <span id="onboardStepNo">1</span> ИЗ 3
-      </div>
+      <div id="onboardStepText" class="card-subtext" style="margin-bottom: 10px; font-size: 12px; letter-spacing: 0.04em;"></div>
       <div id="onboardBody"></div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; align-items: center;">
-        <button id="onboardBack" class="action-btn-secondary" onclick="onboardBack()">Назад</button>
-        <button id="onboardNext" class="action-btn" onclick="onboardNext()">Дальше</button>
-        <button class="pill-btn" onclick="finishOnboarding(true)" style="margin-left: auto;">Пропустить</button>
+        <button id="onboardBack" class="action-btn-secondary" onclick="onboardBack()" data-i18n="onboard.back">Назад</button>
+        <button id="onboardNext" class="action-btn" onclick="onboardNext()" data-i18n="onboard.next">Дальше</button>
+        <button class="pill-btn" onclick="finishOnboarding(true)" style="margin-left: auto;" data-i18n="onboard.skip">Пропустить</button>
       </div>
     </div>
   </div>
@@ -1233,13 +1231,13 @@
   <!-- ДИАЛОГ ПАРОЛЯ (включение замка, смена пароля) -->
   <div id="passModal" class="lock-screen hidden">
     <div class="glow-card" style="max-width: 400px; width: 100%;">
-      <h2 id="passTitle" class="card-heading">Пароль</h2>
+      <h2 id="passTitle" class="card-heading" data-i18n="common.password">Пароль</h2>
       <p id="passHint" class="card-subtext"></p>
       <input id="passInput" type="password" class="clean-input" autocomplete="new-password" onkeydown="if(event.key === 'Enter') submitPass()" />
       <div id="passError" class="lock-error" role="alert"></div>
       <div style="display: flex; gap: 10px;">
-        <button class="action-btn" onclick="submitPass()">ОК</button>
-        <button class="action-btn-secondary" onclick="cancelPass()">Отмена</button>
+        <button class="action-btn" onclick="submitPass()" data-i18n="common.ok">ОК</button>
+        <button class="action-btn-secondary" onclick="cancelPass()" data-i18n="common.cancel">Отмена</button>
       </div>
     </div>
   </div>
@@ -1297,7 +1295,7 @@
           </div>
           <!-- Orb Timer + Active Task Description -->
           <div class="focus-hero">
-            <div class="timer-orb" onclick="toggleTimer()" title="Нажми для старта или паузы" role="button" tabindex="0" data-i18n-aria="focus.timer.aria" aria-label="Таймер фокуса: старт или пауза" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleTimer(); }">
+            <div class="timer-orb" onclick="toggleTimer()" title="Нажми для старта или паузы" data-i18n-title="focus.timer.title" role="button" tabindex="0" data-i18n-aria="focus.timer.aria" aria-label="Таймер фокуса: старт или пауза" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleTimer(); }">
               <div id="timerReadout" class="timer-digits">05:00</div>
               <div id="timerActionHint" class="timer-sub">Старт</div>
             </div>
@@ -1329,14 +1327,14 @@
                   data-i18n-aria="focus.custom.aria"
                   onkeydown="if(event.key === 'Enter') applyCustomMinutes()"
                 />
-                <button class="pill-btn" onclick="applyCustomMinutes()" data-i18n-aria="focus.custom.ok" aria-label="Поставить свои минуты">ОК</button>
+                <button class="pill-btn" onclick="applyCustomMinutes()" data-i18n="focus.custom.ok" data-i18n-aria="focus.custom.ok" aria-label="Поставить свои минуты">ОК</button>
               </span>
             </div>
             <div id="bridgeRow" class="bridge-row hidden">
               <div id="bridgeText" class="bridge-text"></div>
               <div class="continue-actions">
-                <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="resumeFromBridge()">Начать 5 мин с этого места</button>
-                <button class="pill-btn" onclick="dismissBridge()">Не сейчас</button>
+                <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="resumeFromBridge()" data-i18n="bridge.start">Начать 5 мин с этого места</button>
+                <button class="pill-btn" onclick="dismissBridge()" data-i18n="bridge.later">Не сейчас</button>
               </div>
             </div>
             <div id="todayLine" class="today-line"></div>
@@ -1344,9 +1342,9 @@
             <div id="continueRow" class="continue-row hidden">
               <div id="continueText" class="continue-text"></div>
               <div class="continue-actions">
-                <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="continueTimer(15)">Ещё 15</button>
-                <button class="pill-btn" onclick="continueTimer(30)">Ещё 30</button>
-                <button class="pill-btn" onclick="resetTimer()">Закончить</button>
+                <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="continueTimer(15)" data-i18n="focus.continue15">Ещё 15</button>
+                <button class="pill-btn" onclick="continueTimer(30)" data-i18n="focus.continue30">Ещё 30</button>
+                <button class="pill-btn" onclick="resetTimer()" data-i18n="focus.finish">Закончить</button>
               </div>
             </div>
             <div id="firstStepRow" class="steps-row" role="group" data-i18n-aria="focus.steps.aria" aria-label="Первый шаг"></div>
@@ -1513,20 +1511,20 @@
     <!-- 3. BREATHING DECOMPRESSOR VIEW: SINGLE CENTERED CARD (Like Kontakt Page) -->
     <section id="view-breathe" class="single-card-wrap hidden">
       <div class="glow-card" style="text-align: center; align-items: center;">
-        <h2 class="card-heading">Снятие давления в груди</h2>
+        <h2 class="card-heading" data-i18n="breathe.title">Снятие давления в груди</h2>
         <p class="card-subtext" style="max-width: 460px;">
-          Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.
+          <span data-i18n="breathe.hint">Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.</span>
         </p>
-        <div id="breatheOrb" class="timer-orb" style="width: 136px; height: 136px; margin: 18px auto;" onclick="toggleBreathe()" role="button" tabindex="0" aria-label="Дыхание: запустить или остановить" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleBreathe(); }">
-          <div id="breatheSecondsText" class="timer-digits">60с</div>
-          <div id="breathePhaseLabel" class="timer-sub">Нажми для старта</div>
+        <div id="breatheOrb" class="timer-orb" style="width: 136px; height: 136px; margin: 18px auto;" onclick="toggleBreathe()" role="button" tabindex="0" data-i18n-aria="breathe.aria" aria-label="Дыхание: запустить или остановить" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleBreathe(); }">
+          <div id="breatheSecondsText" class="timer-digits" data-i18n="breathe.idleSeconds">60с</div>
+          <div id="breathePhaseLabel" class="timer-sub" data-i18n="breathe.idle">Нажми для старта</div>
         </div>
         <div id="breatheGuideText" style="font-size: 16px; font-weight: 500; color: var(--text-white); margin: 10px 0 22px 0;">
-          Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)
+          <span data-i18n="breathe.guide">Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)</span>
         </div>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-          <button id="breatheStartBtn" class="action-btn" onclick="toggleBreathe()">Запустить 60 секунд</button>
-          <button class="action-btn-secondary" onclick="completeBreathingStep()">Сделал разгрузку (+1)</button>
+          <button id="breatheStartBtn" class="action-btn" onclick="toggleBreathe()" data-i18n="breathe.start">Запустить 60 секунд</button>
+          <button class="action-btn-secondary" onclick="completeBreathingStep()" data-i18n="breathe.done.btn">Сделал разгрузку (+1)</button>
         </div>
       </div>
     </section>
@@ -2176,7 +2174,7 @@
       }
       const pass = document.getElementById('lockPass').value;
       if (!pass) {
-        document.getElementById('lockError').textContent = 'Пароль пустой';
+        document.getElementById('lockError').textContent = t('lock.emptyPass');
         return;
       }
       try {
@@ -2190,7 +2188,7 @@
         hideLockScreen();
         startApp();
       } catch (e) {
-        document.getElementById('lockError').textContent = 'Пароль не подходит';
+        document.getElementById('lockError').textContent = t('sys.lock.badPass');
         document.getElementById('lockPass').value = '';
       }
     }
@@ -2303,9 +2301,8 @@
       const rested = syncRestBonus();
       if (!rolled && !rested) return false;
       saveState();
-      renderAll();
-      if (rolled) flashMessage('Новая неделя: счет с нуля, прошлая ушла в архив');
-      else flashMessage('Заряд отдыха: +1');
+      renderAll();        if (rolled) flashMessage(t('toast.week.rolled'));
+        else flashMessage(t('toast.rest.charge'));
       return true;
     }
     async function saveState() {
@@ -2319,7 +2316,7 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         }
       } catch (e) {
-        flashMessage('Сохранить не удалось: хранилище браузера заполнено или недоступно');
+        flashMessage(t('toast.save.failed'));
       }
     }
     // --- VIEW NAVIGATION (Keeps main screen clean & spacious) ---
@@ -2604,10 +2601,10 @@
     }
     function saveFreeform(kind, pts, type) {
       const input = document.getElementById('freeformInput');
-      const text = input.value.trim() || `${kind} (быстрая отметка без текста)`;
+      const text = input.value.trim() || t('words.emptySuffix', { kind: kind });
       const awarded = addLogEntry(kind, text, pts, type || 'note');
       input.value = '';
-      flashMessage(awarded ? `Записано (+${awarded})` : `Записано. День закрыт: ${DAILY_CAP} очков уже есть`);
+      flashMessage(awarded ? t('words.saved', { n: awarded }) : t('words.saved.capped', { cap: DAILY_CAP }));
     }
     function quickDiaryChip(label) {
       const input = document.getElementById('diaryQuickInput');
@@ -3043,22 +3040,22 @@
       const btn = document.getElementById('breatheStartBtn');
       if (ms <= 0) {
         orb.classList.remove('orb-breathing');
-        secText.textContent = 'Готово';
-        label.textContent = 'Плечи опущены';
-        btn.textContent = 'Запустить 60 секунд';
+        secText.textContent = t('breathe.done');
+        label.textContent = t('breathe.released');
+        btn.textContent = t('breathe.start');
         return;
       }
       if (!breatheTimer.running) {
         orb.classList.remove('orb-breathing');
-        secText.textContent = '60с';
-        label.textContent = 'Нажми для старта';
-        btn.textContent = 'Запустить 60 секунд';
+        secText.textContent = t('breathe.idleSeconds');
+        label.textContent = t('breathe.idle');
+        btn.textContent = t('breathe.start');
         return;
       }
-      secText.textContent = Math.ceil(ms / 1000) + 'с';
+      secText.textContent = t('breathe.seconds', { n: Math.ceil(ms / 1000) });
       const elapsed = Math.floor((breatheTimer.totalMs - ms) / 1000);
-      label.textContent = (elapsed % 10) < 4 ? 'Вдох (4с)' : 'Мягкий выдох (6с)';
-      btn.textContent = 'Остановить';
+      label.textContent = (elapsed % 10) < 4 ? t('breathe.inhale') : t('breathe.exhale');
+      btn.textContent = t('breathe.stop');
     }
     function toggleBreathe() {
       const orb = document.getElementById('breatheOrb');
@@ -3085,7 +3082,7 @@
     }
     function completeBreathingStep() {
       // Разгрузка сама не тратит заряд отдыха — она его зарабатывает
-      const awarded = addLogEntry('Дыхательная разгрузка', '60 секунд спокойного дыхания при давлении в груди', 1, 'action', 0, { useRestBonus: false });
+      const awarded = addLogEntry(t('breathe.log.kind'), t('breathe.log.text'), 1, 'action', 0, { useRestBonus: false });
       const today = dayKey(new Date());
       const canCharge = state.restBreathDay !== today && (Number(state.restBonus) || 0) < REST_CAP;
       if (canCharge) {
@@ -3095,8 +3092,8 @@
         renderAll();
       }
       flashMessage(canCharge
-        ? `Разгрузка записана, зарядов отдыха: ${state.restBonus}`
-        : (awarded ? 'Разгрузка записана (+1)' : 'Разгрузка записана. День закрыт — без очков'));
+        ? t('breathe.recorded.charge', { n: state.restBonus })
+        : (awarded ? t('breathe.recorded') : t('breathe.recorded.capped')));
     }
     // --- SYSTEM & ENGINE HEART CONTROLS ---
     function toggleHeartEngine() {
@@ -3860,130 +3857,99 @@
     // --- ПЕРВЫЙ ЗАПУСК: КОРОТКОЕ ИНТЕРВЬЮ ---
     // Шаблоны намеренно нейтральные: человек выбирает своё, а не читает
     // чужой дневник с записью про тяжесть в груди.
+    // Шаблоны первого запуска собираются заново при каждом открытии: только так
+    // смена языка даёт заготовки на новом языке, а не русский текст из константы.
     const ONBOARD_TEMPLATES = [
       {
-        key: 'study', label: 'Учёба и курсы',
-        sphere: {
-          name: 'Учёба и курсы',
-          tasks: {
-            micro: 'Открыть конспект и перечитать одну страницу (2-5 мин)',
-            draft: 'Позаниматься 5-15 минут, не пытаясь освоить всё сразу',
-            wave: '30 минут занятия с остановкой, как только почувствуешь усталость'
-          },
-          steps: ['Открыть файл с конспектом', 'Выписать один вопрос по теме', 'Прочитать один абзац вслух'],
-          notes: {
-            micro: 'Сейчас достаточно просто коснуться темы.',
-            draft: 'Идёт в зачёт недели, даже если получилось мало.',
-            wave: 'Остановиться по сигналу важнее, чем досидеть.'
+        key: 'study',
+        build: () => ({
+          label: t('tpl.study.label'),
+          sphere: {
+            name: t('tpl.study.name'),
+            tasks: { micro: t('tpl.study.micro'), draft: t('tpl.study.draft'), wave: t('tpl.study.wave') },
+            steps: [t('tpl.study.step1'), t('tpl.study.step2'), t('tpl.study.step3')],
+            notes: { micro: t('tpl.study.note.micro'), draft: t('tpl.study.note.draft'), wave: t('tpl.study.note.wave') }
           }
-        }
+        })
       },
       {
-        key: 'code', label: 'Код и проекты',
-        sphere: {
-          name: 'Код и проекты',
-          tasks: {
-            micro: 'Открыть проект и посмотреть, где остановился (2-5 мин)',
-            draft: 'Поковырять код 5-15 минут без цели доделать',
-            wave: '30 минут работы, остановиться до появления усталости'
-          },
-          steps: ['Открыть проект', 'Запустить тесты', 'Прочитать одну функцию'],
-          notes: {
-            micro: 'Коснуться проекта, ничего не решая.',
-            draft: 'Любое продвижение считается, без оценки.',
-            wave: 'Перерыв по сигналу — часть работы.'
+        key: 'code',
+        build: () => ({
+          label: t('tpl.code.label'),
+          sphere: {
+            name: t('tpl.code.name'),
+            tasks: { micro: t('tpl.code.micro'), draft: t('tpl.code.draft'), wave: t('tpl.code.wave') },
+            steps: [t('tpl.code.step1'), t('tpl.code.step2'), t('tpl.code.step3')],
+            notes: { micro: t('tpl.code.note.micro'), draft: t('tpl.code.note.draft'), wave: t('tpl.code.note.wave') }
           }
-        }
+        })
       },
       {
-        key: 'writing', label: 'Текст и творчество',
-        sphere: {
-          name: 'Текст и творчество',
-          tasks: {
-            micro: 'Открыть файл и перечитать последний абзац (2-5 мин)',
-            draft: 'Написать пару абзацев или набросок 5-15 минут',
-            wave: '30 минут письма с остановкой по первому сигналу'
-          },
-          steps: ['Открыть файл', 'Написать одну фразу', 'Перечитать последний абзац'],
-          notes: {
-            micro: 'Пустая страница тоже результат: ты подошёл.',
-            draft: 'Черновик не обязан быть хорошим.',
-            wave: 'Остановиться, когда текст начинает раздражать.'
+        key: 'writing',
+        build: () => ({
+          label: t('tpl.writing.label'),
+          sphere: {
+            name: t('tpl.writing.name'),
+            tasks: { micro: t('tpl.writing.micro'), draft: t('tpl.writing.draft'), wave: t('tpl.writing.wave') },
+            steps: [t('tpl.writing.step1'), t('tpl.writing.step2'), t('tpl.writing.step3')],
+            notes: { micro: t('tpl.writing.note.micro'), draft: t('tpl.writing.note.draft'), wave: t('tpl.writing.note.wave') }
           }
-        }
+        })
       },
       {
-        key: 'body', label: 'Тело и движение',
-        sphere: {
-          name: 'Тело и движение',
-          tasks: {
-            micro: 'Встать, опустить плечи и сделать 5 спокойных выдохов (2 мин)',
-            draft: 'Размяться 15 минут: шея, спина, спокойная ходьба',
-            wave: '30 минут движения без телефона: прогулка или растяжка'
-          },
-          steps: ['Встать со стула', 'Опустить плечи и выдохнуть', 'Отойти от экрана на десять шагов'],
-          notes: {
-            micro: 'Снять скованность важнее, чем сделать «зарядку».',
-            draft: 'Идёт в недельный зачёт вместе с остальными делами.',
-            wave: 'Тело задаёт темп, а не наоборот.'
+        key: 'body',
+        build: () => ({
+          label: t('tpl.body.label'),
+          sphere: {
+            name: t('tpl.body.name'),
+            tasks: { micro: t('tpl.body.micro'), draft: t('tpl.body.draft'), wave: t('tpl.body.wave') },
+            steps: [t('tpl.body.step1'), t('tpl.body.step2'), t('tpl.body.step3')],
+            notes: { micro: t('tpl.body.note.micro'), draft: t('tpl.body.note.draft'), wave: t('tpl.body.note.wave') }
           }
-        }
+        })
       },
       {
-        key: 'home', label: 'Быт и порядок',
-        sphere: {
-          name: 'Быт и порядок',
-          tasks: {
-            micro: 'Выпить воды или убрать три предмета со стола (2 мин)',
-            draft: 'Одна небольшая бытовая задача на 15 минут',
-            wave: '30 минут порядка: заготовка еды или разбор одной зоны'
-          },
-          steps: ['Налить воды и поставить рядом', 'Убрать три вещи', 'Протереть стол'],
-          notes: {
-            micro: 'Бытовой шаг тоже шаг, он освобождает голову.',
-            draft: 'Спокойно, в своём темпе.',
-            wave: 'Заготовка экономит силы в следующие дни.'
+        key: 'home',
+        build: () => ({
+          label: t('tpl.home.label'),
+          sphere: {
+            name: t('tpl.home.name'),
+            tasks: { micro: t('tpl.home.micro'), draft: t('tpl.home.draft'), wave: t('tpl.home.wave') },
+            steps: [t('tpl.home.step1'), t('tpl.home.step2'), t('tpl.home.step3')],
+            notes: { micro: t('tpl.home.note.micro'), draft: t('tpl.home.note.draft'), wave: t('tpl.home.note.wave') }
           }
-        }
+        })
       },
       {
-        key: 'rest', label: 'Отдых и тишина',
-        sphere: {
-          name: 'Отдых и тишина',
-          tasks: {
-            micro: 'Открыть окно и посидеть минуту без экрана',
-            draft: '15 минут без телефона: полежать, умыться, посмотреть в окно',
-            wave: '30 минут отдыха без новостей и лент'
-          },
-          steps: ['Отложить телефон', 'Сесть или лечь удобно', 'Сделать пять спокойных выдохов'],
-          notes: {
-            micro: 'Выйти из спешки на минуту — уже результат.',
-            draft: 'Отдых идёт в тот же зачёт, что и работа.',
-            wave: 'Качественный отдых не откат, а часть цикла.'
+        key: 'rest',
+        build: () => ({
+          label: t('tpl.rest.label'),
+          sphere: {
+            name: t('tpl.rest.name'),
+            tasks: { micro: t('tpl.rest.micro'), draft: t('tpl.rest.draft'), wave: t('tpl.rest.wave') },
+            steps: [t('tpl.rest.step1'), t('tpl.rest.step2'), t('tpl.rest.step3')],
+            notes: { micro: t('tpl.rest.note.micro'), draft: t('tpl.rest.note.draft'), wave: t('tpl.rest.note.wave') }
           }
-        }
+        })
       },
       {
-        key: 'own', label: 'Своё дело',
-        sphere: {
-          name: 'Своё дело',
-          tasks: {
-            micro: 'Коснуться дела на 2-5 минут без цели закончить',
-            draft: 'Спокойные 5-15 минут в своём темпе',
-            wave: '30 минут работы с остановкой по первому сигналу усталости'
-          },
-          steps: ['Достать нужное', 'Сделать один шаг', 'Отметить, что вышло'],
-          notes: {
-            micro: 'Сейчас задача — просто подойти к делу.',
-            draft: 'Идёт в зачёт недели без оценки качества.',
-            wave: 'Остановиться по сигналу важнее, чем досидеть.'
+        key: 'own',
+        build: () => ({
+          label: t('tpl.own.label'),
+          sphere: {
+            name: t('tpl.own.name'),
+            tasks: { micro: t('tpl.own.micro'), draft: t('tpl.own.draft'), wave: t('tpl.own.wave') },
+            steps: [t('tpl.own.step1'), t('tpl.own.step2'), t('tpl.own.step3')],
+            notes: { micro: t('tpl.own.note.micro'), draft: t('tpl.own.note.draft'), wave: t('tpl.own.note.wave') }
           }
-        }
+        })
       }
     ];
     const onboard = { step: 1, picks: new Set(), goal: 12, name: '' };
     function onboardTemplate(key) {
-      return ONBOARD_TEMPLATES.find(tpl => tpl.key === key) || ONBOARD_TEMPLATES[ONBOARD_TEMPLATES.length - 1];
+      const tpl = ONBOARD_TEMPLATES.find(item => item.key === key) || ONBOARD_TEMPLATES[ONBOARD_TEMPLATES.length - 1];
+      const built = tpl.build();
+      return { key: tpl.key, label: built.label, sphere: built.sphere };
     }
     function showOnboarding() {
       const screen = document.getElementById('onboardScreen');
@@ -3996,30 +3962,31 @@
     function renderOnboarding() {
       const host = document.getElementById('onboardBody');
       if (!host) return;
-      const stepNo = document.getElementById('onboardStepNo');
-      if (stepNo) stepNo.textContent = String(onboard.step);
+      const stepText = document.getElementById('onboardStepText');
+      if (stepText) stepText.textContent = t('onboard.step', { n: onboard.step });
       if (onboard.step === 1) {
-        host.innerHTML = '<h2 class="card-heading">Чем сейчас занята голова?</h2>'
-          + '<p class="card-subtext">Выбери одно или несколько дел — из них соберутся сферы. Потом можно поменять и добавить свои.</p>'
-          + '<div class="pill-row">' + ONBOARD_TEMPLATES.map(tpl => {
+        host.innerHTML = `<h2 class="card-heading">${escapeHtml(t('onboard.q1.title'))}</h2>`
+          + `<p class="card-subtext">${escapeHtml(t('onboard.q1.hint'))}</p>`
+          + '<div class="pill-row">' + ONBOARD_TEMPLATES.map(item => {
+            const tpl = onboardTemplate(item.key);
             const on = onboard.picks.has(tpl.key);
-            return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" onclick="onboardToggle('${tpl.key}')">${tpl.label}</button>`;
+            return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" onclick="onboardToggle('${tpl.key}')">${escapeHtml(tpl.label)}</button>`;
           }).join('') + '</div>';
       } else if (onboard.step === 2) {
-        host.innerHTML = '<h2 class="card-heading">Сколько очков в неделю?</h2>'
-          + '<p class="card-subtext">Ориентир, а не план: 6 — спокойный темп, 12 — обычный, 20 — если неделя свободнее.</p>'
-          + '<div class="pill-row">' + [6, 12, 20].map(n => `<button class="pill-btn${onboard.goal === n ? ' active' : ''}" onclick="onboardGoal(${n})">${n} очков</button>`).join('') + '</div>'
-          + '<p class="card-subtext" style="margin-top: 10px;">Очко — это короткий отрезок работы на 2-5 минут. За день больше восьми всё равно не набирается: это защита от перегруза.</p>';
+        host.innerHTML = `<h2 class="card-heading">${escapeHtml(t('onboard.q2.title'))}</h2>`
+          + `<p class="card-subtext">${escapeHtml(t('onboard.q2.hint'))}</p>`
+          + '<div class="pill-row">' + [6, 12, 20].map(n => `<button class="pill-btn${onboard.goal === n ? ' active' : ''}" onclick="onboardGoal(${n})">${escapeHtml(t('onboard.q2.points', { n: n }))}</button>`).join('') + '</div>'
+          + `<p class="card-subtext" style="margin-top: 10px;">${escapeHtml(t('onboard.q2.cap'))}</p>`;
       } else {
-        host.innerHTML = '<h2 class="card-heading">Как назвать главное дело?</h2>'
-          + '<p class="card-subtext">Название появится на карточке главного экрана. Можно оставить как есть и поменять позже.</p>'
-          + `<input id="onboardName" class="clean-input" value="${escapeHtml(onboard.name)}" maxlength="60" aria-label="Название дела" oninput="onboard.name = this.value" />`;
+        host.innerHTML = `<h2 class="card-heading">${escapeHtml(t('onboard.q3.title'))}</h2>`
+          + `<p class="card-subtext">${escapeHtml(t('onboard.q3.hint'))}</p>`
+          + `<input id="onboardName" class="clean-input" value="${escapeHtml(onboard.name)}" maxlength="60" aria-label="${escapeHtml(t('onboard.q3.aria'))}" oninput="onboard.name = this.value" />`;
       }
       const back = document.getElementById('onboardBack');
       const next = document.getElementById('onboardNext');
       if (back) back.classList.toggle('hidden', onboard.step === 1);
       if (next) {
-        next.textContent = onboard.step === 3 ? 'Начать' : 'Дальше';
+        next.textContent = onboard.step === 3 ? t('onboard.start') : t('onboard.next');
         next.disabled = onboard.step === 1 && onboard.picks.size === 0;
       }
     }
@@ -4066,7 +4033,7 @@
       if (screen) screen.classList.add('hidden');
       saveState();
       renderAll();
-      flashMessage('Готово. Первый шаг — 2-5 минут, дальше видно будет');
+      flashMessage(t('onboard.done'));
     }
 
     // --- ЯЗЫК ИНТЕРФЕЙСА ---
@@ -4421,6 +4388,148 @@
       'sys.backup.failed': ['Не удалось открыть бэкап: неверный пароль или повреждённый файл', 'Не вдалося відкрити копію: неправильний пароль або пошкоджений файл', 'The backup would not open: wrong password or damaged file', 'Die Sicherung ließ sich nicht öffnen: falsches Passwort oder beschädigte Datei'],
       'sys.backup.ask': ['Бэкап зашифрован', 'Копія зашифрована', 'The backup is encrypted', 'Die Sicherung ist verschlüsselt'],
       'sys.backup.ask.hint': ['Введи пароль этого бэкапа.', 'Введи пароль цієї копії.', 'Enter the password for this backup.', 'Gib das Passwort dieser Sicherung ein.'],
+
+      // Дыхание
+      'breathe.title': ['Снятие давления в груди', 'Зняття тиску в грудях', 'Releasing pressure in the chest', 'Druck in der Brust lösen'],
+      'breathe.hint': ['Когда появляется комок в груди или поверхностное дыхание: опусти плечи и сделай 6 спокойных циклов.', 'Коли з’являється клубок у грудях або поверхневе дихання: опусти плечі й зроби 6 спокійних циклів.', 'When the chest tightens or the breathing goes shallow: drop your shoulders and take 6 calm cycles.', 'Wenn die Brust eng wird oder die Atmung flach: Schultern sinken lassen und 6 ruhige Zyklen atmen.'],
+      'breathe.aria': ['Дыхание: запустить или остановить', 'Дихання: запустити або зупинити', 'Breathing: start or stop', 'Atmen: starten oder stoppen'],
+      'breathe.guide': ['Вдох носом (4 сек) | Длинный мягкий выдох (6 сек)', 'Вдих носом (4 сек) | Довгий м’який видих (6 сек)', 'Breathe in through the nose (4 s) | A long soft breath out (6 s)', 'Durch die Nase einatmen (4 s) | Lang und weich ausatmen (6 s)'],
+      'breathe.start': ['Запустить 60 секунд', 'Запустити 60 секунд', 'Start 60 seconds', '60 Sekunden starten'],
+      'breathe.stop': ['Остановить', 'Зупинити', 'Stop', 'Stoppen'],
+      'breathe.idle': ['Нажми для старта', 'Натисни для старту', 'Tap to start', 'Zum Starten tippen'],
+      'breathe.idleSeconds': ['60с', '60с', '60s', '60 s'],
+      'breathe.seconds': ['{n}с', '{n}с', '{n}s', '{n} s'],
+      'breathe.inhale': ['Вдох (4с)', 'Вдих (4 с)', 'Breathe in (4s)', 'Einatmen (4 s)'],
+      'breathe.exhale': ['Мягкий выдох (6с)', 'М’який видих (6 с)', 'Soft breath out (6s)', 'Sanft ausatmen (6 s)'],
+      'breathe.done': ['Готово', 'Готово', 'Done', 'Fertig'],
+      'breathe.released': ['Плечи опущены', 'Плечі опущені', 'Shoulders are down', 'Schultern sind unten'],
+      'breathe.done.btn': ['Сделал разгрузку (+1)', 'Зробив розвантаження (+1)', 'Decompression done (+1)', 'Entlastung gemacht (+1)'],
+      'breathe.log.kind': ['Дыхательная разгрузка', 'Дихальне розвантаження', 'Breathing decompression', 'Atem-Entlastung'],
+      'breathe.log.text': ['60 секунд спокойного дыхания при давлении в груди', '60 секунд спокійного дихання при тиску в грудях', '60 seconds of calm breathing when the chest tightens', '60 Sekunden ruhiges Atmen bei Druck in der Brust'],
+      'breathe.recorded.charge': ['Разгрузка записана, зарядов отдыха: {n}', 'Розвантаження записано, зарядів відпочинку: {n}', 'Decompression logged, rest charges: {n}', 'Entlastung notiert, Erholungsladungen: {n}'],
+      'breathe.recorded': ['Разгрузка записана (+1)', 'Розвантаження записано (+1)', 'Decompression logged (+1)', 'Entlastung notiert (+1)'],
+      'breathe.recorded.capped': ['Разгрузка записана. День закрыт — без очков', 'Розвантаження записано. День закрито — без очок', 'Decompression logged. The day is capped — no points', 'Entlastung notiert. Tag voll — ohne Punkte'],
+
+      // Первый запуск
+      'onboard.step': ['ШАГ {n} ИЗ 3', 'КРОК {n} З 3', 'STEP {n} OF 3', 'SCHRITT {n} VON 3'],
+      'onboard.back': ['Назад', 'Назад', 'Back', 'Zurück'],
+      'onboard.next': ['Дальше', 'Далі', 'Next', 'Weiter'],
+      'onboard.start': ['Начать', 'Почати', 'Start', 'Los geht es'],
+      'onboard.skip': ['Пропустить', 'Пропустити', 'Skip', 'Überspringen'],
+      'onboard.q1.title': ['Чем сейчас занята голова?', 'Чим зараз зайнята голова?', 'What is on your mind right now?', 'Womit ist der Kopf gerade beschäftigt?'],
+      'onboard.q1.hint': ['Выбери одно или несколько дел — из них соберутся сферы. Потом можно поменять и добавить свои.', 'Вибери одну або кілька справ — із них зберуться сфери. Потім можна змінити й додати свої.', 'Pick one or more things — they become your areas. You can change them and add your own later.', 'Wähle eine oder mehrere Sachen — daraus entstehen deine Bereiche. Später kannst du sie ändern und eigene hinzufügen.'],
+      'onboard.q2.title': ['Сколько очков в неделю?', 'Скільки очок на тиждень?', 'How many points a week?', 'Wie viele Punkte pro Woche?'],
+      'onboard.q2.hint': ['Ориентир, а не план: 6 — спокойный темп, 12 — обычный, 20 — если неделя свободнее.', 'Орієнтир, а не план: 6 — спокійний темп, 12 — звичайний, 20 — якщо тиждень вільніший.', 'A rough marker, not a plan: 6 is a calm pace, 12 the usual, 20 if the week is freer.', 'Eine Richtschnur, kein Plan: 6 ist ruhiges Tempo, 12 das übliche, 20 wenn die Woche freier ist.'],
+      'onboard.q2.points': ['{n} очков', '{n} очок', '{n} points', '{n} Punkte'],
+      'onboard.q2.cap': ['Очко — это короткий отрезок работы на 2-5 минут. За день больше восьми всё равно не набирается: это защита от перегруза.', 'Очко — це короткий відрізок роботи на 2-5 хвилин. За день більше восьми все одно не набирається: це захист від перевантаження.', 'A point is a short 2-5 minute stretch of work. More than eight a day never adds up anyway: that is the guard against overload.', 'Ein Punkt ist ein kurzer Abschnitt von 2-5 Minuten. Mehr als acht pro Tag kommen ohnehin nicht zusammen: das ist der Schutz vor Überlastung.'],
+      'onboard.q3.title': ['Как назвать главное дело?', 'Як назвати головну справу?', 'What is the main thing called?', 'Wie heißt die Hauptsache?'],
+      'onboard.q3.hint': ['Название появится на карточке главного экрана. Можно оставить как есть и поменять позже.', 'Назва з’явиться на картці головного екрана. Можна лишити як є і змінити пізніше.', 'The name appears on the main screen. Leave it as it is and change it later if you like.', 'Der Name erscheint auf dem Hauptschirm. Du kannst ihn so lassen und später ändern.'],
+      'onboard.q3.aria': ['Название дела', 'Назва справи', 'Name of the thing', 'Name der Sache'],
+      'onboard.done': ['Готово. Первый шаг — 2-5 минут, дальше видно будет', 'Готово. Перший крок — 2-5 хвилин, далі видно буде', 'Done. The first step is 2-5 minutes, the rest will show itself', 'Fertig. Der erste Schritt sind 2-5 Minuten, alles Weitere zeigt sich'],
+
+      // Шаблоны сфер для первого запуска
+      'tpl.study.label': ['Учёба и курсы', 'Навчання й курси', 'Study and courses', 'Lernen und Kurse'],
+      'tpl.study.name': ['Учёба и курсы', 'Навчання й курси', 'Study and courses', 'Lernen und Kurse'],
+      'tpl.study.micro': ['Открыть конспект и перечитать одну страницу (2-5 мин)', 'Відкрити конспект і перечитати одну сторінку (2-5 хв)', 'Open your notes and reread one page (2-5 min)', 'Notizen aufschlagen und eine Seite erneut lesen (2-5 Min)'],
+      'tpl.study.draft': ['Позаниматься 5-15 минут, не пытаясь освоить всё сразу', 'Позайматися 5-15 хвилин, не намагаючись опанувати все одразу', 'Study for 5-15 minutes without trying to absorb everything at once', '5-15 Minuten lernen, ohne alles auf einmal begreifen zu wollen'],
+      'tpl.study.wave': ['30 минут занятия с остановкой, как только почувствуешь усталость', '30 хвилин заняття із зупинкою, щойно відчуєш утому', '30 minutes of study, stopping the moment fatigue shows up', '30 Minuten Lernen, mit Stopp, sobald Müdigkeit auftaucht'],
+      'tpl.study.step1': ['Открыть файл с конспектом', 'Відкрити файл із конспектом', 'Open the notes file', 'Die Notizdatei öffnen'],
+      'tpl.study.step2': ['Выписать один вопрос по теме', 'Виписати одне питання за темою', 'Write down one question about the topic', 'Eine Frage zum Thema notieren'],
+      'tpl.study.step3': ['Прочитать один абзац вслух', 'Прочитати один абзац уголос', 'Read one paragraph out loud', 'Einen Absatz laut lesen'],
+      'tpl.study.note.micro': ['Сейчас достаточно просто коснуться темы.', 'Зараз достатньо просто торкнутися теми.', 'For now it is enough just to touch the topic.', 'Im Moment reicht es, das Thema nur zu berühren.'],
+      'tpl.study.note.draft': ['Идёт в зачёт недели, даже если получилось мало.', 'Іде в залік тижня, навіть якщо зробив мало.', 'It counts towards the week, even if little got done.', 'Es zählt für die Woche, auch wenn nur wenig geschah.'],
+      'tpl.study.note.wave': ['Остановиться по сигналу важнее, чем досидеть.', 'Зупинитися за сигналом важливіше, ніж досидіти.', 'Stopping at the signal matters more than sitting it out.', 'Beim Signal zu stoppen zählt mehr als Auszuharren.'],
+      'tpl.code.label': ['Код и проекты', 'Код і проєкти', 'Code and projects', 'Code und Projekte'],
+      'tpl.code.name': ['Код и проекты', 'Код і проєкти', 'Code and projects', 'Code und Projekte'],
+      'tpl.code.micro': ['Открыть проект и посмотреть, где остановился (2-5 мин)', 'Відкрити проєкт і подивитися, де зупинився (2-5 хв)', 'Open the project and see where you stopped (2-5 min)', 'Projekt öffnen und sehen, wo du stehengeblieben bist (2-5 Min)'],
+      'tpl.code.draft': ['Поковырять код 5-15 минут без цели доделать', 'Поколупати код 5-15 хвилин без мети доробити', 'Poke at the code for 5-15 minutes with no aim to finish', '5-15 Minuten im Code stöbern, ohne fertig werden zu wollen'],
+      'tpl.code.wave': ['30 минут работы, остановиться до появления усталости', '30 хвилин роботи, зупинитися до появи втоми', '30 minutes of work, stopping before fatigue sets in', '30 Minuten Arbeit, mit Stopp bevor Müdigkeit einsetzt'],
+      'tpl.code.step1': ['Открыть проект', 'Відкрити проєкт', 'Open the project', 'Projekt öffnen'],
+      'tpl.code.step2': ['Запустить тесты', 'Запустити тести', 'Run the tests', 'Tests laufen lassen'],
+      'tpl.code.step3': ['Прочитать одну функцию', 'Прочитати одну функцію', 'Read one function', 'Eine Funktion lesen'],
+      'tpl.code.note.micro': ['Коснуться проекта, ничего не решая.', 'Торкнутися проєкту, нічого не вирішуючи.', 'Touch the project without deciding anything.', 'Das Projekt berühren, ohne etwas zu entscheiden.'],
+      'tpl.code.note.draft': ['Любое продвижение считается, без оценки.', 'Будь-яке просування рахується, без оцінки.', 'Any progress counts, no grading.', 'Jeder Fortschritt zählt, ohne Bewertung.'],
+      'tpl.code.note.wave': ['Перерыв по сигналу — часть работы.', 'Перерва за сигналом — частина роботи.', 'A break at the signal is part of the work.', 'Eine Pause beim Signal gehört zur Arbeit.'],
+      'tpl.writing.label': ['Текст и творчество', 'Текст і творчість', 'Writing and making', 'Text und Gestalten'],
+      'tpl.writing.name': ['Текст и творчество', 'Текст і творчість', 'Writing and making', 'Text und Gestalten'],
+      'tpl.writing.micro': ['Открыть файл и перечитать последний абзац (2-5 мин)', 'Відкрити файл і перечитати останній абзац (2-5 хв)', 'Open the file and reread the last paragraph (2-5 min)', 'Datei öffnen und den letzten Absatz erneut lesen (2-5 Min)'],
+      'tpl.writing.draft': ['Написать пару абзацев или набросок 5-15 минут', 'Написати кілька абзаців або начерк 5-15 хвилин', 'Write a couple of paragraphs or a sketch for 5-15 minutes', 'Ein paar Absätze oder eine Skizze in 5-15 Minuten schreiben'],
+      'tpl.writing.wave': ['30 минут письма с остановкой по первому сигналу', '30 хвилин письма із зупинкою за першим сигналом', '30 minutes of writing, stopping at the first signal', '30 Minuten Schreiben, mit Stopp beim ersten Signal'],
+      'tpl.writing.step1': ['Открыть файл', 'Відкрити файл', 'Open the file', 'Datei öffnen'],
+      'tpl.writing.step2': ['Написать одну фразу', 'Написати одну фразу', 'Write one sentence', 'Einen Satz schreiben'],
+      'tpl.writing.step3': ['Перечитать последний абзац', 'Перечитати останній абзац', 'Reread the last paragraph', 'Den letzten Absatz erneut lesen'],
+      'tpl.writing.note.micro': ['Пустая страница тоже результат: ты подошёл.', 'Порожня сторінка теж результат: ти підійшов.', 'An empty page is a result too: you showed up.', 'Auch eine leere Seite ist ein Ergebnis: du warst da.'],
+      'tpl.writing.note.draft': ['Черновик не обязан быть хорошим.', 'Чернетка не зобов’язана бути хорошою.', 'A draft does not have to be good.', 'Ein Entwurf muss nicht gut sein.'],
+      'tpl.writing.note.wave': ['Остановиться, когда текст начинает раздражать.', 'Зупинитися, коли текст починає дратувати.', 'Stop when the text starts to annoy you.', 'Aufhören, wenn der Text anfängt zu nerven.'],
+      'tpl.body.label': ['Тело и движение', 'Тіло й рух', 'Body and movement', 'Körper und Bewegung'],
+      'tpl.body.name': ['Тело и движение', 'Тіло й рух', 'Body and movement', 'Körper und Bewegung'],
+      'tpl.body.micro': ['Встать, опустить плечи и сделать 5 спокойных выдохов (2 мин)', 'Встати, опустити плечі й зробити 5 спокійних видихів (2 хв)', 'Stand up, drop your shoulders and take 5 calm breaths out (2 min)', 'Aufstehen, Schultern sinken lassen und 5 ruhige Ausatmungen (2 Min)'],
+      'tpl.body.draft': ['Размяться 15 минут: шея, спина, спокойная ходьба', 'Розім’ятися 15 хвилин: шия, спина, спокійна ходьба', 'Move for 15 minutes: neck, back, an easy walk', '15 Minuten bewegen: Nacken, Rücken, ruhiges Gehen'],
+      'tpl.body.wave': ['30 минут движения без телефона: прогулка или растяжка', '30 хвилин руху без телефона: прогулянка або розтяжка', '30 minutes of movement without the phone: a walk or stretching', '30 Minuten Bewegung ohne Telefon: Spaziergang oder Dehnen'],
+      'tpl.body.step1': ['Встать со стула', 'Встати зі стільця', 'Stand up from the chair', 'Vom Stuhl aufstehen'],
+      'tpl.body.step2': ['Опустить плечи и выдохнуть', 'Опустити плечі й видихнути', 'Drop your shoulders and breathe out', 'Schultern sinken lassen und ausatmen'],
+      'tpl.body.step3': ['Отойти от экрана на десять шагов', 'Відійти від екрана на десять кроків', 'Step ten paces away from the screen', 'Zehn Schritte vom Bildschirm weggehen'],
+      'tpl.body.note.micro': ['Снять скованность важнее, чем сделать «зарядку».', 'Зняти скутість важливіше, ніж зробити «зарядку».', 'Loosening up matters more than doing a workout.', 'Sich zu lösen zählt mehr als ein Workout.'],
+      'tpl.body.note.draft': ['Идёт в недельный зачёт вместе с остальными делами.', 'Іде в тижневий залік разом з іншими справами.', 'Counts towards the week along with everything else.', 'Zählt für die Woche, zusammen mit allem anderen.'],
+      'tpl.body.note.wave': ['Тело задаёт темп, а не наоборот.', 'Тіло задає темп, а не навпаки.', 'The body sets the pace, not the other way round.', 'Der Körper gibt das Tempo vor, nicht umgekehrt.'],
+      'tpl.home.label': ['Быт и порядок', 'Побут і лад', 'Home and order', 'Alltag und Ordnung'],
+      'tpl.home.name': ['Быт и порядок', 'Побут і лад', 'Home and order', 'Alltag und Ordnung'],
+      'tpl.home.micro': ['Выпить воды или убрать три предмета со стола (2 мин)', 'Випити води або прибрати три речі зі столу (2 хв)', 'Drink water or clear three things off the desk (2 min)', 'Wasser trinken oder drei Dinge vom Tisch räumen (2 Min)'],
+      'tpl.home.draft': ['Одна небольшая бытовая задача на 15 минут', 'Одна невелика побутова задача на 15 хвилин', 'One small household task for 15 minutes', 'Eine kleine Haushaltsaufgabe für 15 Minuten'],
+      'tpl.home.wave': ['30 минут порядка: заготовка еды или разбор одной зоны', '30 хвилин ладу: заготівля їжі або розбір однієї зони', '30 minutes of order: batch cook, or clear one zone', '30 Minuten Ordnung: Essen vorbereiten oder eine Zone aufräumen'],
+      'tpl.home.step1': ['Налить воды и поставить рядом', 'Налити води й поставити поруч', 'Pour water and set it nearby', 'Wasser einschenken und danebenstellen'],
+      'tpl.home.step2': ['Убрать три вещи', 'Прибрати три речі', 'Put three things away', 'Drei Dinge wegräumen'],
+      'tpl.home.step3': ['Протереть стол', 'Протерти стіл', 'Wipe the desk', 'Den Tisch abwischen'],
+      'tpl.home.note.micro': ['Бытовой шаг тоже шаг, он освобождает голову.', 'Побутовий крок теж крок, він звільняє голову.', 'A household step is still a step: it frees the head.', 'Ein Alltagsschritt ist auch ein Schritt: er macht den Kopf frei.'],
+      'tpl.home.note.draft': ['Спокойно, в своём темпе.', 'Спокійно, у своєму темпі.', 'Easy does it, at your own pace.', 'Ganz ruhig, im eigenen Tempo.'],
+      'tpl.home.note.wave': ['Заготовка экономит силы в следующие дни.', 'Заготівля економить сили в наступні дні.', 'Batch cooking saves energy for the days after.', 'Vorbereiten spart Kraft für die nächsten Tage.'],
+      'tpl.rest.label': ['Отдых и тишина', 'Відпочинок і тиша', 'Rest and quiet', 'Ruhe und Stille'],
+      'tpl.rest.name': ['Отдых и тишина', 'Відпочинок і тиша', 'Rest and quiet', 'Ruhe und Stille'],
+      'tpl.rest.micro': ['Открыть окно и посидеть минуту без экрана', 'Відкрити вікно й посидіти хвилину без екрана', 'Open the window and sit for a minute without a screen', 'Fenster öffnen und eine Minute ohne Bildschirm sitzen'],
+      'tpl.rest.draft': ['15 минут без телефона: полежать, умыться, посмотреть в окно', '15 хвилин без телефона: полежати, вмитися, подивитися у вікно', '15 minutes without the phone: lie down, wash your face, look out of the window', '15 Minuten ohne Telefon: hinlegen, Gesicht waschen, aus dem Fenster sehen'],
+      'tpl.rest.wave': ['30 минут отдыха без новостей и лент', '30 хвилин відпочинку без новин і стрічок', '30 minutes of rest without news or feeds', '30 Minuten Ruhe ohne Nachrichten und Feeds'],
+      'tpl.rest.step1': ['Отложить телефон', 'Відкласти телефон', 'Put the phone aside', 'Das Telefon weglegen'],
+      'tpl.rest.step2': ['Сесть или лечь удобно', 'Сісти або лягти зручно', 'Sit or lie down comfortably', 'Bequem sitzen oder liegen'],
+      'tpl.rest.step3': ['Сделать пять спокойных выдохов', 'Зробити п’ять спокійних видихів', 'Take five calm breaths out', 'Fünf ruhige Ausatmungen'],
+      'tpl.rest.note.micro': ['Выйти из спешки на минуту — уже результат.', 'Вийти зі спішки на хвилину — вже результат.', 'Stepping out of the rush for a minute is already a result.', 'Eine Minute aus der Eile heraustreten ist schon ein Ergebnis.'],
+      'tpl.rest.note.draft': ['Отдых идёт в тот же зачёт, что и работа.', 'Відпочинок іде в той самий залік, що й робота.', 'Rest counts the same as work.', 'Ruhe zählt genauso wie Arbeit.'],
+      'tpl.rest.note.wave': ['Качественный отдых не откат, а часть цикла.', 'Якісний відпочинок не відкат, а частина циклу.', 'Good rest is not a slide back, it is part of the cycle.', 'Gute Ruhe ist kein Rückschritt, sondern Teil des Zyklus.'],
+      'tpl.own.label': ['Своё дело', 'Своя справа', 'My own thing', 'Meine eigene Sache'],
+      'tpl.own.name': ['Своё дело', 'Своя справа', 'My own thing', 'Meine eigene Sache'],
+      'tpl.own.micro': ['Коснуться дела на 2-5 минут без цели закончить', 'Торкнутися справи на 2-5 хвилин без мети закінчити', 'Touch the thing for 2-5 minutes, with no aim to finish', 'Die Sache 2-5 Minuten berühren, ohne sie abschließen zu wollen'],
+      'tpl.own.draft': ['Спокойные 5-15 минут в своём темпе', 'Спокійні 5-15 хвилин у своєму темпі', 'An easy 5-15 minutes at your own pace', 'Entspannte 5-15 Minuten im eigenen Tempo'],
+      'tpl.own.wave': ['30 минут работы с остановкой по первому сигналу усталости', '30 хвилин роботи із зупинкою за першим сигналом утоми', '30 minutes of work, stopping at the first sign of fatigue', '30 Minuten Arbeit, mit Stopp beim ersten Müdigkeitssignal'],
+      'tpl.own.step1': ['Достать нужное', 'Дістати потрібне', 'Get out what you need', 'Das Nötige heraussuchen'],
+      'tpl.own.step2': ['Сделать один шаг', 'Зробити один крок', 'Take one step', 'Einen Schritt tun'],
+      'tpl.own.step3': ['Отметить, что вышло', 'Позначити, що вийшло', 'Note what came of it', 'Notieren, was daraus wurde'],
+      'tpl.own.note.micro': ['Сейчас задача — просто подойти к делу.', 'Зараз задача — просто підійти до справи.', 'Right now the task is just to walk up to the thing.', 'Im Moment heißt die Aufgabe nur: an die Sache herantreten.'],
+      'tpl.own.note.draft': ['Идёт в зачёт недели без оценки качества.', 'Іде в залік тижня без оцінки якості.', 'Counts towards the week without judging quality.', 'Zählt für die Woche, ohne die Qualität zu bewerten.'],
+      'tpl.own.note.wave': ['Остановиться по сигналу важнее, чем досидеть.', 'Зупинитися за сигналом важливіше, ніж досидіти.', 'Stopping at the signal matters more than sitting it out.', 'Beim Signal zu stoppen zählt mehr als Auszuharren.'],
+
+      // Замок, диалог пароля и оставшиеся кнопки главного экрана
+      'lock.title': ['Дневник заперт', 'Щоденник замкнено', 'The diary is locked', 'Das Tagebuch ist gesperrt'],
+      'lock.hint': ['Записи на этом устройстве зашифрованы. Введи пароль, чтобы открыть их.', 'Записи на цьому пристрої зашифровані. Введи пароль, щоб відкрити їх.', 'The entries on this device are encrypted. Enter the password to open them.', 'Die Einträge auf diesem Gerät sind verschlüsselt. Gib das Passwort ein, um sie zu öffnen.'],
+      'lock.pass.placeholder': ['Пароль', 'Пароль', 'Password', 'Passwort'],
+      'lock.open': ['Открыть', 'Відкрити', 'Open', 'Öffnen'],
+      'lock.footnote': ['Пароль нигде не хранится: без него записи не восстановить. Бэкап — единственный путь назад.', 'Пароль ніде не зберігається: без нього записи не відновити. Копія — єдиний шлях назад.', 'The password is stored nowhere: without it the entries cannot be recovered. The backup is the only way back.', 'Das Passwort wird nirgends gespeichert: ohne es sind die Einträge nicht wiederherstellbar. Die Sicherung ist der einzige Weg zurück.'],
+      'lock.emptyPass': ['Пароль пустой', 'Пароль порожній', 'The password is empty', 'Das Passwort ist leer'],
+      'common.password': ['Пароль', 'Пароль', 'Password', 'Passwort'],
+      'common.ok': ['ОК', 'ОК', 'OK', 'OK'],
+      'common.cancel': ['Отмена', 'Скасувати', 'Cancel', 'Abbrechen'],
+      'focus.timer.title': ['Нажми для старта или паузы', 'Натисни для старту або паузи', 'Tap to start or pause', 'Zum Starten oder Pausieren tippen'],
+      'bridge.start': ['Начать 5 мин с этого места', 'Почати 5 хв із цього місця', 'Start 5 minutes from here', '5 Minuten von hier starten'],
+      'bridge.later': ['Не сейчас', 'Не зараз', 'Not now', 'Nicht jetzt'],
+      'focus.continue15': ['Ещё 15', 'Ще 15', '15 more', 'Noch 15'],
+      'focus.continue30': ['Ещё 30', 'Ще 30', '30 more', 'Noch 30'],
+      'focus.finish': ['Закончить', 'Закінчити', 'Finish', 'Beenden'],
+
+      // Служебные сообщения, которые всплывают в шапке
+      'toast.week.rolled': ['Новая неделя: счет с нуля, прошлая ушла в архив', 'Новий тиждень: рахунок з нуля, минулий пішов в архів', 'A new week: the count starts from zero, the last one went to the archive', 'Eine neue Woche: der Zähler beginnt bei null, die letzte ging ins Archiv'],
+      'toast.rest.charge': ['Заряд отдыха: +1', 'Заряд відпочинку: +1', 'Rest charge: +1', 'Erholungsladung: +1'],
+      'toast.save.failed': ['Сохранить не удалось: хранилище браузера заполнено или недоступно', 'Зберегти не вдалося: сховище браузера заповнене або недоступне', 'Could not save: browser storage is full or unavailable', 'Speichern fehlgeschlagen: der Browser-Speicher ist voll oder nicht verfügbar'],
+      'words.emptySuffix': ['{kind} (быстрая отметка без текста)', '{kind} (швидка позначка без тексту)', '{kind} (a quick note without text)', '{kind} (eine schnelle Notiz ohne Text)'],
+      'words.saved': ['Записано (+{n})', 'Записано (+{n})', 'Logged (+{n})', 'Notiert (+{n})'],
+      'words.saved.capped': ['Записано. День закрыт: {cap} очков уже есть', 'Записано. День закрито: {cap} очок уже є', 'Logged. The day is capped: {cap} points already there', 'Notiert. Tag voll: {cap} Punkte stehen schon'],
     };
     let uiLang = detectLang();
 

@@ -671,7 +671,14 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('старт: дневник пуст', q('state.logs.length'), 0);
   check('старт: очки не начислены', q('state.points'), 0);
   check('старт: шаблонов семь', q('ONBOARD_TEMPLATES.length'), 7);
-  check('старт: все шаблоны со своими задачами', q('ONBOARD_TEMPLATES.every(t => t.sphere.tasks.micro && t.sphere.steps.length === 3)'), true);
+  check('старт: все шаблоны со своими задачами', q('ONBOARD_TEMPLATES.every(tpl => { const s = tpl.build().sphere; return s.tasks.micro && s.tasks.micro.length > 3 && s.steps.length === 3; })'), true);
+  check('старт: у каждого шаблона есть имя', q('ONBOARD_TEMPLATES.every(tpl => tpl.build().label && tpl.build().sphere.name)'), true);
+  // Шаблоны собираются из словаря: сырой ключ вроде tpl.study.micro не должен попасть в сферу
+  check('старт: ни одного сырого ключа', q("JSON.stringify(ONBOARD_TEMPLATES.map(tpl => tpl.build())).indexOf('tpl.')"), -1);
+  check('старт: заготовка на языке интерфейса', q("uiLang = 'de'; onboardTemplate('study').label"), 'Lernen und Kurse');
+  check('старт: немецкая заготовка задачи', q("onboardTemplate('code').sphere.tasks.draft"), '5-15 Minuten im Code stöbern, ohne fertig werden zu wollen');
+  check('старт: язык можно сменить — текст тоже', q("uiLang = 'uk'; onboardTemplate('body').sphere.name"), 'Тіло й рух');
+  q("uiLang = 'ru';");
 
   q("onboardToggle('study'); onboardToggle('body');");
   check('интервью: выбраны два дела', q('onboard.picks.size'), 2);
