@@ -1,5 +1,7 @@
 # FlowCore
 
+[![tests](https://github.com/averageuserr42/flowcore/actions/workflows/tests.yml/badge.svg)](https://github.com/averageuserr42/flowcore/actions/workflows/tests.yml)
+
 *Русская версия: [README.ru.md](README.ru.md).*
 
 **A focus and recovery diary.** One HTML file with no build step, no server and no account: short stretches of work, body signals, and a weekly score that does not turn into a race.

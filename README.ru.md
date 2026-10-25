@@ -1,5 +1,7 @@
 # FlowCore
 
+[![tests](https://github.com/averageuserr42/flowcore/actions/workflows/tests.yml/badge.svg)](https://github.com/averageuserr42/flowcore/actions/workflows/tests.yml)
+
 *English version: [README.md](README.md).*
 
 **Дневник фокуса и восстановления.** Один HTML-файл без сборки, сервера и аккаунтов: короткие отрезки работы, сигналы тела и недельный зачёт, который не превращается в гонку.
