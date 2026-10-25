@@ -4,7 +4,7 @@
 
 **A focus and recovery diary for the days when an hour of work is not possible.**
 
-**[Open it in the browser →](https://averageuserr42.github.io/flowcore/)** — nothing to install, no account, the diary stays on your device.
+**[Open FlowCore in your browser](https://averageuserr42.github.io/flowcore/)** — nothing to install, no account, the diary stays on your device.
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
