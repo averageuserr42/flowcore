@@ -19,28 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-=======================================================================
-Restricted Entities Clause
-
-This clause is an additional condition on the permission granted above. Where
-it and the MIT text disagree, this clause narrows who may use the Software; it
-does not widen anything. Because of it, this project is source-available rather
-than OSI-approved open source.
-
-This software and its derivatives may not be used by, or on behalf of, the
-following entities:
-
-- Government Bodies: any state, regional, or local government agency,
-  ministry, or administrative department.
-- Military & Intelligence: any armed forces, intelligence agencies, or law
-  enforcement organizations.
-- State-Owned Enterprises: any corporation, company, or entity where a
-  government holds a controlling stake or majority ownership.
-- Political Organizations: any political party, political action committee, or
-  entity actively engaged in political campaigning or lobbying.
-- Defense Contractors: any private entity using this software directly for the
-  fulfillment of military, defense, or state security contracts.
-
-Individual people, private businesses, and non-governmental organizations are
-not affected by this clause.
