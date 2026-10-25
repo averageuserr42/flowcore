@@ -14,8 +14,11 @@
        не секрет и должен работать до разблокировки дневника. */
     try {
       var earlySkin = localStorage.getItem('flowCoreSkinV1');
-      if (earlySkin === 'amber' || earlySkin === 'ice') {
-        document.documentElement.setAttribute('data-skin', earlySkin);
+      // Все скины, а не только первые два: иначе кибер и аврора мигали зелёным
+      var earlyMap = { amber: 'amber', cyber: 'cyber', aurora: 'aurora', ice: 'cyber' };
+      var earlyTarget = Object.prototype.hasOwnProperty.call(earlyMap, earlySkin) ? earlyMap[earlySkin] : '';
+      if (earlyTarget) {
+        document.documentElement.setAttribute('data-skin', earlyTarget);
       }
     } catch (e) {}
   </script>

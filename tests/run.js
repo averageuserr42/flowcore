@@ -705,6 +705,31 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('старые данные: дефолтные сферы сохранены', vm.runInContext('spheresOf()[0].name', legacy.ctx), 'Код и учеба');
 }
 
+// --- 24. Скин на первой отрисовке (скрипт в шапке, до загрузки приложения) ---
+{
+  const blocks = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
+  const early = blocks.find(b => b.includes('earlySkin'));
+  check('ранний скин: скрипт найден в шапке', typeof early, 'string');
+  const runEarly = skin => {
+    const attrs = {};
+    const ctx = {
+      localStorage: { getItem: () => skin },
+      document: { documentElement: { setAttribute: (name, value) => { attrs[name] = value; } } },
+      Object, console,
+    };
+    ctx.window = ctx;
+    vm.createContext(ctx);
+    vm.runInContext(early, ctx);
+    return attrs['data-skin'] || '';
+  };
+  check('ранний скин: изумруд не навязывается', runEarly('emerald'), '');
+  check('ранний скин: янтарь ставится до загрузки', runEarly('amber'), 'amber');
+  check('ранний скин: кибер ставится до загрузки', runEarly('cyber'), 'cyber');
+  check('ранний скин: аврора ставится до загрузки', runEarly('aurora'), 'aurora');
+  check('ранний скин: старое имя ice ведёт в кибер', runEarly('ice'), 'cyber');
+  check('ранний скин: мусор не ломает шапку', runEarly('constructor'), '');
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
