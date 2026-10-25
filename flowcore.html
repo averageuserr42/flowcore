@@ -1438,23 +1438,23 @@
       <div class="glow-card">
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <h2 class="card-heading" style="margin-bottom: 0;">Дневник и лог для врача</h2>
+            <h2 class="card-heading" style="margin-bottom: 0;" data-i18n="diary.title">Дневник и лог для врача</h2>
             <span id="encryptStatusBadge" class="pill-btn" style="font-size: 12px; cursor: default;">Локально, без пароля</span>
           </div>
-          <p class="card-subtext" style="margin-top: 6px;">
+          <p class="card-subtext" style="margin-top: 6px;" data-i18n="diary.hint">
             Твоя внешняя память. Превращает короткие заметки в структурный отчет без потери контекста.
           </p>
           <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
-            <button class="action-btn" onclick="buildLocalDiary()">
+            <button class="action-btn" onclick="buildLocalDiary()" data-i18n="diary.summary.local">
               Собрать сводку локально
             </button>
-            <button class="action-btn-secondary" onclick="runAiDiary()">
+            <button class="action-btn-secondary" onclick="runAiDiary()" data-i18n="diary.summary.ai">
               Сводка через ИИ
             </button>
-            <button class="action-btn-secondary" onclick="copyForDoctor()">
+            <button class="action-btn-secondary" onclick="copyForDoctor()" data-i18n="diary.copy">
               Скопировать текст
             </button>
-            <button class="action-btn-secondary" onclick="exportObsidianMarkdown()">
+            <button class="action-btn-secondary" onclick="exportObsidianMarkdown()" data-i18n="diary.export">
               Скачать .md (Obsidian)
             </button>
             <button id="reserveBtn" class="action-btn-secondary hidden" onclick="claimReservePoint()">
@@ -1465,14 +1465,14 @@
           <div id="summaryResultBox" class="hidden" style="background: rgba(6, 14, 9, 0.92); border: 1px solid var(--green-neon); border-radius: 10px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; font-size: 13.5px; color: var(--text-white);"></div>
           <!-- Quick Diary Note / Micro-entry (No full text required) -->
           <div style="background: var(--bg-card-inner); border: 1px solid rgba(var(--accent-alt-rgb), 0.24); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
-            <div style="font-size: 13.5px; font-weight: 600; color: var(--green-title); margin-bottom: 8px;">
+            <div style="font-size: 13.5px; font-weight: 600; color: var(--green-title); margin-bottom: 8px;" data-i18n="diary.quick.title">
               Быстрая пометка в дневник (можно в 1 клик или парой слов)
             </div>
             <div class="pill-row" style="margin-bottom: 10px;">
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Без текста: рабочий шаг')">⚡ Рабочий шаг</button>
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Вовремя сделал паузу')">⏸ Вовремя пауза</button>
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Легкий туман / усталость')">🌫 Туман / усталость</button>
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip('Хороший фокус')">🟢 Хороший фокус</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.work.text'))" data-i18n="diary.chip.work">⚡ Рабочий шаг</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.pause.text'))" data-i18n="diary.chip.pause">⏸ Вовремя пауза</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.fog.text'))" data-i18n="diary.chip.fog">🌫 Туман / усталость</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.focus.text'))" data-i18n="diary.chip.focus">🟢 Хороший фокус</button>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <input
@@ -1481,21 +1481,22 @@
                 class="clean-input"
                 style="margin-bottom: 0; flex: 1; min-width: 200px;"
                 placeholder="Короткая пометка в дневник (необязательно писать полный текст)..."
+                data-i18n-ph="diary.quick.placeholder"
                 onkeydown="if(event.key === 'Enter') addQuickDiaryNote()"
               />
-              <button class="action-btn" style="padding: 9px 16px;" onclick="addQuickDiaryNote()">
+              <button class="action-btn" style="padding: 9px 16px;" onclick="addQuickDiaryNote()" data-i18n="diary.quick.add">
                 + В дневник
               </button>
             </div>
           </div>
           <div id="sparkWrap" class="spark-wrap hidden">
-            <div class="spark-label">Последние недели</div>
+            <div class="spark-label" data-i18n="diary.spark">Последние недели</div>
             <div id="sparkline"></div>
           </div>
           <div id="logList" class="log-scroll"></div>
           <div id="archiveWrap" class="hidden" style="margin-top: 16px;">
             <button class="pill-btn" onclick="toggleArchiveList()">
-              Прошлые недели (<span id="archiveCount">0</span>)
+              <span data-i18n="diary.archive">Прошлые недели</span> (<span id="archiveCount">0</span>)
             </button>
             <div id="archiveList" class="hidden" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
           </div>
@@ -1503,8 +1504,8 @@
         <div>
           <hr class="green-divider" />
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="action-btn-secondary" onclick="showSection('main')">Назад к фокусу</button>
-            <button class="action-btn-secondary" onclick="closeWeekToArchive()">Закрыть неделю в архив</button>
+            <button class="action-btn-secondary" onclick="showSection('main')" data-i18n="diary.back">Назад к фокусу</button>
+            <button class="action-btn-secondary" onclick="closeWeekToArchive()" data-i18n="diary.closeWeek">Закрыть неделю в архив</button>
           </div>
         </div>
       </div>
@@ -1662,8 +1663,8 @@
   </main>
 
   <div id="undoToast" class="undo-toast hidden" role="status" aria-live="polite">
-    <span id="undoText">Запись удалена</span>
-    <button class="pill-btn" onclick="undoDelete()">Вернуть</button>
+    <span id="undoText" data-i18n="diary.undo.deleted">Запись удалена</span>
+    <button class="pill-btn" onclick="undoDelete()" data-i18n="diary.undo.restore">Вернуть</button>
   </div>
 
   <script>
@@ -2613,10 +2614,10 @@
     }
     function addQuickDiaryNote() {
       const input = document.getElementById('diaryQuickInput');
-      const text = input.value.trim() || 'Короткая отметка в дневнике';
-      const awarded = addLogEntry('Заметка', text, 1, 'note');
+      const text = input.value.trim() || t('diary.note.default');
+      const awarded = addLogEntry(t('diary.note.kind'), text, 1, 'note');
       input.value = '';
-      flashMessage(awarded ? 'Добавлено в дневник (+1)' : 'Добавлено. День закрыт — без очков');
+      flashMessage(awarded ? t('diary.note.added') : t('diary.note.capped'));
     }
     function findLog(id) {
       const inCurrent = state.logs.findIndex(l => l.id === id);
@@ -2635,12 +2636,12 @@
     function appendNoteToLog(id) {
       const found = findLog(id);
       if (!found) return;
-      const extra = prompt('Добавить или изменить комментарий к записи:', found.item.text);
+      const extra = prompt(t('diary.edit.prompt'), found.item.text);
       if (extra !== null && extra.trim() !== '') {
         found.item.text = extra.trim();
         saveState();
         renderAll();
-        flashMessage('Запись обновлена');
+        flashMessage(t('diary.edit.saved'));
       }
     }
 
@@ -2660,7 +2661,7 @@
     // Удаление обратимо 10 секунд: стек хранит до десяти последних записей
     function showUndoToast() {
       const toast = document.getElementById('undoToast');
-      document.getElementById('undoText').textContent = 'Запись удалена';
+      document.getElementById('undoText').textContent = t('diary.undo.deleted');
       toast.classList.remove('hidden');
       clearTimeout(undoTimer);
       undoTimer = setTimeout(() => {
@@ -2677,10 +2678,10 @@
       saveState();
       renderAll();
       if (deleteStack.length) {
-        document.getElementById('undoText').textContent = `Вернули. Ещё в стеке: ${deleteStack.length}`;
+        document.getElementById('undoText').textContent = t('diary.undo.more', { n: deleteStack.length });
       } else {
         document.getElementById('undoToast').classList.add('hidden');
-        flashMessage('Запись восстановлена');
+        flashMessage(t('diary.undo.restored'));
       }
     }
     // --- МЯГКИЙ ДНЕВНОЙ ПОТОЛОК ---
@@ -2841,17 +2842,18 @@
       const stops = logs.filter(l => typeOf(l) === 'stop');
       const symptoms = logs.filter(l => typeOf(l) === 'signal');
       const actions = logs.filter(l => typeOf(l) === 'action');
+      const bullet = list => list.map(item => t('summary.line', { time: item.time, text: item.text }));
       const lines = [
-        'СВОДКА ДИНАМИКИ (ЛОКАЛЬНАЯ СБОРКА БЕЗ СЕТИ):',
+        t('summary.title.local'),
         '',
-        `1. Выполненные шаги и фокус (${actions.length}):`,
-        ...(actions.length ? actions.map(a => ` - [${a.time}] ${a.text}`) : [' - Записей пока нет']),
+        t('summary.section.actions', { n: actions.length }),
+        ...(actions.length ? bullet(actions) : [t('summary.none.actions')]),
         '',
-        `2. Зафиксированные телесные сигналы (${symptoms.length}):`,
-        ...(symptoms.length ? symptoms.map(s => ` - [${s.time}] ${s.text}`) : [' - Явных маркеров не отмечено']),
+        t('summary.section.signals', { n: symptoms.length }),
+        ...(symptoms.length ? bullet(symptoms) : [t('summary.none.signals')]),
         '',
-        `3. Успешная саморегуляция и ранний стоп (${stops.length}):`,
-        ...(stops.length ? stops.map(st => ` - [${st.time}] ${st.text}`) : [' - Записей раннего стопа пока нет'])
+        t('summary.section.stops', { n: stops.length }),
+        ...(stops.length ? bullet(stops) : [t('summary.none.stops')])
       ];
       box.textContent = lines.join('\n');
     }
@@ -2861,19 +2863,19 @@
       
       const apiKey = localStorage.getItem(API_KEY_STORAGE);
       if (!apiKey) {
-        box.textContent = 'Для работы ИИ нужен ключ Gemini: вкладка «Система» → поле API-ключа.';
+        box.textContent = t('ai.noKey');
         return;
       }
       if (!aiConsentGiven) {
-        const agreed = confirm('Сводка через ИИ отправит все записи дневника, включая архив, на серверы Google. Локальная сборка ничего никуда не отправляет. Продолжить?');
+        const agreed = confirm(t('ai.consent'));
         if (!agreed) {
-          box.textContent = 'Отменено. Можно собрать сводку локально — она никуда не уходит.';
+          box.textContent = t('ai.cancelled');
           return;
         }
         aiConsentGiven = true;
       }
 
-      box.textContent = 'Генерация структурной сводки...';
+      box.textContent = t('ai.generating');
       
       // Наш "Cache Key" — все текущие логи одной строкой
       const rawText = allLogs().map(l => `[${l.kind}] ${l.text}`).join('\n');
@@ -2905,21 +2907,9 @@
             'x-goog-api-key': apiKey 
           },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `Сделай краткую сводку моих записей точно в таком же формате, как локальная сборка:
-СВОДКА ДИНАМИКИ (ИИ):
-
-1. Выполненные шаги и фокус:
- - ...
-
-2. Зафиксированные телесные сигналы:
- - ...
-
-3. Успешная саморегуляция и ранний стоп:
- - ...
-
-ПРАВИЛО: Пиши ТОЛЬКО чистый плоский текст без Markdown (без звездочек *, без кавычек ", без решеток #).
-Записи:
-${rawText}` }] }]
+            // Сводка возвращается на языке интерфейса: иначе англоязычный человек
+            // получает русский отчёт, который сам же и просил перевести.
+            contents: [{ parts: [{ text: t('ai.prompt', { logs: rawText }) }] }]
           })
         });
         
@@ -2928,10 +2918,10 @@ ${rawText}` }] }]
         if (!res.ok) {
           const msg = data.error?.message || res.statusText;
           box.textContent = res.status === 404
-            ? `Модель недоступна для этого ключа (404). Проверь список моделей в AI Studio.\n${msg}`
+            ? t('ai.http404', { msg })
             : res.status === 403
-              ? `Ключ отклонён (403): проверь ограничения ключа и биллинг.\n${msg}`
-              : `Ошибка API (${res.status}): ${msg}`;
+              ? t('ai.http403', { msg })
+              : t('ai.http', { status: res.status, msg });
           return;
         }
 
@@ -2943,7 +2933,7 @@ ${rawText}` }] }]
               .replace(/^#+\s*/gm, '')
               .replace(/^\s*\*\s+/gm, ' - ')
               .trim()
-          : 'Пустой ответ.';
+          : t('ai.empty');
         
         // Показываем новый ответ на экране
         box.textContent = finalSummary;
@@ -2958,25 +2948,25 @@ ${rawText}` }] }]
         localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(newCacheBox));
 
       } catch (e) {
-        box.textContent = `Сетевая ошибка: ${e.message}`;
+        box.textContent = t('ai.network', { msg: e.message });
       }
     }
     function copyForDoctor() {
       const lines = [
-        'ЛОГ СОСТОЯНИЙ И ДЕЙСТВИЙ',
-        `Текущая неделя ${state.weekKey} (${formatWeekRange(state.weekStart)}): ${state.points}/${state.goal} очков`,
-        ...state.logs.map(l => `- [${l.time}] (${l.kind}): ${l.text}`)
+        t('copy.title'),
+        t('copy.week', { week: state.weekKey, range: formatWeekRange(state.weekStart), pts: state.points, goal: state.goal }),
+        ...state.logs.map(l => t('copy.line', { time: l.time, kind: l.kind, text: l.text }))
       ];
       const pastWeeks = state.weeks || [];
       if (pastWeeks.length) {
-        lines.push('', `АРХИВ (${pastWeeks.length} нед.):`);
+        lines.push('', t('copy.archive', { n: pastWeeks.length }));
         pastWeeks.forEach(week => {
-          lines.push(`Неделя ${week.weekKey} (${formatWeekRange(week.weekStart)}): ${week.points}/${week.goal} очков`);
-          week.logs.forEach(l => lines.push(`- [${l.time}] (${l.kind}): ${l.text}`));
+          lines.push(t('copy.week', { week: week.weekKey, range: formatWeekRange(week.weekStart), pts: week.points, goal: week.goal }));
+          week.logs.forEach(l => lines.push(t('copy.line', { time: l.time, kind: l.kind, text: l.text })));
         });
       }
       copyText(lines.join('\n')).then(ok => {
-        flashMessage(ok ? 'Лог скопирован в буфер обмена' : 'Скопировать не дали — открой дневник и распечатай через Ctrl+P');
+        flashMessage(ok ? t('copy.ok') : t('copy.fail'));
       });
     }
     function copyText(text) {
@@ -3020,14 +3010,14 @@ ${rawText}` }] }]
     }
     function closeWeekToArchive() {
       if (!state.logs.length && state.points === 0) {
-        flashMessage('Неделя пуста — закрывать нечего');
+        flashMessage(t('week.empty'));
         return;
       }
-      if (!confirm('Закрыть текущую неделю? Очки обнулятся, записи уйдут в архив и останутся доступны.')) return;
+      if (!confirm(t('week.confirm'))) return;
       archiveCurrentWeek();
       saveState();
       renderAll();
-      flashMessage('Неделя в архиве');
+      flashMessage(t('week.archived'));
     }
     function toggleArchiveList() {
       document.getElementById('archiveList').classList.toggle('hidden');
@@ -3146,17 +3136,23 @@ ${rawText}` }] }]
         '',
         `# FlowCore · ${state.weekKey}`,
         '',
-        `${formatWeekRange(state.weekStart)} · ${Number(state.points) || 0} из ${Number(state.goal) || 0} очков · Ур. ${info.level} (${info.xp} за всё время)`,
+        t('md.summary', {
+          range: formatWeekRange(state.weekStart),
+          pts: Number(state.points) || 0,
+          goal: Number(state.goal) || 0,
+          level: info.level,
+          xp: info.xp
+        }),
         ''
       ];
       // Замок шифрует только хранилище браузера: об этом лучше сказать на входе в файл
       if (vault.enabled) {
-        lines.push('> Экспорт открытым текстом: замок защищает хранилище браузера, а не этот файл.', '');
+        lines.push(t('md.plaintext'), '');
       }
       const section = (title, list) => {
         lines.push(`## ${title}`, '');
         if (!list.length) {
-          lines.push('_Пусто._', '');
+          lines.push(t('md.empty'), '');
           return;
         }
         list.forEach(log => {
@@ -3165,9 +3161,9 @@ ${rawText}` }] }]
         });
         lines.push('');
       };
-      section('Выполненные шаги', logs.filter(log => typeOf(log) === 'action'));
-      section('Телесные сигналы', logs.filter(log => typeOf(log) === 'signal'));
-      section('Ранний стоп и саморегуляция', logs.filter(log => typeOf(log) === 'stop'));
+      section(t('md.section.actions'), logs.filter(log => typeOf(log) === 'action'));
+      section(t('md.section.signals'), logs.filter(log => typeOf(log) === 'signal'));
+      section(t('md.section.stops'), logs.filter(log => typeOf(log) === 'stop'));
       return lines.join('\n');
     }
     function exportObsidianMarkdown() {
@@ -3180,7 +3176,7 @@ ${rawText}` }] }]
       a.download = name;
       a.click();
       URL.revokeObjectURL(url);
-      flashMessage(`Файл ${name} скачан`);
+      flashMessage(t('diary.export.done', { name }));
     }
 
     function downloadBackup(filename, markExported = true) {
@@ -3384,13 +3380,13 @@ ${rawText}` }] }]
       const useful = pool > 0 && (Number(state.points) || 0) < (Number(state.goal) || 0);
       btn.classList.toggle('hidden', !useful);
       const label = document.getElementById('reserveBtnText');
-      if (label) label.textContent = `Резерв недели (+1 из ${pool})`;
+      if (label) label.textContent = t('reserve.button', { pool });
     }
     function claimReservePoint() {
       if (!state) return;
       const pool = Number(state.reservePool) || 0;
       if (pool <= 0) {
-        flashMessage('Резерв пуст');
+        flashMessage(t('reserve.empty'));
         return;
       }
       state.reservePool = pool - 1;
@@ -3401,20 +3397,20 @@ ${rawText}` }] }]
         id: nextLogId(),
         ts: Date.now(),
         time: formatStamp(new Date()),
-        kind: 'Резерв недели',
-        text: 'Использован страховочный буфер прошлой недели (+1)',
+        kind: t('reserve.kind'),
+        text: t('reserve.log'),
         pts: 0,
         type: 'action',
         spentMs: 0
       });
       saveState();
       renderAll();
-      flashMessage(`Резерв: +1 к неделе, осталось ${state.reservePool}`);
+      flashMessage(t('reserve.used', { left: state.reservePool }));
     }
     function renderDiary() {
       const list = document.getElementById('logList');
       if (state.logs.length === 0) {
-        list.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 24px;">Записей пока нет.</div>`;
+        list.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 24px;">${escapeHtml(t('diary.empty'))}</div>`;
         return;
       }
       list.innerHTML = state.logs.map(item => `
@@ -3427,9 +3423,9 @@ ${rawText}` }] }]
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <!-- НОВАЯ КНОПКА УДАЛЕНИЯ -->
-            <button class="pill-btn" style="padding: 2px 8px; font-size: 11px; color: #ff5555; border-color: rgba(255,85,85,0.3);" onclick="deleteLogEntry(${item.id})" title="Удалить запись">✖</button>
+            <button class="pill-btn" style="padding: 2px 8px; font-size: 11px; color: #ff5555; border-color: rgba(255,85,85,0.3);" onclick="deleteLogEntry(${item.id})" title="${escapeHtml(t('diary.delete'))}">✖</button>
             
-            <button class="pill-btn" style="padding: 2px 8px; font-size: 11px;" onclick="appendNoteToLog(${item.id})" title="Дописать или изменить текст">✎</button>
+            <button class="pill-btn" style="padding: 2px 8px; font-size: 11px;" onclick="appendNoteToLog(${item.id})" title="${escapeHtml(t('diary.edit.title'))}">✎</button>
             <span style="font-family: var(--font-heading); font-weight: 700; color: var(--green-title); white-space: nowrap;">
               +${item.pts}
             </span>
@@ -3672,8 +3668,8 @@ ${rawText}` }] }]
           </button>
           ${open ? `<div class="archive-entries">
             ${(week.logs || []).length
-              ? week.logs.map(l => `<div class="archive-entry">${escapeHtml(l.time)} | ${escapeHtml(l.kind)} — ${escapeHtml(l.text)} <span style="color: var(--green-title);">+${l.pts}</span> <button class="pill-btn" style="padding: 0 6px; font-size: 10px;" aria-label="Изменить запись" onclick="appendNoteToLog(${l.id})" title="Изменить запись">✎</button> <button class="pill-btn" style="padding: 0 6px; font-size: 10px; color: #ff5555; border-color: rgba(255,85,85,0.3);" aria-label="Удалить запись" onclick="deleteLogEntry(${l.id})" title="Удалить запись">✖</button></div>`).join('')
-              : '<div class="archive-entry">Записей нет</div>'}
+              ? week.logs.map(l => `<div class="archive-entry">${escapeHtml(l.time)} | ${escapeHtml(l.kind)} — ${escapeHtml(l.text)} <span style="color: var(--green-title);">+${l.pts}</span> <button class="pill-btn" style="padding: 0 6px; font-size: 10px;" aria-label="${escapeHtml(t('diary.edit.title'))}" onclick="appendNoteToLog(${l.id})" title="${escapeHtml(t('diary.edit.title'))}">✎</button> <button class="pill-btn" style="padding: 0 6px; font-size: 10px; color: #ff5555; border-color: rgba(255,85,85,0.3);" aria-label="${escapeHtml(t('diary.delete'))}" onclick="deleteLogEntry(${l.id})" title="${escapeHtml(t('diary.delete'))}">✖</button></div>`).join('')
+              : `<div class="archive-entry">${escapeHtml(t('diary.archive.empty'))}</div>`}
           </div>` : ''}
         </div>`;
       }).join('');
@@ -3706,7 +3702,7 @@ ${rawText}` }] }]
         const x = i * (barW + gap) + barW / 2;
         return `<span class="${s.now ? 'now' : ''}" style="left: ${((x / W) * 100).toFixed(2)}%;">${escapeHtml(s.label)}</span>`;
       }).join('');
-      host.innerHTML = `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Очки по неделям, последние ${series.length} недель">${parts}</svg>`
+      host.innerHTML = `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${escapeHtml(t('diary.spark.aria', { n: series.length }))}">${parts}</svg>`
         + `<div class="spark-labels" aria-hidden="true">${labels}</div>`;
     }
     // Короткая подпись недели для графика: номер ISO-недели
@@ -4223,6 +4219,97 @@ ${rawText}` }] }]
         { one: 'Letztes Backup vor {n} Tag. Ein Klick und die Kopie liegt auf der Platte.', other: 'Letztes Backup vor {n} Tagen. Ein Klick und die Kopie liegt auf der Platte.' }
       ],
       'toast.nudge.snoozed': ['Напомню через неделю', 'Нагадаю за тиждень', 'I will remind you in a week', 'Ich erinnere in einer Woche'],
+
+      // Дневник
+      'diary.title': ['Дневник и лог для врача', 'Щоденник і журнал для лікаря', 'Diary and a log to show a doctor', 'Tagebuch und ein Protokoll für den Arzt'],
+      'diary.hint': ['Твоя внешняя память. Превращает короткие заметки в структурный отчет без потери контекста.', 'Твоя зовнішня пам’ять. Перетворює короткі нотатки на структурний звіт без втрати контексту.', 'Your external memory. Turns short notes into a structured report without losing context.', 'Dein externes Gedächtnis. Macht aus kurzen Notizen einen strukturierten Bericht, ohne den Zusammenhang zu verlieren.'],
+      'diary.summary.local': ['Собрать сводку локально', 'Зібрати зведення локально', 'Build the summary locally', 'Übersicht lokal erstellen'],
+      'diary.summary.ai': ['Сводка через ИИ', 'Зведення через ШІ', 'Summary via AI', 'Übersicht per KI'],
+      'diary.copy': ['Скопировать текст', 'Скопіювати текст', 'Copy the text', 'Text kopieren'],
+      'diary.export': ['Скачать .md (Obsidian)', 'Завантажити .md (Obsidian)', 'Download .md (Obsidian)', '.md laden (Obsidian)'],
+      'diary.quick.title': ['Быстрая пометка в дневник (можно в 1 клик или парой слов)', 'Швидка позначка в щоденник (можна в 1 клік або парою слів)', 'A quick note in the diary (one tap, or a couple of words)', 'Schnelle Notiz ins Tagebuch (ein Klick oder zwei Worte)'],
+      'diary.chip.work': ['⚡ Рабочий шаг', '⚡ Робочий крок', '⚡ A work step', '⚡ Ein Arbeitsschritt'],
+      'diary.chip.work.text': ['Без текста: рабочий шаг', 'Без тексту: робочий крок', 'No text: a work step', 'Ohne Text: ein Arbeitsschritt'],
+      'diary.chip.pause': ['⏸ Вовремя пауза', '⏸ Вчасно пауза', '⏸ Paused in time', '⏸ Rechtzeitig Pause'],
+      'diary.chip.pause.text': ['Вовремя сделал паузу', 'Вчасно зробив паузу', 'Paused in time', 'Rechtzeitig Pause gemacht'],
+      'diary.chip.fog': ['🌫 Туман / усталость', '🌫 Туман / втома', '🌫 Fog / fatigue', '🌫 Nebel / Müdigkeit'],
+      'diary.chip.fog.text': ['Легкий туман / усталость', 'Легкий туман / втома', 'Slight fog / fatigue', 'Leichter Nebel / Müdigkeit'],
+      'diary.chip.focus': ['🟢 Хороший фокус', '🟢 Гарний фокус', '🟢 Good focus', '🟢 Guter Fokus'],
+      'diary.chip.focus.text': ['Хороший фокус', 'Гарний фокус', 'Good focus', 'Guter Fokus'],
+      'diary.quick.placeholder': ['Короткая пометка в дневник (необязательно писать полный текст)...', 'Коротка позначка в щоденник (не обов’язково писати повний текст)...', 'A short diary note (no need to write the whole story)...', 'Kurze Tagebuchnotiz (kein ganzer Text nötig)...'],
+      'diary.quick.add': ['+ В дневник', '+ У щоденник', '+ To the diary', '+ Ins Tagebuch'],
+      'diary.spark': ['Последние недели', 'Останні тижні', 'Recent weeks', 'Letzte Wochen'],
+      'diary.spark.aria': ['Очки по неделям, последние {n} недель', 'Очки за тижнями, останні {n} тижнів', 'Points per week, the last {n} weeks', 'Punkte pro Woche, die letzten {n} Wochen'],
+      'diary.archive': ['Прошлые недели', 'Минулі тижні', 'Past weeks', 'Frühere Wochen'],
+      'diary.back': ['Назад к фокусу', 'Назад до фокусу', 'Back to focus', 'Zurück zum Fokus'],
+      'diary.closeWeek': ['Закрыть неделю в архив', 'Закрити тиждень в архів', 'Close the week into the archive', 'Woche ins Archiv schließen'],
+      'diary.undo.deleted': ['Запись удалена', 'Запис видалено', 'Entry deleted', 'Eintrag gelöscht'],
+      'diary.undo.restore': ['Вернуть', 'Повернути', 'Restore', 'Zurückholen'],
+      'diary.undo.more': ['Вернули. Ещё в стеке: {n}', 'Повернули. Ще в стеку: {n}', 'Restored. Still in the stack: {n}', 'Zurückgeholt. Noch im Stapel: {n}'],
+      'diary.undo.restored': ['Запись восстановлена', 'Запис відновлено', 'Entry restored', 'Eintrag wiederhergestellt'],
+      'diary.note.default': ['Короткая отметка в дневнике', 'Коротка позначка в щоденнику', 'A short diary note', 'Kurze Tagebuchnotiz'],
+      'diary.note.kind': ['Заметка', 'Нотатка', 'Note', 'Notiz'],
+      'diary.note.added': ['Добавлено в дневник (+1)', 'Додано в щоденник (+1)', 'Added to the diary (+1)', 'Ins Tagebuch aufgenommen (+1)'],
+      'diary.note.capped': ['Добавлено. День закрыт — без очков', 'Додано. День закрито — без очок', 'Added. The day is capped — no points', 'Hinzugefügt. Tag voll — ohne Punkte'],
+      'diary.edit.prompt': ['Добавить или изменить комментарий к записи:', 'Додати або змінити коментар до запису:', 'Add or edit a comment on the entry:', 'Kommentar zum Eintrag ergänzen oder ändern:'],
+      'diary.edit.saved': ['Запись обновлена', 'Запис оновлено', 'Entry updated', 'Eintrag aktualisiert'],
+      'diary.edit.title': ['Дописать или изменить текст', 'Дописати або змінити текст', 'Add to or edit the text', 'Text ergänzen oder ändern'],
+      'diary.delete': ['Удалить запись', 'Видалити запис', 'Delete the entry', 'Eintrag löschen'],
+      'diary.empty': ['Записей пока нет.', 'Записів поки немає.', 'No entries yet.', 'Noch keine Einträge.'],
+      'diary.archive.empty': ['Записей нет', 'Записів немає', 'No entries', 'Keine Einträge'],
+
+      // Сводки
+      'summary.title.local': ['СВОДКА ДИНАМИКИ (ЛОКАЛЬНАЯ СБОРКА БЕЗ СЕТИ):', 'ЗВЕДЕННЯ ДИНАМІКИ (ЛОКАЛЬНЕ, БЕЗ МЕРЕЖІ):', 'PROGRESS SUMMARY (BUILT LOCALLY, NO NETWORK):', 'VERLAUFSÜBERSICHT (LOKAL ERSTELLT, OHNE NETZ):'],
+      'summary.section.actions': ['1. Выполненные шаги и фокус ({n}):', '1. Виконані кроки й фокус ({n}):', '1. Steps taken and focus ({n}):', '1. Gemachte Schritte und Fokus ({n}):'],
+      'summary.section.signals': ['2. Зафиксированные телесные сигналы ({n}):', '2. Зафіксовані тілесні сигнали ({n}):', '2. Body signals noted ({n}):', '2. Notierte Körpersignale ({n}):'],
+      'summary.section.stops': ['3. Успешная саморегуляция и ранний стоп ({n}):', '3. Успішна саморегуляція й рання зупинка ({n}):', '3. Successful self-regulation and early stops ({n}):', '3. Gelungene Selbstregulation und frühe Stopps ({n}):'],
+      'summary.line': [' - [{time}] {text}', ' - [{time}] {text}', ' - [{time}] {text}', ' - [{time}] {text}'],
+      'summary.none.actions': [' - Записей пока нет', ' - Записів поки немає', ' - No entries yet', ' - Noch keine Einträge'],
+      'summary.none.signals': [' - Явных маркеров не отмечено', ' - Явних маркерів не відзначено', ' - No clear markers noted', ' - Keine deutlichen Marker notiert'],
+      'summary.none.stops': [' - Записей раннего стопа пока нет', ' - Записів ранньої зупинки поки немає', ' - No early stops recorded yet', ' - Noch keine frühen Stopps'],
+
+      // ИИ-сводка
+      'ai.noKey': ['Для работы ИИ нужен ключ Gemini: вкладка «Система» → поле API-ключа.', 'Для роботи ШІ потрібен ключ Gemini: вкладка «Система» → поле API-ключа.', 'AI needs a Gemini key: System → the API key field.', 'Die KI braucht einen Gemini-Schlüssel: System → Feld für den API-Schlüssel.'],
+      'ai.consent': ['Сводка через ИИ отправит все записи дневника, включая архив, на серверы Google. Локальная сборка ничего никуда не отправляет. Продолжить?', 'Зведення через ШІ надішле всі записи щоденника, разом з архівом, на сервери Google. Локальне зведення нікуди нічого не надсилає. Продовжити?', 'The AI summary sends every diary entry, archive included, to Google servers. The local build sends nothing anywhere. Continue?', 'Die KI-Übersicht sendet alle Tagebucheinträge inklusive Archiv an Google-Server. Die lokale Übersicht sendet nichts. Fortfahren?'],
+      'ai.cancelled': ['Отменено. Можно собрать сводку локально — она никуда не уходит.', 'Скасовано. Можна зібрати зведення локально — воно нікуди не йде.', 'Cancelled. You can build the summary locally — nothing leaves the device.', 'Abgebrochen. Die Übersicht lässt sich lokal erstellen — nichts verlässt das Gerät.'],
+      'ai.generating': ['Генерация структурной сводки...', 'Генерація структурного зведення...', 'Generating the structured summary...', 'Strukturierte Übersicht wird erzeugt ...'],
+      'ai.empty': ['Пустой ответ.', 'Порожня відповідь.', 'Empty reply.', 'Leere Antwort.'],
+      'ai.http404': ['Модель недоступна для этого ключа (404). Проверь список моделей в AI Studio.\n{msg}', 'Модель недоступна для цього ключа (404). Перевір список моделей в AI Studio.\n{msg}', 'The model is not available for this key (404). Check the model list in AI Studio.\n{msg}', 'Das Modell ist für diesen Schlüssel nicht verfügbar (404). Prüfe die Modellliste in AI Studio.\n{msg}'],
+      'ai.http403': ['Ключ отклонён (403): проверь ограничения ключа и биллинг.\n{msg}', 'Ключ відхилено (403): перевір обмеження ключа й білінг.\n{msg}', 'Key rejected (403): check the key restrictions and billing.\n{msg}', 'Schlüssel abgelehnt (403): Einschränkungen und Abrechnung prüfen.\n{msg}'],
+      'ai.http': ['Ошибка API ({status}): {msg}', 'Помилка API ({status}): {msg}', 'API error ({status}): {msg}', 'API-Fehler ({status}): {msg}'],
+      'ai.network': ['Сетевая ошибка: {msg}', 'Мережева помилка: {msg}', 'Network error: {msg}', 'Netzwerkfehler: {msg}'],
+      'ai.prompt': [
+        'Сделай краткую сводку моих записей точно в таком же формате, как локальная сборка:\nСВОДКА ДИНАМИКИ (ИИ):\n\n1. Выполненные шаги и фокус:\n - ...\n\n2. Зафиксированные телесные сигналы:\n - ...\n\n3. Успешная саморегуляция и ранний стоп:\n - ...\n\nПРАВИЛО: Пиши ТОЛЬКО чистый плоский текст без Markdown (без звездочек *, без кавычек ", без решеток #). Отвечай на русском языке.\nЗаписи:\n{logs}',
+        'Зроби коротке зведення моїх записів точно в такому самому форматі, як локальне зведення:\nЗВЕДЕННЯ ДИНАМІКИ (ШІ):\n\n1. Виконані кроки й фокус:\n - ...\n\n2. Зафіксовані тілесні сигнали:\n - ...\n\n3. Успішна саморегуляція й рання зупинка:\n - ...\n\nПРАВИЛО: Пиши ЛИШЕ чистий плаский текст без Markdown (без зірочок *, без лапок ", без решіток #). Відповідай українською мовою.\nЗаписи:\n{logs}',
+        'Make a short summary of my notes in exactly the same layout as the local build:\nPROGRESS SUMMARY (AI):\n\n1. Steps taken and focus:\n - ...\n\n2. Body signals noted:\n - ...\n\n3. Successful self-regulation and early stops:\n - ...\n\nRULE: write ONLY clean plain text without Markdown (no asterisks *, no quotes ", no hashes #). Answer in English.\nNotes:\n{logs}',
+        'Fasse meine Notizen kurz zusammen, und zwar im gleichen Aufbau wie die lokale Übersicht:\nVERLAUFSÜBERSICHT (KI):\n\n1. Gemachte Schritte und Fokus:\n - ...\n\n2. Notierte Körpersignale:\n - ...\n\n3. Gelungene Selbstregulation und frühe Stopps:\n - ...\n\nREGEL: nur reiner Text ohne Markdown (keine Sternchen *, keine Anführungszeichen ", keine Rauten #). Antworte auf Deutsch.\nNotizen:\n{logs}'
+      ],
+
+      // Копия для врача, архив и резерв
+      'copy.title': ['ЛОГ СОСТОЯНИЙ И ДЕЙСТВИЙ', 'ЖУРНАЛ СТАНІВ І ДІЙ', 'LOG OF STATES AND ACTIONS', 'PROTOKOLL VON ZUSTÄNDEN UND HANDLUNGEN'],
+      'copy.current': ['Текущая неделя {week} ({range}): {pts}/{goal} очков', 'Поточний тиждень {week} ({range}): {pts}/{goal} очок', 'Current week {week} ({range}): {pts}/{goal} pts', 'Aktuelle Woche {week} ({range}): {pts}/{goal} Pkt.'],
+      'copy.week': ['Неделя {week} ({range}): {pts}/{goal} очков', 'Тиждень {week} ({range}): {pts}/{goal} очок', 'Week {week} ({range}): {pts}/{goal} pts', 'Woche {week} ({range}): {pts}/{goal} Pkt.'],
+      'copy.line': ['- [{time}] ({kind}): {text}', '- [{time}] ({kind}): {text}', '- [{time}] ({kind}): {text}', '- [{time}] ({kind}): {text}'],
+      'copy.archive': ['АРХИВ ({n} нед.):', 'АРХІВ ({n} тиж.):', 'ARCHIVE ({n} weeks):', 'ARCHIV ({n} Wochen):'],
+      'copy.ok': ['Лог скопирован в буфер обмена', 'Журнал скопійовано в буфер обміну', 'Log copied to the clipboard', 'Protokoll in die Zwischenablage kopiert'],
+      'copy.fail': ['Скопировать не дали — открой дневник и распечатай через Ctrl+P', 'Скопіювати не дозволили — відкрий щоденник і роздрукуй через Ctrl+P', 'The browser refused to copy — open the diary and print it with Ctrl+P', 'Kopieren wurde verweigert — öffne das Tagebuch und drucke es mit Strg+P'],
+      'week.empty': ['Неделя пуста — закрывать нечего', 'Тиждень порожній — закривати нічого', 'The week is empty — nothing to close', 'Die Woche ist leer — nichts zu schließen'],
+      'week.confirm': ['Закрыть текущую неделю? Очки обнулятся, записи уйдут в архив и останутся доступны.', 'Закрити поточний тиждень? Очки обнуляться, записи підуть в архів і лишаться доступними.', 'Close the current week? Points reset to zero, entries move to the archive and stay available.', 'Aktuelle Woche schließen? Punkte werden null, Einträge wandern ins Archiv und bleiben verfügbar.'],
+      'week.archived': ['Неделя в архиве', 'Тиждень в архіві', 'Week archived', 'Woche archiviert'],
+      'reserve.button': ['Резерв недели (+1 из {pool})', 'Резерв тижня (+1 з {pool})', 'Week reserve (+1 of {pool})', 'Wochenreserve (+1 von {pool})'],
+      'reserve.empty': ['Резерв пуст', 'Резерв порожній', 'The reserve is empty', 'Die Reserve ist leer'],
+      'reserve.kind': ['Резерв недели', 'Резерв тижня', 'Week reserve', 'Wochenreserve'],
+      'reserve.log': ['Использован страховочный буфер прошлой недели (+1)', 'Використано страхувальний буфер минулого тижня (+1)', 'Used the safety buffer from the previous week (+1)', 'Sicherheitspuffer der letzten Woche genutzt (+1)'],
+      'reserve.used': ['Резерв: +1 к неделе, осталось {left}', 'Резерв: +1 до тижня, лишилось {left}', 'Reserve: +1 to the week, {left} left', 'Reserve: +1 auf die Woche, {left} übrig'],
+
+      // Выгрузка в Markdown
+      'md.summary': ['{range} · {pts} из {goal} очков · Ур. {level} ({xp} за всё время)', '{range} · {pts} з {goal} очок · Рів. {level} ({xp} за весь час)', '{range} · {pts} of {goal} points · Lv. {level} ({xp} lifetime)', '{range} · {pts} von {goal} Punkten · Lv. {level} ({xp} insgesamt)'],
+      'md.plaintext': ['> Экспорт открытым текстом: замок защищает хранилище браузера, а не этот файл.', '> Експорт відкритим текстом: замок захищає сховище браузера, а не цей файл.', '> Exported as plain text: the lock protects the browser storage, not this file.', '> Als Klartext exportiert: das Schloss schützt den Browser-Speicher, nicht diese Datei.'],
+      'md.empty': ['_Пусто._', '_Порожньо._', '_Empty._', '_Leer._'],
+      'md.section.actions': ['Выполненные шаги', 'Виконані кроки', 'Steps taken', 'Gemachte Schritte'],
+      'md.section.signals': ['Телесные сигналы', 'Тілесні сигнали', 'Body signals', 'Körpersignale'],
+      'md.section.stops': ['Ранний стоп и саморегуляция', 'Рання зупинка й саморегуляція', 'Early stops and self-regulation', 'Frühe Stopps und Selbstregulation'],
+      'diary.export.done': ['Файл {name} скачан', 'Файл {name} завантажено', 'Saved {name}', '{name} gespeichert'],
     };
     let uiLang = detectLang();
 

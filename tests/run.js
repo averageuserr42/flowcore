@@ -733,6 +733,34 @@ const NOW = new Date(2026, 9, 24, 12, 0, 0).getTime();
   check('ранний скин: мусор не ломает шапку', runEarly('constructor'), '');
 }
 
+// --- 25. Словарь: четыре языка, ключи на месте, склонения ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  const keys = q('Object.keys(STRINGS)');
+  check('словарь: строк собралось много', keys.length > 100, true);
+  check('словарь: у каждой строки четыре языка', q('Object.keys(STRINGS).filter(k => !Array.isArray(STRINGS[k]) || STRINGS[k].length !== 4)'), []);
+  check('словарь: ни одной пустой ячейки', q('Object.keys(STRINGS).filter(k => STRINGS[k].some(v => v === undefined || v === null || v === \'\'))'), []);
+
+  // Любая строка интерфейса должна существовать в словаре: иначе человек
+  // увидит сырой ключ вроде nav.focus вместо кнопки.
+  const fromMarkup = [...html.matchAll(/data-i18n(?:-ph|-title|-aria)?="([^"]+)"/g)].map(m => m[1]);
+  const fromCalls = [...src.matchAll(/\b(?:t|translate)\('([a-zA-Z0-9.]+)'/g)].map(m => m[1]);
+  const referenced = [...new Set(fromMarkup.concat(fromCalls))];
+  const missing = referenced.filter(key => q(`Object.prototype.hasOwnProperty.call(STRINGS, ${JSON.stringify(key)})`) !== true);
+  check('словарь: все ключи из разметки и кода есть', missing, []);
+
+  check('склонение ru: одна отметка', q("t('word.mark', { n: 1 })"), '1 отметка');
+  check('склонение ru: три отметки', q("t('word.mark', { n: 3 })"), '3 отметки');
+  check('склонение ru: пять отметок', q("t('word.mark', { n: 5 })"), '5 отметок');
+  check('перевод на немецкий', q("uiLang = 'de'; t('word.mark', { n: 5 })"), '5 Notizen');
+  check('немецкий: единственное число', q("t('word.mark', { n: 1 })"), '1 Notiz');
+  check('английский: склонение', q("uiLang = 'en'; t('word.mark', { n: 3 })"), '3 notes');
+  check('украинский: два заряда', q("uiLang = 'uk'; t('rest.line', { n: 2 })"), '⚡ Відпочинок: 2 заряди — +1 до наступних кроків');
+  check('неизвестный ключ возвращает себя', q("uiLang = 'de'; t('no.such.key')"), 'no.such.key');
+  check('язык можно вернуть назад', q("uiLang = 'ru'; t('nav.focus')"), 'Фокус');
+}
+
 const failed = results.filter(r => !r.ok);
 results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.name}${r.ok ? '' : ` (got ${r.actual}, want ${r.expected})`}`));
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
