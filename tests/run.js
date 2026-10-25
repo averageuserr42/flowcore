@@ -24,6 +24,8 @@ const src = extractAppScript(html);
 
 function makeContext(fixedTs, seed) {
   const store = {};
+  // Язык в тестах зафиксирован: они проверяют тексты, и от окружения это не зависит
+  store['flowCoreLangV1'] = 'ru';
   if (seed !== undefined) store['flowCorePortfolioV5'] = JSON.stringify(seed);
 
   const el = () => ({
@@ -46,6 +48,7 @@ function makeContext(fixedTs, seed) {
       return {
         getElementById: getEl, addEventListener() {}, createElement: () => el(), hidden: false,
         querySelector() { return null; }, querySelectorAll() { return []; },
+        documentElement: { setAttribute() {}, getAttribute() { return null; }, lang: '' },
       };
     })(),
     localStorage: {

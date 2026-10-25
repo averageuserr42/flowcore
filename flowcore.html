@@ -1253,12 +1253,12 @@
   <header class="top-header">
     <div class="header-left">
       <div class="brand-title">FLOWCORE</div>
-      <div class="quota-badge" title="Недельный аккумулятор: очки живут до конца недели, пропуски дней ничего не сбрасывают">
+      <div class="quota-badge" data-i18n-title="header.quota.title" title="Недельный аккумулятор: очки живут до конца недели, пропуски дней ничего не сбрасывают">
         <span id="quotaText">2 / 12</span>
         <div id="quotaDots" class="quota-dots"></div>
         <span id="weekLabel" class="week-label"></span>
       </div>
-      <div class="level-badge" id="levelBadge" title="Сквозной уровень: все очки за всё время. Недельный сброс его не обнуляет.">
+      <div class="level-badge" id="levelBadge" data-i18n-title="header.level.title" title="Сквозной уровень: все очки за всё время. Недельный сброс его не обнуляет.">
         <span class="lv-name" id="levelName">Ур. 1</span>
         <span class="lv-sep" aria-hidden="true">·</span>
         <span class="lv-next" id="levelNext">2/10</span>
@@ -1267,10 +1267,10 @@
       <span id="flashToast" role="status" aria-live="polite" style="font-size: 13px; color: var(--green-title);"></span>
     </div>
     <nav class="header-nav">
-      <button id="nav-main" class="nav-btn active" onclick="showSection('main')">Фокус</button>
-      <button id="nav-diary" class="nav-btn" onclick="showSection('diary')">Дневник (<span id="diaryCount">1</span>)</button>
-      <button id="nav-breathe" class="nav-btn" onclick="showSection('breathe')">Дыхание</button>
-      <button id="nav-system" class="nav-btn" onclick="showSection('system')">Система</button>
+      <button id="nav-main" class="nav-btn active" onclick="showSection('main')" data-i18n="nav.focus">Фокус</button>
+      <button id="nav-diary" class="nav-btn" onclick="showSection('diary')"><span data-i18n="nav.diary">Дневник</span> (<span id="diaryCount">1</span>)</button>
+      <button id="nav-breathe" class="nav-btn" onclick="showSection('breathe')" data-i18n="nav.breathe">Дыхание</button>
+      <button id="nav-system" class="nav-btn" onclick="showSection('system')" data-i18n="nav.system">Система</button>
     </nav>
   </header>
   <!-- MAIN WORKSPACE STAGE -->
@@ -1281,23 +1281,23 @@
       <div class="glow-card">
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px;">
-            <h1 class="card-heading" style="margin-bottom: 0;">Точка старта</h1>
-            <button class="pill-btn" onclick="cycleSphere()" title="Переключить сферу">
+            <h1 class="card-heading" style="margin-bottom: 0;" data-i18n="focus.title">Точка старта</h1>
+            <button class="pill-btn" onclick="cycleSphere()" data-i18n-title="focus.sphere.title" title="Переключить сферу">
               <span id="sphereBadgeText">Код и песочница</span>
             </button>
           </div>
-          <p class="card-subtext">
+          <p class="card-subtext" data-i18n="focus.hint">
             Выбери текущее состояние ниже. Задача и таймер подстроятся без давления.
           </p>
           <!-- State Pill Switcher -->
           <div class="pill-row">
-            <button id="mode-micro" class="pill-btn" onclick="setMode('micro')">Совсем мало сил (+1)</button>
-            <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')">Немного сил (+2)</button>
-            <button id="mode-wave" class="pill-btn" onclick="setMode('wave')">Полные силы (+3)</button>
+            <button id="mode-micro" class="pill-btn" onclick="setMode('micro')" data-i18n="focus.mode.micro">Совсем мало сил (+1)</button>
+            <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')" data-i18n="focus.mode.draft">Немного сил (+2)</button>
+            <button id="mode-wave" class="pill-btn" onclick="setMode('wave')" data-i18n="focus.mode.wave">Полные силы (+3)</button>
           </div>
           <!-- Orb Timer + Active Task Description -->
           <div class="focus-hero">
-            <div class="timer-orb" onclick="toggleTimer()" title="Нажми для старта или паузы" role="button" tabindex="0" aria-label="Таймер фокуса: старт или пауза" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleTimer(); }">
+            <div class="timer-orb" onclick="toggleTimer()" title="Нажми для старта или паузы" role="button" tabindex="0" data-i18n-aria="focus.timer.aria" aria-label="Таймер фокуса: старт или пауза" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleTimer(); }">
               <div id="timerReadout" class="timer-digits">05:00</div>
               <div id="timerActionHint" class="timer-sub">Старт</div>
             </div>
@@ -1311,10 +1311,10 @@
             </div>
           </div>
           <div class="timer-controls">
-            <div class="timer-presets" role="group" aria-label="Длительность таймера">
-              <button class="pill-btn" data-min="5" onclick="setTimerMinutes(5)">5 мин</button>
-              <button class="pill-btn" data-min="15" onclick="setTimerMinutes(15)">15 мин</button>
-              <button class="pill-btn" data-min="30" onclick="setTimerMinutes(30)">30 мин</button>
+            <div class="timer-presets" role="group" data-i18n-aria="focus.timer.aria.group" aria-label="Длительность таймера">
+              <button class="pill-btn" data-min="5" onclick="setTimerMinutes(5)" data-i18n="focus.preset5">5 мин</button>
+              <button class="pill-btn" data-min="15" onclick="setTimerMinutes(15)" data-i18n="focus.preset15">15 мин</button>
+              <button class="pill-btn" data-min="30" onclick="setTimerMinutes(30)" data-i18n="focus.preset30">30 мин</button>
               <span class="custom-timer">
                 <input
                   id="customMinutes"
@@ -1325,9 +1325,11 @@
                   inputmode="numeric"
                   placeholder="свои"
                   aria-label="Свои минуты таймера"
+                  data-i18n-ph="focus.custom.placeholder"
+                  data-i18n-aria="focus.custom.aria"
                   onkeydown="if(event.key === 'Enter') applyCustomMinutes()"
                 />
-                <button class="pill-btn" onclick="applyCustomMinutes()" aria-label="Поставить свои минуты">ОК</button>
+                <button class="pill-btn" onclick="applyCustomMinutes()" data-i18n-aria="focus.custom.ok" aria-label="Поставить свои минуты">ОК</button>
               </span>
             </div>
             <div id="bridgeRow" class="bridge-row hidden">
@@ -1347,14 +1349,14 @@
                 <button class="pill-btn" onclick="resetTimer()">Закончить</button>
               </div>
             </div>
-            <div id="firstStepRow" class="steps-row" role="group" aria-label="Первый шаг"></div>
+            <div id="firstStepRow" class="steps-row" role="group" data-i18n-aria="focus.steps.aria" aria-label="Первый шаг"></div>
           </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
           <button class="action-btn" id="completeTaskBtn" onclick="completeActiveTask()">
             Выполнено (+2 в зачет)
           </button>
-          <button class="action-btn-secondary" onclick="resetTimer()">
+          <button class="action-btn-secondary" onclick="resetTimer()" data-i18n="focus.reset">
             Сбросить таймер
           </button>
         </div>
@@ -1362,33 +1364,34 @@
       <!-- RIGHT CARD: IN YOUR OWN WORDS ("СВОИМИ СЛОВАМИ") -->
       <div class="glow-card">
         <div>
-          <h2 class="card-heading">Своими словами</h2>
-          <p class="card-subtext">
+          <h2 class="card-heading" data-i18n="words.title">Своими словами</h2>
+          <p class="card-subtext" data-i18n="words.hint">
             Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.
           </p>
           <!-- Pill Tags (Matches Windows | Linux | Git | Netzwerke pills) -->
           <div class="pill-row">
-            <button class="pill-btn" onclick="addTag('поучился 5-10 мин')">+ 5-10 мин</button>
-            <button class="pill-btn" onclick="addTag('слабый ком в груди')">+ слабый ком в груди</button>
-            <button class="pill-btn" onclick="addTag('туман в голове')">+ туман в голове</button>
-            <button class="pill-btn" onclick="addTag('поверхностное дыхание')">+ поверхн. дыхание</button>
-            <button class="pill-btn" onclick="addTag('вовремя остановился')">+ вовремя остановился</button>
+            <button class="pill-btn" onclick="addTagKey('words.tag.minutes')" data-i18n="words.tag.minutes">+ 5-10 мин</button>
+            <button class="pill-btn" onclick="addTagKey('words.tag.chest')" data-i18n="words.tag.chest">+ слабый ком в груди</button>
+            <button class="pill-btn" onclick="addTagKey('words.tag.fog')" data-i18n="words.tag.fog">+ туман в голове</button>
+            <button class="pill-btn" onclick="addTagKey('words.tag.breath')" data-i18n="words.tag.breath">+ поверхн. дыхание</button>
+            <button class="pill-btn" onclick="addTagKey('words.tag.stopped')" data-i18n="words.tag.stopped">+ вовремя остановился</button>
           </div>
           <input
             id="freeformInput"
             type="text"
             class="clean-input"
             placeholder="Например: поработал 5-10 мин, слабый ком в груди, решил остановиться..."
-            onkeydown="if(event.key === 'Enter') saveFreeform('Вовремя остановился', 2, 'stop')"
+            data-i18n-ph="words.placeholder"
+            onkeydown="if(event.key === 'Enter') saveFreeform(t('words.stop.kind'), 2, 'stop')"
           />
         </div>
         <div>
           <hr class="green-divider" />
           <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
-            <button class="action-btn" onclick="saveFreeform('Вовремя остановился', 2, 'stop')">
+            <button class="action-btn" onclick="saveFreeform(t('words.stop.kind'), 2, 'stop')" data-i18n="words.stop">
               Вовремя остановился (+2)
             </button>
-            <button class="action-btn-secondary" onclick="saveFreeform('Запись состояния', 1, 'signal')">
+            <button class="action-btn-secondary" onclick="saveFreeform(t('words.signal.kind'), 1, 'signal')" data-i18n="words.signal">
               Записать симптом (+1)
             </button>
           </div>
@@ -1397,19 +1400,19 @@
       <!-- ПРОГРЕСС: тепловая карта за 12 недель -->
       <div class="glow-card progress-card">
         <div class="progress-head">
-          <h2 class="card-heading" style="margin-bottom: 0;">Прогресс</h2>
-          <span class="progress-tag">12 недель</span>
+          <h2 class="card-heading" style="margin-bottom: 0;" data-i18n="progress.title">Прогресс</h2>
+          <span class="progress-tag" data-i18n="progress.tag">12 недель</span>
         </div>
         <div class="progress-body">
           <div class="progress-heat">
-            <div id="heatmap" class="heatmap" role="img" aria-label="Активность по дням за последние 12 недель"></div>
+            <div id="heatmap" class="heatmap" role="img" data-i18n-aria="progress.aria" aria-label="Активность по дням за последние 12 недель"></div>
             <div class="heat-legend">
-              меньше
+              <span data-i18n="progress.legend.less">меньше</span>
               <span class="heat-cell l1"></span>
               <span class="heat-cell l2"></span>
               <span class="heat-cell l3"></span>
               <span class="heat-cell l4"></span>
-              больше
+              <span data-i18n="progress.legend.more">больше</span>
             </div>
           </div>
           <div class="progress-side">
@@ -1421,12 +1424,12 @@
       <!-- НАПОМИНАНИЕ О БЭКАПЕ -->
       <div id="backupNudge" class="nudge hidden">
         <div>
-          <div class="nudge-title">Копия дневника давно не скачивалась</div>
+          <div class="nudge-title" data-i18n="nudge.title">Копия дневника давно не скачивалась</div>
           <div id="backupNudgeText" class="nudge-text"></div>
         </div>
         <div class="nudge-actions">
-          <button class="action-btn" onclick="exportBackupJson()">Скачать бэкап</button>
-          <button class="action-btn-secondary" onclick="snoozeBackupNudge()">Позже</button>
+          <button class="action-btn" onclick="exportBackupJson()" data-i18n="nudge.download">Скачать бэкап</button>
+          <button class="action-btn-secondary" onclick="snoozeBackupNudge()" data-i18n="nudge.later">Позже</button>
         </div>
       </div>
     </section>
@@ -1577,6 +1580,15 @@
           <div id="skinHint" style="font-size: 12px; color: var(--text-muted); width: 100%; text-align: right;"></div>
         </div>
         <hr class="green-divider" />
+        <!-- 2a2. Язык интерфейса: свои тексты не трогаются, переводится оболочка -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="lang.label">Язык интерфейса</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-style: italic;" data-i18n="lang.hint">Тексты, которые ты уже написал сам, остаются как есть: переводится только интерфейс.</div>
+          </div>
+          <div id="langRow" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"></div>
+        </div>
+        <hr class="green-divider" />
         <!-- 2a2. Свои сферы и формулировки -->
         <details>
           <summary style="cursor: pointer; font-weight: 600; color: var(--text-white);">Сферы и задачи</summary>
@@ -1688,7 +1700,6 @@
     // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
     // длина работы перестаёт быть единственной наградой.
     const DAILY_CAP = 8;
-    const BASE_TITLE = 'FlowCore | Дневник фокуса и восстановления';
     // Дефолт для уже сохранённых данных: ровно прежний набор, поэтому у того,
     // кто уже пользуется панелью, ничего не меняется ни на строку.
     const DEFAULT_SPHERES = [
@@ -1840,12 +1851,12 @@
     }
     function formatWeekRange(startKey) {
       const start = dateFromDayKey(startKey);
-      const short = d => d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }).replace('.', '');
+      const short = d => d.toLocaleDateString(locale(), { day: '2-digit', month: 'short' }).replace('.', '');
       return `${short(start)} – ${short(addDays(start, 6))}`;
     }
     function formatStamp(date) {
-      return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) + ' ' +
-             date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' }) + ' ' +
+             date.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' });
     }
     // Старые записи хранили только строку "24.10 14:35" — восстанавливаем дату для архива
     function legacyStampToDate(stamp) {
@@ -2353,7 +2364,7 @@
       if (state.requireTimer) {
         const ranMin = (Number(state.timer.ranMs) || 0) / 60000;
         if (ranMin < TIMER_GATE_MINUTES) {
-          flashMessage(`Строгий режим: до зачета ещё ${Math.ceil(TIMER_GATE_MINUTES - ranMin)} мин таймера`);
+          flashMessage(t('toast.gate', { n: Math.ceil(TIMER_GATE_MINUTES - ranMin) }));
           return;
         }
       }
@@ -2361,8 +2372,8 @@
       const pts = modePoints[state.mode];
       const spentMs = Number(state.timer.ranMs) || 0;
       const spentMin = Math.round(spentMs / 60000);
-      const step = state.firstStep ? ` — первый шаг: ${state.firstStep}` : '';
-      const text = sp.tasks[state.mode] + step + (spentMin >= 1 ? ` (отрезок ${spentMin} мин)` : '');
+      const step = state.firstStep ? t('log.step', { step: state.firstStep }) : '';
+      const text = sp.tasks[state.mode] + step + (spentMin >= 1 ? t('log.segment', { n: spentMin }) : '');
       state.timer.ranMs = 0;
       state.firstStep = '';
       const awarded = addLogEntry(sp.name, text, pts, 'action', spentMs);
@@ -2371,8 +2382,8 @@
       renderMain();
       renderBridge();
       flashMessage(awarded
-        ? `+${awarded} в зачет недели`
-        : `День закрыт (${DAILY_CAP} очков). Отрезок записан без очков`);
+        ? t('toast.awarded', { n: awarded })
+        : t('toast.capped', { cap: DAILY_CAP }));
     }
     // Первый шаг: конкретное физическое действие вместо «сесть и поработать»
     // Повторный клик по выбранному шагу снимает его
@@ -2395,13 +2406,13 @@
       const totalSec = Math.ceil(ms / 1000);
       const clock = `${pad2(Math.floor(totalSec / 60))}:${pad2(totalSec % 60)}`;
       document.getElementById('timerReadout').textContent = clock;
-      document.title = state.timer.running ? `${clock} · FlowCore` : BASE_TITLE;
+      document.title = state.timer.running ? `${clock} · FlowCore` : translate('app.title');
       const hint = document.getElementById('timerActionHint');
       const t = state.timer;
-      if (t.running) hint.textContent = 'Идет отсчет';
-      else if (t.finished || ms <= 0) hint.textContent = 'Готово!';
-      else if (ms < t.totalMs) hint.textContent = 'Продолжить';
-      else hint.textContent = 'Старт';
+      if (t.running) hint.textContent = translate('timer.hint.running');
+      else if (t.finished || ms <= 0) hint.textContent = translate('timer.hint.done');
+      else if (ms < t.totalMs) hint.textContent = translate('focus.timer.resume');
+      else hint.textContent = translate('focus.timer.start');
       renderTimerPresets();
       renderContinueRow();
     }
@@ -2413,7 +2424,7 @@
       if (!show) return;
       const mins = Math.max(1, Math.round((Number(state.timer.ranMs) || 0) / 60000));
       const text = document.getElementById('continueText');
-      if (text) text.textContent = `Отрезок ${mins} мин отработан. Задача не закрыта — это шаг, а не финиш.`;
+      if (text) text.textContent = t('continue.text', { n: mins });
     }
     // Сколько отметок и минут таймера набралось за сегодня
     function todayStats() {
@@ -2436,20 +2447,21 @@
       const { count, ms } = todayStats();
       const mins = Math.round(ms / 60000);
       if (!count) {
-        box.textContent = 'Сегодня пока пусто — таймер начнёт первый отрезок.';
+        box.textContent = t('today.empty');
         return;
       }
-      const head = `Сегодня: ${count} ${pluralMarks(count)}${mins ? ` · ${mins} мин в таймере` : ''}`;
+      const head = t('today.head', {
+        count: t('word.mark', { n: count }),
+        tail: mins ? t('today.minutes', { n: mins }) : ''
+      });
       const pts = pointsToday();
       box.textContent = pts >= DAILY_CAP
-        ? `${head} · ${pts} очк. — день закрыт, записи идут без очков`
-        : `${head} · ${pts} из ${DAILY_CAP} очк.`;
+        ? t('today.closed', { head, pts })
+        : t('today.open', { head, pts, cap: DAILY_CAP });
       const restLine = document.getElementById('restLine');
       if (restLine) {
         const charges = Number(state.restBonus) || 0;
-        restLine.textContent = charges
-          ? `⚡ Отдых: ${charges} ${charges === 1 ? 'заряд' : 'заряда'} — +1 к ${charges === 1 ? 'следующему шагу' : 'следующим шагам'}`
-          : '';
+        restLine.textContent = charges ? t('rest.line', { n: charges }) : '';
       }
     }
     // Активный пресет подсвечивается, свой размер показывается в поле
@@ -2476,19 +2488,19 @@
       const raw = input.value.trim().replace(',', '.');
       const n = Number(raw);
       if (!raw || !Number.isFinite(n) || n <= 0) {
-        flashMessage('Введи минуты числом, например 25');
+        flashMessage(t('toast.minutes.invalid'));
         return;
       }
       setTimerMinutes(n);
       input.value = '';
       const applied = Math.round(state.timer.totalMs / 60000);
-      flashMessage(`Таймер: ${applied} мин`);
+      flashMessage(t('toast.timer.set', { n: applied }));
     }
     // Продолжение отрезка: после сигнала — ещё один, без решений и настроек
     function continueTimer(minutes) {
       setTimerMinutes(minutes);
       toggleTimer();
-      flashMessage(`Ещё ${minutes} мин. Отрезок в копилку, задача не закрыта.`);
+      flashMessage(t('toast.more', { n: minutes }));
     }
     function toggleTimer() {
       const t = state.timer;
@@ -2528,8 +2540,8 @@
           saveState();
           renderTimer();
           playTimerSound();
-          if (document.hidden) notify('Таймер завершён', 'Отрезок закончен: можно встать из-за стола.');
-          flashMessage('Таймер завершен 🔔');
+          if (document.hidden) notify(translate('notify.timer.title'), translate('notify.timer.body'));
+          flashMessage(translate('toast.timer.done'));
         } else {
           renderTimer();
         }
@@ -2542,6 +2554,11 @@
       const cur = input.value.trim();
       input.value = cur ? `${cur}, ${fragment}` : fragment;
       input.focus();
+    }
+    // Тег на кнопке — это ключ интерфейса, а в поле попадает готовый текст
+    // на выбранном языке: дальше он живёт в дневнике как обычная запись.
+    function addTagKey(key) {
+      addTag(t(key + '.text'));
     }
     // --- WEB AUDIO SYNTHESIZER (NO EXTERNAL FILES NEEDED) ---
     // Один AudioContext на страницу: браузер разрешает их единицы, а не десятки
@@ -2758,11 +2775,11 @@
       const box = document.getElementById('bridgeText');
       if (!box) return;
       const days = bridgeDaysAgo();
-      const when = days === 1 ? 'Вчера' : `${days} ${pluralDays(days)} назад`;
+      const when = t('bridge.when', { n: days });
       const stop = state.lastStop;
       const text = String(stop.text || '').slice(0, 120);
-      box.innerHTML = `<span class="bridge-kicker">${escapeHtml(when)} остановился на:</span> ${escapeHtml(text)}`
-        + `<br><span style="font-size:12px;">${escapeHtml(stop.sphere)} · счёт дня начинается с нуля</span>`;
+      box.innerHTML = `<span class="bridge-kicker">${escapeHtml(t('bridge.kicker', { when }))}</span> ${escapeHtml(text)}`
+        + `<br><span style="font-size:12px;">${escapeHtml(t('bridge.footnote', { sphere: stop.sphere }))}</span>`;
     }
     function resumeFromBridge() {
       const stop = state.lastStop;
@@ -2776,14 +2793,14 @@
       if (!state.timer.running) toggleTimer();
       saveState();
       renderAll();
-      flashMessage('Отрезок 5 минут уже идёт');
+      flashMessage(t('toast.resumed', { n: 5 }));
     }
     function dismissBridge() {
       if (!state.lastStop) return;
       state.lastStop.resumed = true;
       saveState();
       renderBridge();
-      flashMessage('Подсказка убрана до следующей остановки');
+      flashMessage(t('toast.bridge.dismissed'));
     }
     // --- LOGS & DIARY ---
     function addLogEntry(kind, text, pts, type, spentMs, options) {
@@ -3265,11 +3282,11 @@ ${rawText}` }] }]
       const nextEl = document.getElementById('levelNext');
       const barEl = document.getElementById('levelBar');
       const badge = document.getElementById('levelBadge');
-      if (nameEl) nameEl.textContent = `Ур. ${info.level}`;
-      if (nextEl) nextEl.textContent = `${info.xp}/${info.next}`;
+      if (nameEl) nameEl.textContent = t('header.level.name', { n: info.level });
+      if (nextEl) nextEl.textContent = t('header.level.next', { xp: info.xp, next: info.next });
       if (barEl && barEl.style) barEl.style.width = `${Math.round((info.into / XP_PER_LEVEL) * 100)}%`;
       if (badge) {
-        badge.title = `Сквозной уровень ${info.level}: ${info.xp} очков за всё время, до следующего — ${info.next - info.xp}`;
+        badge.title = t('header.level.detail', { n: info.level, xp: info.xp, left: info.next - info.xp });
         // Пульс один раз и только при росте: на перерисовках ничего не мигает
         if (lastLevelShown && info.level > lastLevelShown && badge.classList) {
           badge.classList.add('level-up');
@@ -3347,15 +3364,15 @@ ${rawText}` }] }]
       });
       const sp = currentSphere();
       const pts = modePoints[state.mode];
-      document.getElementById('sphereBadgeText').textContent = `${sp.name} (сменить)`;
+      document.getElementById('sphereBadgeText').textContent = t('focus.sphere.switch', { name: sp.name });
       document.getElementById('activeTaskTitle').textContent = sp.tasks[state.mode];
       document.getElementById('activeTaskNote').textContent = sp.notes[state.mode];
       document.getElementById('completeTaskBtn').textContent = remainingPointsToday() === 0
-        ? 'Выполнено (день закрыт — без очков)'
-        : `Выполнено (+${pts} в зачет)`;
+        ? t('focus.complete.capped')
+        : t('focus.complete', { n: pts });
       const stepsRow = document.getElementById('firstStepRow');
       if (stepsRow) {
-        stepsRow.innerHTML = '<span class="steps-label">Первый шаг:</span>' +
+        stepsRow.innerHTML = `<span class="steps-label">${escapeHtml(t('focus.steps.label'))}</span>` +
           (sp.steps || []).map((step, i) => `<button class="pill-btn${state.firstStep === step ? ' active' : ''}" onclick="pickFirstStep(${i})" aria-pressed="${state.firstStep === step}">${escapeHtml(step)}</button>`).join('');
       }
     }
@@ -3592,6 +3609,16 @@ ${rawText}` }] }]
           : 'Бэкап ещё не скачивался. Данные браузера можно потерять вместе с профилем.';
       }
 
+      const langRow = document.getElementById('langRow');
+      if (langRow) {
+        const active = currentLang();
+        langRow.innerHTML = LANGS.map(key => {
+          const on = active === key;
+          return `<button class="pill-btn${on ? ' active' : ''}" aria-pressed="${on}" lang="${key}"`
+            + ` onclick="setLanguage('${key}')">${escapeHtml(LANG_NAMES[key])}</button>`;
+        }).join('');
+      }
+
       const skinRow = document.getElementById('skinRow');
       if (skinRow) {
         const current = normalizeSkin(state.skin);
@@ -3715,10 +3742,9 @@ ${rawText}` }] }]
       return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999).getTime();
     }
     function heatTitle(date, stat) {
-      const day = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-      if (!stat.count) return `${day}: пусто`;
-      const words = stat.count === 1 ? 'запись' : (stat.count < 5 ? 'записи' : 'записей');
-      return `${day}: ${stat.pts} очк. · ${stat.count} ${words}`;
+      const day = date.toLocaleDateString(locale(), { day: 'numeric', month: 'long' });
+      if (!stat.count) return t('heat.empty', { day });
+      return t('heat.filled', { day, pts: stat.pts, count: t('word.entry', { n: stat.count }) });
     }
     function renderProgress() {
       const host = document.getElementById('heatmap');
@@ -3750,11 +3776,15 @@ ${rawText}` }] }]
       const deltaBox = document.getElementById('progressDelta');
       if (deltaBox) {
         if (prevPts === null) {
-          deltaBox.textContent = nowPts ? `${nowPts} из ${state.goal} на этой неделе` : 'Первая неделя с данными';
+          deltaBox.textContent = nowPts
+            ? t('progress.delta.only', { now: nowPts, goal: state.goal })
+            : t('progress.delta.first');
         } else {
           const diff = nowPts - prevPts;
-          const tail = diff > 0 ? ` (+${diff})` : diff < 0 ? ` (−${Math.abs(diff)})` : ' (столько же)';
-          deltaBox.textContent = `Сейчас ${nowPts} из ${state.goal}. На прошлой неделе было ${prevPts}${tail}`;
+          const tail = diff > 0
+            ? t('progress.delta.up', { d: diff })
+            : diff < 0 ? t('progress.delta.down', { d: Math.abs(diff) }) : t('progress.delta.same');
+          deltaBox.textContent = t('progress.delta.compare', { now: nowPts, goal: state.goal, prev: prevPts, tail });
         }
       }
 
@@ -3764,9 +3794,9 @@ ${rawText}` }] }]
         allWeeks.push({ points: nowPts, goal: Number(state.goal) || 1 });
         const best = allWeeks.reduce((acc, w) => Math.max(acc, Number(w.points) || 0), 0);
         if (!activeDays && !best) {
-          statsBox.textContent = 'Пока пусто: первый зелёный день появится здесь после первой записи.';
+          statsBox.textContent = t('progress.stats.empty');
         } else {
-          statsBox.textContent = `Дней с записями за ${HEAT_WEEKS} недель: ${activeDays} · Лучшая неделя: ${best} очк.`;
+          statsBox.textContent = t('progress.stats', { weeks: HEAT_WEEKS, days: activeDays, best });
         }
       }
     }
@@ -3801,15 +3831,15 @@ ${rawText}` }] }]
       const text = document.getElementById('backupNudgeText');
       if (text) {
         text.textContent = age === null
-          ? 'Бэкап ещё ни разу не скачивался. Один клик — и копия на диске.'
-          : `Последний бэкап — ${age} ${pluralDays(age)} назад. Один клик — и копия на диске.`;
+          ? t('nudge.text.none')
+          : t('nudge.text.age', { n: age });
       }
     }
     function snoozeBackupNudge() {
       state.nudgeSnoozeUntil = Date.now() + 7 * DAY_MS;
       saveState();
       renderBackupNudge();
-      flashMessage('Напомню через неделю');
+      flashMessage(t('toast.nudge.snoozed'));
     }
     function renderAll() {
       renderHeaderQuota();
@@ -4040,6 +4070,240 @@ ${rawText}` }] }]
       flashMessage('Готово. Первый шаг — 2-5 минут, дальше видно будет');
     }
 
+    // --- ЯЗЫК ИНТЕРФЕЙСА ---
+    // Язык живёт отдельным ключом, как скин: он нужен раньше, чем откроется
+    // зашифрованный дневник. Словарь — один на файл, по строке на все языки:
+    // [ru, uk, en, de], чтобы новая строка не могла появиться только в одном.
+    const LANG_STORAGE = 'flowCoreLangV1';
+    const LANGS = ['ru', 'uk', 'en', 'de'];
+    const LANG_NAMES = { ru: 'Русский', uk: 'Українська', en: 'English', de: 'Deutsch' };
+    const LANG_LOCALES = { ru: 'ru-RU', uk: 'uk-UA', en: 'en-GB', de: 'de-DE' };
+    const LANG_DEFAULT = 'en';
+    const STRINGS = {
+      'app.title': ['FlowCore | Дневник фокуса и восстановления', 'FlowCore | Щоденник фокусу та відновлення', 'FlowCore | A focus and recovery diary', 'FlowCore | Ein Tagebuch für Fokus und Erholung'],
+      'app.description': ['Дневник фокуса и восстановления: короткие отрезки работы, сигналы тела и недельный зачёт без давления.', 'Щоденник фокусу та відновлення: короткі відрізки роботи, сигнали тіла й тижневий залік без тиску.', 'A focus and recovery diary: short stretches of work, body signals and a weekly score without pressure.', 'Ein Tagebuch für Fokus und Erholung: kurze Arbeitsabschnitte, Körpersignale und ein Wochenziel ohne Druck.'],
+      'nav.focus': ['Фокус', 'Фокус', 'Focus', 'Fokus'],
+      'nav.diary': ['Дневник', 'Щоденник', 'Diary', 'Tagebuch'],
+      'nav.breathe': ['Дыхание', 'Дихання', 'Breathing', 'Atmen'],
+      'nav.system': ['Система', 'Система', 'System', 'System'],
+      'header.quota.title': ['Недельный аккумулятор: очки живут до конца недели, пропуски дней ничего не сбрасывают', 'Тижневий акумулятор: очки живуть до кінця тижня, пропущені дні нічого не скидають', 'Weekly battery: points live until the end of the week, missed days reset nothing', 'Wochenpuffer: Punkte gelten bis Wochenende, verpasste Tage setzen nichts zurück'],
+      'header.level.title': ['Сквозной уровень: все очки за всё время. Недельный сброс его не обнуляет.', 'Наскрізний рівень: усі очки за весь час. Тижневе скидання його не обнуляє.', 'Lifetime level: every point you have ever earned. The weekly reset does not touch it.', 'Dauerhaftes Level: alle Punkte aller Zeiten. Der Wochenwechsel setzt es nicht zurück.'],
+      'header.level.name': ['Ур. {n}', 'Рів. {n}', 'Lv. {n}', 'Lv. {n}'],
+      'header.level.next': ['{xp}/{next}', '{xp}/{next}', '{xp}/{next}', '{xp}/{next}'],
+
+      // Главный экран
+      'focus.title': ['Точка старта', 'Точка старту', 'Starting point', 'Startpunkt'],
+      'focus.hint': ['Выбери текущее состояние ниже. Задача и таймер подстроятся без давления.', 'Вибери поточний стан нижче. Задача й таймер підлаштуються без тиску.', 'Pick the state you are in. The task and the timer adjust without pressure.', 'Wähle deinen jetzigen Zustand. Aufgabe und Timer passen sich ohne Druck an.'],
+      'focus.sphere.switch': ['{name} (сменить)', '{name} (змінити)', '{name} (switch)', '{name} (wechseln)'],
+      'focus.mode.micro': ['Совсем мало сил (+1)', 'Зовсім мало сил (+1)', 'Barely any energy (+1)', 'Kaum Energie (+1)'],
+      'focus.mode.draft': ['Немного сил (+2)', 'Трохи сил (+2)', 'Some energy (+2)', 'Etwas Energie (+2)'],
+      'focus.mode.wave': ['Полные силы (+3)', 'Повні сили (+3)', 'Full energy (+3)', 'Volle Energie (+3)'],
+      'focus.timer.start': ['Старт', 'Старт', 'Start', 'Start'],
+      'focus.timer.pause': ['Пауза', 'Пауза', 'Pause', 'Pause'],
+      'focus.timer.resume': ['Продолжить', 'Продовжити', 'Resume', 'Weiter'],
+      'focus.timer.go': ['Идёт отсчёт', 'Іде відлік', 'Running', 'Läuft'],
+      'focus.timer.aria': ['Таймер фокуса: старт или пауза', 'Таймер фокусу: старт або пауза', 'Focus timer: start or pause', 'Fokus-Timer: Start oder Pause'],
+      'focus.complete': ['Выполнено (+{n} в зачет)', 'Виконано (+{n} у залік)', 'Done (+{n} to the week)', 'Erledigt (+{n} auf die Woche)'],
+      'focus.complete.capped': ['Выполнено (день закрыт — без очков)', 'Виконано (день закрито — без очок)', 'Done (day is capped — no points)', 'Erledigt (Tag voll — keine Punkte)'],
+      'focus.reset': ['Сбросить таймер', 'Скинути таймер', 'Reset timer', 'Timer zurücksetzen'],
+      'focus.minutes': ['{n} мин', '{n} хв', '{n} min', '{n} Min'],
+      'focus.custom.placeholder': ['свои', 'свої', 'own', 'eigene'],
+      'focus.custom.aria': ['Свои минуты таймера', 'Свої хвилини таймера', 'Your own timer length', 'Eigene Minuten'],
+      'focus.custom.ok': ['ОК', 'ОК', 'OK', 'OK'],
+      'focus.timer.aria.group': ['Длительность таймера', 'Тривалість таймера', 'Timer length', 'Timer-Dauer'],
+      'focus.steps.label': ['Первый шаг:', 'Перший крок:', 'First step:', 'Erster Schritt:'],
+      'focus.steps.aria': ['Первый шаг', 'Перший крок', 'First step', 'Erster Schritt'],
+
+      // Своими словами
+      'words.title': ['Своими словами', 'Своїми словами', 'In your own words', 'In deinen Worten'],
+      'words.hint': ['Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.', 'Коли шаблони не підходять: запиши стан коротко або натисни на готові теги.', 'When the templates do not fit: write the state in a few words or tap a ready tag.', 'Wenn die Vorlagen nicht passen: notiere den Zustand kurz oder tippe auf einen fertigen Tag.'],
+      'words.tag.minutes': ['+ 5-10 мин', '+ 5-10 хв', '+ 5-10 min', '+ 5-10 Min'],
+      'words.tag.chest': ['+ слабый ком в груди', '+ слабкий клубок у грудях', '+ slight tightness in the chest', '+ leichter Druck in der Brust'],
+      'words.tag.fog': ['+ туман в голове', '+ туман у голові', '+ fog in the head', '+ Nebel im Kopf'],
+      'words.tag.breath': ['+ поверхн. дыхание', '+ поверхн. дихання', '+ shallow breathing', '+ flache Atmung'],
+      'words.tag.stopped': ['+ вовремя остановился', '+ вчасно зупинився', '+ stopped in time', '+ rechtzeitig gestoppt'],
+      'words.placeholder': ['Например: поработал 5-10 мин, слабый ком в груди, решил остановиться...', 'Наприклад: попрацював 5-10 хв, слабкий клубок у грудях, вирішив зупинитися...', 'For example: worked 5-10 min, slight tightness in the chest, decided to stop...', 'Zum Beispiel: 5-10 Min gearbeitet, leichter Druck in der Brust, beschlossen aufzuhören...'],
+      'words.stop': ['Вовремя остановился (+2)', 'Вчасно зупинився (+2)', 'Stopped in time (+2)', 'Rechtzeitig gestoppt (+2)'],
+      'words.signal': ['Записать симптом (+1)', 'Записати симптом (+1)', 'Note a symptom (+1)', 'Symptom notieren (+1)'],
+
+      // Прогресс и напоминание о бэкапе
+      'progress.title': ['Прогресс', 'Прогрес', 'Progress', 'Fortschritt'],
+      'progress.tag': ['12 недель', '12 тижнів', '12 weeks', '12 Wochen'],
+      'progress.legend.less': ['меньше', 'менше', 'less', 'weniger'],
+      'progress.legend.more': ['больше', 'більше', 'more', 'mehr'],
+      'progress.aria': ['Активность по дням за последние 12 недель', 'Активність за днями за останні 12 тижнів', 'Daily activity over the last 12 weeks', 'Tagesaktivität der letzten 12 Wochen'],
+      'nudge.title': ['Копия дневника давно не скачивалась', 'Копія щоденника давно не завантажувалася', 'The diary has not been backed up in a while', 'Das Tagebuch wurde lange nicht gesichert'],
+      'nudge.download': ['Скачать бэкап', 'Завантажити резервну копію', 'Download backup', 'Backup laden'],
+      'nudge.later': ['Позже', 'Пізніше', 'Later', 'Später'],
+      'focus.sphere.title': ['Переключить сферу', 'Перемкнути сферу', 'Switch sphere', 'Bereich wechseln'],
+      'focus.preset5': ['5 мин', '5 хв', '5 min', '5 Min'],
+      'focus.preset15': ['15 мин', '15 хв', '15 min', '15 Min'],
+      'focus.preset30': ['30 мин', '30 хв', '30 min', '30 Min'],
+      // Так запись попадёт в дневник: это текст, который человек потом читает
+      'words.stop.kind': ['Вовремя остановился', 'Вчасно зупинився', 'Stopped in time', 'Rechtzeitig gestoppt'],
+      'words.signal.kind': ['Запись состояния', 'Запис стану', 'State note', 'Zustandsnotiz'],
+      'words.tag.minutes.text': ['поучился 5-10 мин', 'позанимався 5-10 хв', 'studied for 5-10 min', '5-10 Min gelernt'],
+      'words.tag.chest.text': ['слабый ком в груди', 'слабкий клубок у грудях', 'slight tightness in the chest', 'leichter Druck in der Brust'],
+      'words.tag.fog.text': ['туман в голове', 'туман у голові', 'fog in the head', 'Nebel im Kopf'],
+      'words.tag.breath.text': ['поверхностное дыхание', 'поверхневе дихання', 'shallow breathing', 'flache Atmung'],
+      'words.tag.stopped.text': ['вовремя остановился', 'вчасно зупинився', 'stopped in time', 'rechtzeitig gestoppt'],
+      'lang.label': ['Язык интерфейса', 'Мова інтерфейсу', 'Interface language', 'Sprache'],
+      'lang.hint': ['Тексты, которые ты уже написал сам, остаются как есть: переводится только интерфейс.', 'Тексти, які ти вже написав сам, лишаються як є: перекладається лише інтерфейс.', 'Text you have written yourself stays as it is: only the interface is translated.', 'Selbst geschriebene Texte bleiben, wie sie sind: übersetzt wird nur die Oberfläche.'],
+      'lang.switched': ['Язык: {name}', 'Мова: {name}', 'Language: {name}', 'Sprache: {name}'],
+      'common.error': ['Что-то пошло не так', 'Щось пішло не так', 'Something went wrong', 'Etwas ist schiefgelaufen'],
+
+      // Таймер, день и мост
+      'toast.gate': ['Строгий режим: до зачета ещё {n} мин таймера', 'Суворий режим: до заліку ще {n} хв таймера', 'Strict mode: {n} more minutes on the timer before this counts', 'Strenger Modus: noch {n} Minuten Timer, bis es zählt'],
+      'log.step': [' — первый шаг: {step}', ' — перший крок: {step}', ' — first step: {step}', ' — erster Schritt: {step}'],
+      'log.segment': [' (отрезок {n} мин)', ' (відрізок {n} хв)', ' ({n} min stretch)', ' ({n} Min Abschnitt)'],
+      'toast.awarded': ['+{n} в зачет недели', '+{n} у залік тижня', '+{n} to the week', '+{n} auf die Woche'],
+      'toast.capped': ['День закрыт ({cap} очков). Отрезок записан без очков', 'День закрито ({cap} очок). Відрізок записано без очок', 'Day is capped ({cap} points). The stretch is logged without points', 'Tag ist voll ({cap} Punkte). Der Abschnitt wurde ohne Punkte notiert'],
+      'timer.hint.running': ['Идет отсчет', 'Іде відлік', 'Running', 'Läuft'],
+      'timer.hint.done': ['Готово!', 'Готово!', 'Done!', 'Fertig!'],
+      'continue.text': ['Отрезок {n} мин отработан. Задача не закрыта — это шаг, а не финиш.', 'Відрізок {n} хв відпрацьовано. Задача не закрита — це крок, а не фініш.', 'A {n}-minute stretch is done. The task stays open: this is a step, not the finish.', 'Ein Abschnitt von {n} Minuten ist geschafft. Die Aufgabe bleibt offen — ein Schritt, kein Ziel.'],
+      'word.mark': [
+        { one: '{n} отметка', few: '{n} отметки', many: '{n} отметок', other: '{n} отметки' },
+        { one: '{n} відмітка', few: '{n} відмітки', many: '{n} відміток', other: '{n} відмітки' },
+        { one: '{n} note', other: '{n} notes' },
+        { one: '{n} Notiz', other: '{n} Notizen' }
+      ],
+      'word.entry': [
+        { one: '{n} запись', few: '{n} записи', many: '{n} записей', other: '{n} записи' },
+        { one: '{n} запис', few: '{n} записи', many: '{n} записів', other: '{n} записи' },
+        { one: '{n} entry', other: '{n} entries' },
+        { one: '{n} Eintrag', other: '{n} Einträge' }
+      ],
+      'today.empty': ['Сегодня пока пусто — таймер начнёт первый отрезок.', 'Сьогодні поки порожньо — таймер почне перший відрізок.', 'Nothing today yet — the timer will start the first stretch.', 'Heute noch nichts — der Timer startet den ersten Abschnitt.'],
+      'today.head': ['Сегодня: {count}{tail}', 'Сьогодні: {count}{tail}', 'Today: {count}{tail}', 'Heute: {count}{tail}'],
+      'today.minutes': [' · {n} мин в таймере', ' · {n} хв у таймері', ' · {n} min on the timer', ' · {n} Min im Timer'],
+      'today.closed': ['{head} · {pts} очк. — день закрыт, записи идут без очков', '{head} · {pts} очк. — день закрито, записи йдуть без очок', '{head} · {pts} pts — day capped, entries no longer count', '{head} · {pts} Pkt. — Tag voll, Einträge zählen nicht mehr'],
+      'today.open': ['{head} · {pts} из {cap} очк.', '{head} · {pts} з {cap} очк.', '{head} · {pts} of {cap} pts', '{head} · {pts} von {cap} Pkt.'],
+      'rest.line': [
+        { one: '⚡ Отдых: {n} заряд — +1 к следующему шагу', few: '⚡ Отдых: {n} заряда — +1 к следующим шагам', many: '⚡ Отдых: {n} зарядов — +1 к следующим шагам', other: '⚡ Отдых: {n} заряда — +1 к следующим шагам' },
+        { one: '⚡ Відпочинок: {n} заряд — +1 до наступного кроку', few: '⚡ Відпочинок: {n} заряди — +1 до наступних кроків', many: '⚡ Відпочинок: {n} зарядів — +1 до наступних кроків', other: '⚡ Відпочинок: {n} заряди — +1 до наступних кроків' },
+        { one: '⚡ Rest: {n} charge — +1 on the next step', other: '⚡ Rest: {n} charges — +1 on the next steps' },
+        { one: '⚡ Erholung: {n} Ladung — +1 für den nächsten Schritt', other: '⚡ Erholung: {n} Ladungen — +1 für die nächsten Schritte' }
+      ],
+      'toast.minutes.invalid': ['Введи минуты числом, например 25', 'Введи хвилини числом, наприклад 25', 'Enter the minutes as a number, for example 25', 'Gib die Minuten als Zahl ein, zum Beispiel 25'],
+      'toast.timer.set': ['Таймер: {n} мин', 'Таймер: {n} хв', 'Timer: {n} min', 'Timer: {n} Min'],
+      'toast.more': ['Ещё {n} мин. Отрезок в копилку, задача не закрыта.', 'Ще {n} хв. Відрізок у скарбничку, задача не закрита.', '{n} more minutes. Another stretch banked, the task stays open.', 'Noch {n} Minuten. Ein weiterer Abschnitt zählt, die Aufgabe bleibt offen.'],
+      'notify.timer.title': ['Таймер завершён', 'Таймер завершено', 'Timer finished', 'Timer abgelaufen'],
+      'notify.timer.body': ['Отрезок закончен: можно встать из-за стола.', 'Відрізок закінчено: можна встати з-за столу.', 'The stretch is over: you can step away from the desk.', 'Der Abschnitt ist vorbei: du darfst vom Schreibtisch aufstehen.'],
+      'toast.timer.done': ['Таймер завершен 🔔', 'Таймер завершено 🔔', 'Timer finished 🔔', 'Timer abgelaufen 🔔'],
+      'bridge.when': [
+        { one: 'Вчера', few: '{n} дня назад', many: '{n} дней назад', other: '{n} дня назад' },
+        { one: 'Вчора', few: '{n} дні тому', many: '{n} днів тому', other: '{n} дня тому' },
+        { one: 'Yesterday', other: '{n} days ago' },
+        { one: 'Gestern', other: 'vor {n} Tagen' }
+      ],
+      'bridge.kicker': ['{when} остановился на:', '{when} зупинився на:', '{when} you stopped at:', '{when} gestoppt bei:'],
+      'bridge.footnote': ['{sphere} · счёт дня начинается с нуля', '{sphere} · рахунок дня починається з нуля', '{sphere} · the day’s count starts from zero', '{sphere} · der Tageszähler beginnt bei null'],
+      'toast.resumed': ['Отрезок 5 минут уже идёт', 'Відрізок 5 хвилин уже йде', 'A 5-minute stretch is running', 'Ein Abschnitt von 5 Minuten läuft'],
+      'toast.bridge.dismissed': ['Подсказка убрана до следующей остановки', 'Підказку прибрано до наступної зупинки', 'Hint hidden until the next stop', 'Hinweis bis zum nächsten Stopp ausgeblendet'],
+      'header.level.detail': ['Сквозной уровень {n}: {xp} очков за всё время, до следующего — {left}', 'Наскрізний рівень {n}: {xp} очок за весь час, до наступного — {left}', 'Lifetime level {n}: {xp} points so far, {left} to the next one', 'Dauerhaftes Level {n}: {xp} Punkte insgesamt, noch {left} bis zum nächsten'],
+
+      // Прогресс
+      'progress.delta.first': ['Первая неделя с данными', 'Перший тиждень із даними', 'First week with data', 'Erste Woche mit Daten'],
+      'progress.delta.only': ['{now} из {goal} на этой неделе', '{now} з {goal} цього тижня', '{now} of {goal} this week', '{now} von {goal} diese Woche'],
+      'progress.delta.compare': ['Сейчас {now} из {goal}. На прошлой неделе было {prev}{tail}', 'Зараз {now} з {goal}. Минулого тижня було {prev}{tail}', 'Now {now} of {goal}. Last week it was {prev}{tail}', 'Jetzt {now} von {goal}. Letzte Woche waren es {prev}{tail}'],
+      'progress.delta.up': [' (+{d})', ' (+{d})', ' (+{d})', ' (+{d})'],
+      'progress.delta.down': [' (−{d})', ' (−{d})', ' (−{d})', ' (−{d})'],
+      'progress.delta.same': [' (столько же)', ' (стільки ж)', ' (the same)', ' (gleich viel)'],
+      'progress.stats.empty': ['Пока пусто: первый зелёный день появится здесь после первой записи.', 'Поки порожньо: перший зелений день з’явиться тут після першого запису.', 'Nothing yet: the first green day appears here after your first entry.', 'Noch leer: der erste grüne Tag erscheint hier nach dem ersten Eintrag.'],
+      'progress.stats': ['Дней с записями за {weeks} недель: {days} · Лучшая неделя: {best} очк.', 'Днів із записами за {weeks} тижнів: {days} · Найкращий тиждень: {best} очк.', 'Days with entries over {weeks} weeks: {days} · Best week: {best} pts', 'Tage mit Einträgen in {weeks} Wochen: {days} · Beste Woche: {best} Pkt.'],
+      'heat.empty': ['{day}: пусто', '{day}: порожньо', '{day}: empty', '{day}: leer'],
+      'heat.filled': ['{day}: {pts} очк. · {count}', '{day}: {pts} очк. · {count}', '{day}: {pts} pts · {count}', '{day}: {pts} Pkt. · {count}'],
+
+      // Напоминание о бэкапе
+      'nudge.text.none': ['Бэкап ещё ни разу не скачивался. Один клик — и копия на диске.', 'Резервну копію ще жодного разу не завантажували. Один клік — і копія на диску.', 'The diary has never been backed up. One click and a copy is on disk.', 'Es wurde noch nie ein Backup geladen. Ein Klick und die Kopie liegt auf der Platte.'],
+      'nudge.text.age': [
+        { one: 'Последний бэкап — {n} день назад. Один клик — и копия на диске.', few: 'Последний бэкап — {n} дня назад. Один клик — и копия на диске.', many: 'Последний бэкап — {n} дней назад. Один клик — и копия на диске.', other: 'Последний бэкап — {n} дня назад. Один клик — и копия на диске.' },
+        { one: 'Остання копія — {n} день тому. Один клік — і копія на диску.', few: 'Остання копія — {n} дні тому. Один клік — і копія на диску.', many: 'Остання копія — {n} днів тому. Один клік — і копія на диску.', other: 'Остання копія — {n} дня тому. Один клік — і копія на диску.' },
+        { one: 'Last backup was {n} day ago. One click and a copy is on disk.', other: 'Last backup was {n} days ago. One click and a copy is on disk.' },
+        { one: 'Letztes Backup vor {n} Tag. Ein Klick und die Kopie liegt auf der Platte.', other: 'Letztes Backup vor {n} Tagen. Ein Klick und die Kopie liegt auf der Platte.' }
+      ],
+      'toast.nudge.snoozed': ['Напомню через неделю', 'Нагадаю за тиждень', 'I will remind you in a week', 'Ich erinnere in einer Woche'],
+    };
+    let uiLang = detectLang();
+
+    function detectLang() {
+      try {
+        const saved = localStorage.getItem(LANG_STORAGE);
+        if (saved && LANGS.indexOf(saved) !== -1) return saved;
+      } catch (e) {}
+      let list = [];
+      try {
+        list = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ''];
+      } catch (e) {}
+      for (const tag of list) {
+        const base = String(tag || '').slice(0, 2).toLowerCase();
+        if (LANGS.indexOf(base) !== -1) return base;
+      }
+      return LANG_DEFAULT;
+    }
+    function currentLang() {
+      return LANGS.indexOf(uiLang) === -1 ? LANG_DEFAULT : uiLang;
+    }
+    function locale() {
+      return LANG_LOCALES[currentLang()];
+    }
+    function fillVars(text, vars) {
+      if (!vars) return text;
+      return String(text).replace(/\{([a-zA-Z0-9_]+)\}/g, (all, name) => (
+        Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : all
+      ));
+    }
+    // Склонение берём у платформы: у русского и украинского три формы,
+    // у английского и немецкого две, и вручную это всегда расходится.
+    function pluralCategory(n) {
+      try {
+        return new Intl.PluralRules(locale()).select(Math.abs(Number(n) || 0));
+      } catch (e) {
+        return 'other';
+      }
+    }
+    function t(key, vars) {
+      const row = STRINGS[key];
+      if (!row) return key;
+      const index = LANGS.indexOf(currentLang());
+      const value = row[index] !== undefined ? row[index] : row[0];
+      if (typeof value === 'string') return fillVars(value, vars);
+      const category = pluralCategory(vars && vars.n);
+      const form = value[category] || value.other || value.many || value.one || '';
+      return fillVars(form, vars);
+    }
+    // Там, где в функции уже есть локальная `t` (таймер), глобальная t()
+    // затенена — эти места зовут translate().
+    function translate(key, vars) {
+      return t(key, vars);
+    }
+    function applyStaticLanguage() {
+      document.documentElement.setAttribute('lang', currentLang());
+      document.title = t('app.title');
+      const desc = document.querySelector('meta[name="description"]');
+      if (desc) desc.setAttribute('content', t('app.description'));
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        el.setAttribute('title', t(el.getAttribute('data-i18n-title')));
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+      });
+    }
+    function setLanguage(lang) {
+      if (LANGS.indexOf(lang) === -1 || lang === currentLang()) return;
+      uiLang = lang;
+      try { localStorage.setItem(LANG_STORAGE, lang); } catch (e) {}
+      applyStaticLanguage();
+      renderAll();
+      flashMessage(t('lang.switched', { name: LANG_NAMES[lang] }));
+    }
+
     // --- BOOT ---
     function startApp() {
       if (!state) return;
@@ -4064,6 +4328,8 @@ ${rawText}` }] }]
     function bootFromStored() {
       // Палитра не ждёт разблокировки: экран пароля тоже в своём скине
       applySkin(storedSkin());
+      // Язык ставится раньше первого рендера — иначе видна русская вспышка
+      applyStaticLanguage();
       const raw = readStoredRaw();
       if (raw && raw.enc) {
         showLockScreen();
