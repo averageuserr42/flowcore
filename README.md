@@ -27,7 +27,7 @@ If you are in a hurry:
 
 **Two cards, one switch.** "Starting point" and "In your own words" trade places through a switch above them: the chosen card takes the whole width, the other waits one tap away, and the choice is remembered. On a phone that is one screen instead of a scroll.
 
-**On a phone, two summary buttons.** The row of timer lengths and the three first-step chips fold behind "5 min ▾" and "First step ▾": they open in place, close after a choice, and the summary keeps the current value. Every target grows to 40 px, and the primary action to 44, so nothing has to be aimed at on a bad day.
+**On a phone, two summary buttons.** The row of timer lengths and the three first-step chips fold behind "5 min ▾" and "First step ▾": they open in place, close after a choice, and the summary keeps the current value. Every target grows to 40 px, and the primary action to 44, so nothing has to be aimed at on a bad day. The four sections themselves move into a 54 px bar along the bottom, the current one marked by a line; the header stops sticking and a new section opens from the top.
 
 **A bridge after stopping.** If you stopped yesterday, a line at the top says where, with one button that starts five minutes from that exact place. Coming back does not require remembering where you were.
 
@@ -118,7 +118,7 @@ On Windows, `FlowCore.cmd` does the same from a double click.
 node tests/run.js
 ```
 
-There are **433 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the card switch, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
+There are **446 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the card switch, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
 The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
