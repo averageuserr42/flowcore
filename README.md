@@ -8,7 +8,7 @@
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
-Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 329 KB HTML file: no build, no server, no dependencies.
+Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 333 KB HTML file: no build, no server, no dependencies.
 
 ## What it does
 
@@ -23,7 +23,7 @@ If you are in a hurry:
 
 **A first step instead of "go work".** Each task comes with three concrete physical actions: open the editor, read the last paragraph, write down one question. Five minutes count as work even if you stop right there.
 
-**A note on the task itself.** The pencil next to the task opens a line right there, with eight emoji that insert into the text. The note lands in the diary under the area's name and gives no points: it is memory, not a finished step.
+**A note on the task itself.** The pencil next to the task opens a line right there, with eight emoji that insert into the text. The note lands in the diary under the area's name and gives no points: it is memory, not a finished step. The row of emoji is optional and switches off in System; the quick note in the diary offers the same eight signs.
 
 **The second card steps aside.** "In your own words" collapses into a strip and hands its width to the timer, and the choice is remembered. It starts expanded, because hiding a way to log is not a decision to make for someone else.
 
@@ -33,7 +33,7 @@ If you are in a hurry:
 
 **A soft cap of 8 points a day.** Past it, notes keep going in and points stop growing, so the length of work stops being the only reward. On a day that is going well the cap can be lifted until midnight with one click on the today line; the next day it is back on its own. An optional strict mode gives points only for the time the timer actually ran.
 
-**A level for all time.** 10 experience points make a level, counted from every point you ever earned, so a new week does not burn it. Levels unlock skins: emerald (1), amber (3), prism (5), cyber (6), aurora (10). Each one changes the whole palette, the background pulse included; prism keeps the panel neutral and gives each card a thin static line of all four palettes.
+**A level for all time.** 10 experience points make a level, counted from every point you ever earned, so a new week does not burn it. Levels unlock skins: emerald (1), amber (3), prism (5), cyber (6), aurora (10). Each one changes the whole palette, the background pulse included; prism turns the panel blue-violet and gives each card a thin static line of all four palettes.
 
 **Rest earns points.** A calm yesterday (6 points or fewer) or an early stop charges the rest bonus, up to 3. A charge adds +1 to your next step inside the daily cap, which closes the day sooner instead of pushing you to sit longer.
 
@@ -116,7 +116,7 @@ On Windows, `FlowCore.cmd` does the same from a double click.
 node tests/run.js
 ```
 
-There are **403 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
+There are **415 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
 The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
@@ -125,7 +125,7 @@ The same checks run on GitHub Actions for every push and pull request, see `.git
 - Four interface languages: Russian, Ukrainian, English, German. Another language is one more column in the dictionary, but no other translation exists yet.
 - Data lives in one browser. Clearing the profile or the site data removes it, so download a JSON backup every week or so.
 - There is no sync between devices, on purpose, so that no server and no account appear.
-- Everything is one file. Edits stay convenient, but the file is already large: about 329 KB, roughly 96 KB over the wire with gzip.
+- Everything is one file. Edits stay convenient, but the file is already large: about 333 KB, roughly 98 KB over the wire with gzip.
 
 ## License
 
