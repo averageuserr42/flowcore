@@ -595,6 +595,45 @@
     .link-btn:hover {
       color: var(--text-white);
     }
+    /* Заметка к задаче: раскрывается по «✎» на самой задаче, чтобы писать
+       там, где идёт работа, а не переключаться на соседнюю карточку. */
+    .task-note-row {
+      margin: 0 0 14px 0;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px dashed var(--green-border);
+      background: rgba(var(--surface-deep-rgb), 0.55);
+    }
+    .task-note-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .words-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    /* Шапка стала третьим ребёнком карточки: без этого правила
+       space-between раздвинул бы середину и низ на пустые промежутки. */
+    .words-card {
+      justify-content: flex-start;
+    }
+    .words-card > div:last-child {
+      margin-top: auto;
+    }
+    /* Свёрнутая карточка остаётся одной полосой: ширину забирает таймер */
+    .words-card.collapsed {
+      padding: 14px 20px;
+    }
+    .words-card.collapsed > div:not(.words-head) {
+      display: none;
+    }
+    .main-grid.words-collapsed {
+      grid-template-columns: 1fr;
+    }
     /* Left Card: Circular Timer & Active Task (Matches Circular Glasses Icon Layout) */
     .focus-hero {
       display: flex;
@@ -1351,12 +1390,31 @@
               <div id="timerActionHint" class="timer-sub">Старт</div>
             </div>
             <div style="flex: 1;">
-              <div id="activeTaskTitle" style="font-size: 16px; font-weight: 600; color: var(--text-white); margin-bottom: 6px;">
-                Подучиться 5 минут или поковырять черновик кода без оценки
+              <div style="display: flex; align-items: flex-start; gap: 8px;">
+                <div id="activeTaskTitle" style="font-size: 16px; font-weight: 600; color: var(--text-white); margin-bottom: 6px; flex: 1;">
+                  Подучиться 5 минут или поковырять черновик кода без оценки
+                </div>
+                <button id="taskNoteBtn" class="pill-btn" style="padding: 2px 9px; font-size: 13px; flex: none;" onclick="toggleTaskNote()" data-i18n-title="focus.note.title" data-i18n-aria="focus.note.title" aria-label="Заметка к задаче" aria-expanded="false">✎</button>
               </div>
               <div id="activeTaskNote" style="font-size: 13.5px; color: var(--text-muted);">
                 Правило 5 минут: если не пошло после сигнала, можно спокойно закрыть задачу.
               </div>
+            </div>
+          </div>
+          <!-- ЗАМЕТКА К ТЕКУЩЕЙ ЗАДАЧЕ: пишется на месте и ложится в дневник -->
+          <div id="taskNoteRow" class="task-note-row hidden">
+            <input
+              id="taskNoteInput"
+              type="text"
+              class="clean-input"
+              maxlength="240"
+              placeholder="Например: разобрал три вопроса теста, так и не понял, зачем этот флаг"
+              data-i18n-ph="focus.note.ph"
+              onkeydown="if(event.key === 'Enter') saveTaskNote(); if(event.key === 'Escape') closeTaskNote();"
+            />
+            <div class="task-note-actions">
+              <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="saveTaskNote()" data-i18n="focus.note.save">Записать</button>
+              <button class="pill-btn" onclick="closeTaskNote()" data-i18n="focus.note.cancel">Отмена</button>
             </div>
           </div>
           <div class="timer-controls">
@@ -1411,10 +1469,13 @@
         </div>
       </div>
       <!-- RIGHT CARD: IN YOUR OWN WORDS ("СВОИМИ СЛОВАМИ") -->
-      <div class="glow-card">
+      <div class="glow-card words-card" id="wordsCard">
+        <div class="words-head">
+          <h2 class="card-heading" style="margin-bottom: 0;" data-i18n="words.title">Своими словами</h2>
+          <button id="wordsToggle" class="pill-btn" onclick="toggleWordsCard()" data-i18n-title="words.toggle.title" data-i18n-aria="words.toggle.title" aria-expanded="true" aria-label="Свернуть карточку">▾</button>
+        </div>
         <div>
-          <h2 class="card-heading" data-i18n="words.title">Своими словами</h2>
-          <p class="card-subtext" data-i18n="words.hint">
+          <p class="card-subtext" style="margin-top: 10px;" data-i18n="words.hint">
             Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.
           </p>
           <!-- Pill Tags (Matches Windows | Linux | Git | Netzwerke pills) -->
@@ -2025,6 +2086,7 @@
         nudgeSnoozeUntil: 0,
         firstStep: '',
         capOffDay: '',
+        wordsCollapsed: false,
         lastStop: null,
         skin: storedSkin(),
         spheres: starterSpheres(),
@@ -2158,6 +2220,7 @@
         nudgeSnoozeUntil: Number(raw.nudgeSnoozeUntil) || 0,
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
         capOffDay: typeof raw.capOffDay === 'string' ? raw.capOffDay : '',
+        wordsCollapsed: raw.wordsCollapsed === true,
         lastStop: normalizeLastStop(raw.lastStop),
         skin: normalizeSkin(raw.skin || storedSkin()),
         // Всё, что уже сохранено до появления интервью, считается пройденным:
@@ -2716,6 +2779,59 @@
       renderSystem();
       renderBreathe();
       if (state.soundEnabled) playTimerSound();
+    }
+    // --- ЗАМЕТКА К ТЕКУЩЕЙ ЗАДАЧЕ ---
+    // Пишется там, где идёт работа, и ложится в дневник строкой без очков:
+    // это внешняя память, а не выполненный шаг, и награждать её нечем.
+    function toggleTaskNote() {
+      const row = document.getElementById('taskNoteRow');
+      if (!row) return;
+      const open = row.classList.contains('hidden');
+      row.classList.toggle('hidden', !open);
+      const btn = document.getElementById('taskNoteBtn');
+      if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const input = document.getElementById('taskNoteInput');
+      if (open && input && input.focus) input.focus();
+    }
+    function closeTaskNote() {
+      const row = document.getElementById('taskNoteRow');
+      if (row) row.classList.add('hidden');
+      const btn = document.getElementById('taskNoteBtn');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+    function saveTaskNote() {
+      const input = document.getElementById('taskNoteInput');
+      if (!input) return;
+      const text = String(input.value || '').trim();
+      if (!text) {
+        flashMessage(t('focus.note.empty'));
+        return;
+      }
+      addLogEntry(currentSphere().name, text.slice(0, 240), 0, 'note');
+      input.value = '';
+      closeTaskNote();
+      flashMessage(t('focus.note.saved'));
+    }
+    // --- СВЁРНУТАЯ КАРТОЧКА «СВОИМИ СЛОВАМИ» ---
+    // Свёрнутая карточка отдаёт ширину таймеру; выбор запоминается, чтобы
+    // не сворачивать её заново на каждом запуске.
+    function toggleWordsCard() {
+      if (!state) return;
+      state.wordsCollapsed = !state.wordsCollapsed;
+      saveState();
+      renderWordsCard();
+    }
+    function renderWordsCard() {
+      const collapsed = !!(state && state.wordsCollapsed);
+      const card = document.getElementById('wordsCard');
+      if (card) card.classList.toggle('collapsed', collapsed);
+      const grid = document.querySelector('.main-grid');
+      if (grid) grid.classList.toggle('words-collapsed', collapsed);
+      const btn = document.getElementById('wordsToggle');
+      if (!btn) return;
+      btn.textContent = collapsed ? '▸' : '▾';
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      btn.setAttribute('aria-label', t(collapsed ? 'words.expand' : 'words.collapse'));
     }
     function saveFreeform(kind, pts, type) {
       const input = document.getElementById('freeformInput');
@@ -3681,7 +3797,7 @@
             
             <button class="pill-btn" style="padding: 2px 8px; font-size: 11px;" onclick="appendNoteToLog(${item.id})" title="${escapeHtml(t('diary.edit.title'))}">✎</button>
             <span style="font-family: var(--font-heading); font-weight: 700; color: var(--green-title); white-space: nowrap;">
-              +${item.pts}
+              ${item.pts > 0 ? '+' + item.pts : ''}
             </span>
           </div>
         </div>
@@ -4103,6 +4219,7 @@
       renderBackupNudge();
       renderBridge();
       renderTodayLine();
+      renderWordsCard();
       renderSystem();
       renderTimer();
       renderBreathe();
@@ -4328,6 +4445,12 @@
       'focus.complete': ['Выполнено (+{n} в зачет)', 'Виконано (+{n} у залік)', 'Done (+{n} to the week)', 'Erledigt (+{n} auf die Woche)'],
       'focus.complete.capped': ['Выполнено (день закрыт — без очков)', 'Виконано (день закрито — без очок)', 'Done (day is capped — no points)', 'Erledigt (Tag voll — keine Punkte)'],
       'focus.reset': ['Сбросить таймер', 'Скинути таймер', 'Reset timer', 'Timer zurücksetzen'],
+      'focus.note.title': ['Заметка к задаче', 'Нотатка до завдання', 'Note on this task', 'Notiz zur Aufgabe'],
+      'focus.note.ph': ['Например: разобрал три вопроса теста, так и не понял, зачем этот флаг', 'Наприклад: розібрав три питання тесту, так і не зрозумів, навіщо цей прапорець', 'For example: got through three quiz questions, still unsure why this flag matters', 'Zum Beispiel: drei Testfragen geschafft, weiterhin unklar, wozu dieses Flag gut ist'],
+      'focus.note.save': ['Записать', 'Записати', 'Save', 'Speichern'],
+      'focus.note.cancel': ['Отмена', 'Скасувати', 'Cancel', 'Abbrechen'],
+      'focus.note.empty': ['Сначала напиши хоть слово', 'Спочатку напиши хоч слово', 'Write at least one word first', 'Schreib zuerst wenigstens ein Wort'],
+      'focus.note.saved': ['Заметка легла в дневник', 'Нотатка лягла в щоденник', 'Note saved to the diary', 'Notiz im Tagebuch gespeichert'],
       'focus.minutes': ['{n} мин', '{n} хв', '{n} min', '{n} Min'],
       'focus.custom.placeholder': ['свои', 'свої', 'own', 'eigene'],
       'focus.custom.aria': ['Свои минуты таймера', 'Свої хвилини таймера', 'Your own timer length', 'Eigene Minuten'],
@@ -4338,6 +4461,9 @@
 
       // Своими словами
       'words.title': ['Своими словами', 'Своїми словами', 'In your own words', 'In deinen Worten'],
+      'words.toggle.title': ['Свернуть или развернуть карточку', 'Згорнути або розгорнути картку', 'Collapse or expand this card', 'Karte ein- oder ausklappen'],
+      'words.collapse': ['Свернуть', 'Згорнути', 'Collapse', 'Einklappen'],
+      'words.expand': ['Развернуть', 'Розгорнути', 'Expand', 'Ausklappen'],
       'words.hint': ['Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.', 'Коли шаблони не підходять: запиши стан коротко або натисни на готові теги.', 'When the templates do not fit: write the state in a few words or tap a ready tag.', 'Wenn die Vorlagen nicht passen: notiere den Zustand kurz oder tippe auf einen fertigen Tag.'],
       'words.tag.minutes': ['+ 5-10 мин', '+ 5-10 хв', '+ 5-10 min', '+ 5-10 Min'],
       'words.tag.chest': ['+ слабый ком в груди', '+ слабкий клубок у грудях', '+ slight tightness in the chest', '+ leichter Druck in der Brust'],

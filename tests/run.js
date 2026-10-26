@@ -457,6 +457,40 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('потолок: мусор в поле — потолок на месте', vm.runInContext('capOffToday()', junk.ctx), false);
 }
 
+// --- 15g. Заметка к текущей задаче ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q('state.logs = []; state.weeks = []; state.points = 0;');
+  q("document.getElementById('taskNoteInput').value = '  разобрал три вопроса теста  '; saveTaskNote();");
+  check('заметка: записана в дневник', q('state.logs.length'), 1);
+  check('заметка: пробелы по краям срезаны', q('state.logs[0].text'), 'разобрал три вопроса теста');
+  check('заметка: поле очищено', q("document.getElementById('taskNoteInput').value"), '');
+  check('заметка: очков не даёт', q('state.logs[0].pts'), 0);
+  check('заметка: тип note', q('state.logs[0].type'), 'note');
+  check('заметка: сфера попала в заголовок строки', q('state.logs[0].kind'), q('currentSphere().name'));
+  q("document.getElementById('taskNoteInput').value = '   '; saveTaskNote();");
+  check('заметка: пустая не пишется', q('state.logs.length'), 1);
+  q('renderDiary();');
+  check('дневник: строка без очков не показывает +0', q("document.getElementById('logList').innerHTML.indexOf('+0')"), -1);
+}
+
+// --- 15h. Карточка «Своими словами» сворачивается ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('карточка: по умолчанию развёрнута', q('state.wordsCollapsed'), false);
+  q('toggleWordsCard();');
+  check('карточка: свернулась', q('state.wordsCollapsed'), true);
+  check('карточка: выбор лёг на диск', JSON.parse(store['flowCorePortfolioV5']).wordsCollapsed, true);
+  q('toggleWordsCard();');
+  check('карточка: развернулась обратно', q('state.wordsCollapsed'), false);
+  const kept = makeContext(NOW, { version: 6, wordsCollapsed: true });
+  check('карточка: свёрнутость переживает бэкап', vm.runInContext('state.wordsCollapsed', kept.ctx), true);
+  const junk = makeContext(NOW, { version: 6, wordsCollapsed: 'да' });
+  check('карточка: мусор в поле — развёрнута', vm.runInContext('state.wordsCollapsed', junk.ctx), false);
+}
+
 // --- 16. Мост к следующей сессии ---
 {
   const first = makeContext(NOW, MULTI_SPHERE_PROFILE);
