@@ -594,6 +594,36 @@
       color: #ffffff;
       box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.32);
     }
+    /* Силы и сфера в одной строке по краям: сфера говорит тише и стоит
+       отдельно, чтобы её не читали четвёртым режимом. На телефоне она уходит
+       на свою строку — рядом с «полными силами» она клеилась к ним. */
+    .mode-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .mode-row .pill-row {
+      margin-bottom: 0;
+    }
+    .sphere-pill {
+      color: var(--text-muted);
+      background: rgba(var(--surface-inner-rgb), 0.55);
+    }
+    .sphere-pill:hover {
+      color: var(--text-white);
+    }
+    @media (max-width: 600px) {
+      .mode-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .sphere-pill {
+        align-self: flex-start;
+      }
+    }
     /* Main Action Button (Matches "Lebenslauf ansehen" button) */
     .action-btn {
       font-family: var(--font-body);
@@ -1472,19 +1502,19 @@
       <!-- LEFT CARD: CURRENT FOCUS & TIMER ORB -->
       <div class="glow-card" id="startCard">
         <div>
-          <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 6px;">
-            <button class="pill-btn" onclick="cycleSphere()" data-i18n-title="focus.sphere.title" title="Переключить сферу">
-              <span id="sphereBadgeText">Код и песочница</span>
-            </button>
-          </div>
           <p class="card-subtext" data-i18n="focus.hint">
             Выбери текущее состояние ниже. Задача и таймер подстроятся без давления.
           </p>
-          <!-- State Pill Switcher -->
-          <div class="pill-row">
-            <button id="mode-micro" class="pill-btn" onclick="setMode('micro')" data-i18n="focus.mode.micro">Совсем мало сил (+1)</button>
-            <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')" data-i18n="focus.mode.draft">Немного сил (+2)</button>
-            <button id="mode-wave" class="pill-btn" onclick="setMode('wave')" data-i18n="focus.mode.wave">Полные силы (+3)</button>
+          <!-- State Pill Switcher: слева силы, справа сфера (она тише по цвету) -->
+          <div class="mode-row">
+            <div class="pill-row">
+              <button id="mode-micro" class="pill-btn" onclick="setMode('micro')" data-i18n="focus.mode.micro">Совсем мало сил (+1)</button>
+              <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')" data-i18n="focus.mode.draft">Немного сил (+2)</button>
+              <button id="mode-wave" class="pill-btn" onclick="setMode('wave')" data-i18n="focus.mode.wave">Полные силы (+3)</button>
+            </div>
+            <button class="pill-btn sphere-pill" onclick="cycleSphere()" data-i18n-title="focus.sphere.title" title="Переключить сферу">
+              <span id="sphereBadgeText">Код и песочница</span>
+            </button>
           </div>
           <!-- Orb Timer + Active Task Description -->
           <div class="focus-hero">

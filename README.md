@@ -8,7 +8,7 @@
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
-Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 334 KB HTML file: no build, no server, no dependencies.
+Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 335 KB HTML file: no build, no server, no dependencies.
 
 ## What it does
 
@@ -125,7 +125,7 @@ The same checks run on GitHub Actions for every push and pull request, see `.git
 - Four interface languages: Russian, Ukrainian, English, German. Another language is one more column in the dictionary, but no other translation exists yet.
 - Data lives in one browser. Clearing the profile or the site data removes it, so download a JSON backup every week or so.
 - There is no sync between devices, on purpose, so that no server and no account appear.
-- Everything is one file. Edits stay convenient, but the file is already large: about 334 KB, roughly 98 KB over the wire with gzip.
+- Everything is one file. Edits stay convenient, but the file is already large: about 335 KB, roughly 98 KB over the wire with gzip.
 
 ## License
 
