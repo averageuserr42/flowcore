@@ -475,20 +475,31 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('дневник: строка без очков не показывает +0', q("document.getElementById('logList').innerHTML.indexOf('+0')"), -1);
 }
 
-// --- 15h. Карточка «Своими словами» сворачивается ---
+// --- 15h. Карточки переключаются по кнопке, выбор запоминается ---
 {
   const { ctx, store } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
-  check('карточка: по умолчанию развёрнута', q('state.wordsCollapsed'), false);
-  q('toggleWordsCard();');
-  check('карточка: свернулась', q('state.wordsCollapsed'), true);
-  check('карточка: выбор лёг на диск', JSON.parse(store['flowCorePortfolioV5']).wordsCollapsed, true);
-  q('toggleWordsCard();');
-  check('карточка: развернулась обратно', q('state.wordsCollapsed'), false);
-  const kept = makeContext(NOW, { version: 6, wordsCollapsed: true });
-  check('карточка: свёрнутость переживает бэкап', vm.runInContext('state.wordsCollapsed', kept.ctx), true);
-  const junk = makeContext(NOW, { version: 6, wordsCollapsed: 'да' });
-  check('карточка: мусор в поле — развёрнута', vm.runInContext('state.wordsCollapsed', junk.ctx), false);
+  check('карточки: по умолчанию точка старта', q('state.focusCard'), 'start');
+  // classList в заглушке пустой, поэтому пишем вызовы и смотрим, что дошло до сетки
+  q("globalThis.__cls = []; globalThis.__grid = { classList: { toggle: (c, on) => __cls.push(c + ':' + on) } };");
+  q("document.querySelector = sel => sel === '.main-grid' ? __grid : null;");
+  q('renderFocusCard();');
+  check('карточки: старт помечен на сетке', q('__cls.join()'), 'focus-start:true,focus-words:false');
+  q("setFocusCard('words');");
+  check('карточки: переключились на слова', q('state.focusCard'), 'words');
+  check('карточки: выбор лёг на диск', JSON.parse(store['flowCorePortfolioV5']).focusCard, 'words');
+  check('карточки: слова помечены на сетке', q('__cls.slice(-2).join()'), 'focus-start:false,focus-words:true');
+  q("setFocusCard('что-то');");
+  check('карточки: незнакомое имя возвращает старт', q('state.focusCard'), 'start');
+  const kept = makeContext(NOW, { version: 6, focusCard: 'words' });
+  check('карточки: выбор переживает бэкап', vm.runInContext('state.focusCard', kept.ctx), 'words');
+  const junk = makeContext(NOW, { version: 6, focusCard: 'да' });
+  check('карточки: мусор в поле — старт', vm.runInContext('state.focusCard', junk.ctx), 'start');
+  // Скрытие живёт в CSS: без этих правил переключатель ничего не переключает
+  check('карточки: css прячет точку старта', /\.main-grid\.focus-words #startCard \{\s*display: none/.test(html), true);
+  check('карточки: css прячет слова', /\.main-grid\.focus-start #wordsCard \{\s*display: none/.test(html), true);
+  const buttons = [...html.matchAll(/setFocusCard\('([a-z]+)'\)/g)].map(m => m[1]);
+  check('карточки: в разметке обе кнопки', buttons.join(','), 'start,words');
 }
 
 // --- 15i. Эмодзи в заметке и в строке дневника ---
