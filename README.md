@@ -8,7 +8,7 @@
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
-Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 335 KB HTML file: no build, no server, no dependencies.
+Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 340 KB HTML file: no build, no server, no dependencies.
 
 ## What it does
 
@@ -26,6 +26,8 @@ If you are in a hurry:
 **A note on the task itself.** The pencil next to the task opens a line right there, with eight emoji that insert into the text. The note lands in the diary under the area's name and gives no points: it is memory, not a finished step. The row of emoji is optional and switches off in System; the quick note in the diary offers the same eight signs.
 
 **Two cards, one switch.** "Starting point" and "In your own words" trade places through a switch above them: the chosen card takes the whole width, the other waits one tap away, and the choice is remembered. On a phone that is one screen instead of a scroll.
+
+**On a phone, two summary buttons.** The row of timer lengths and the three first-step chips fold behind "5 min ▾" and "First step ▾": they open in place, close after a choice, and the summary keeps the current value. Every target grows to 40 px, and the primary action to 44, so nothing has to be aimed at on a bad day.
 
 **A bridge after stopping.** If you stopped yesterday, a line at the top says where, with one button that starts five minutes from that exact place. Coming back does not require remembering where you were.
 
@@ -116,7 +118,7 @@ On Windows, `FlowCore.cmd` does the same from a double click.
 node tests/run.js
 ```
 
-There are **420 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the card switch, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
+There are **433 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the card switch, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
 The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
@@ -125,7 +127,7 @@ The same checks run on GitHub Actions for every push and pull request, see `.git
 - Four interface languages: Russian, Ukrainian, English, German. Another language is one more column in the dictionary, but no other translation exists yet.
 - Data lives in one browser. Clearing the profile or the site data removes it, so download a JSON backup every week or so.
 - There is no sync between devices, on purpose, so that no server and no account appear.
-- Everything is one file. Edits stay convenient, but the file is already large: about 335 KB, roughly 98 KB over the wire with gzip.
+- Everything is one file. Edits stay convenient, but the file is already large: about 340 KB, roughly 100 KB over the wire with gzip.
 
 ## License
 
