@@ -491,6 +491,26 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('карточка: мусор в поле — развёрнута', vm.runInContext('state.wordsCollapsed', junk.ctx), false);
 }
 
+// --- 15i. Эмодзи в заметке и в строке дневника ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('эмодзи: восемь знаков', q('NOTE_EMOJIS.length'), 8);
+  check('эмодзи: без повторов', q('new Set(NOTE_EMOJIS).size'), 8);
+  const fromMarkup = [...html.matchAll(/pickNoteEmoji\('([^']+)'\)/g)].map(m => m[1]).join('');
+  check('эмодзи: ряд в разметке совпадает со списком', fromMarkup, q('NOTE_EMOJIS.join("")'));
+  q("document.getElementById('taskNoteInput').value = ''; pickNoteEmoji('🎯');");
+  check('эмодзи: в пустое поле ставится в начало', q("document.getElementById('taskNoteInput').value"), '🎯 ');
+  q("document.getElementById('taskNoteInput').value = '🎯 разобрал тест'; saveTaskNote();");
+  q('renderDiary();');
+  const list = q("document.getElementById('logList').innerHTML");
+  check('дневник: эмодзи вынут в отдельный знак', list.indexOf('<span class="log-emoji">🎯</span>') > -1, true);
+  check('дневник: текст очищен от ведущего эмодзи', list.indexOf('🎯 разобрал тест'), -1);
+  check('дневник: текст сохранился', list.indexOf('разобрал тест') > -1, true);
+  check('дневник: html в тексте экранируется', q("logTextHtml('<b>x</b>')"), '&lt;b&gt;x&lt;/b&gt;');
+  check('дневник: обычный текст не меняется', q("logTextHtml('просто запись')"), 'просто запись');
+}
+
 // --- 16. Мост к следующей сессии ---
 {
   const first = makeContext(NOW, MULTI_SPHERE_PROFILE);

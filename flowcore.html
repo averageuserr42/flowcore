@@ -610,6 +610,36 @@
       gap: 8px;
       margin-top: 8px;
     }
+    /* Фиксированный ряд вместо пикера: восемь знаков, которые точно ставятся
+       в текст и одинаково читаются на всех четырёх языках. */
+    .emoji-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .emoji-btn {
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1;
+      background: rgba(var(--surface-inner-rgb), 0.7);
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      padding: 5px 7px;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease;
+    }
+    .emoji-btn:hover {
+      border-color: var(--green-neon);
+      background: rgba(var(--tint-nav-rgb), 0.8);
+    }
+    /* Эмодзи в начале записи крупнее текста: строка ловится одним взглядом */
+    .log-emoji {
+      font-size: 18px;
+      line-height: 1;
+      margin-right: 5px;
+      vertical-align: -2px;
+    }
     .words-head {
       display: flex;
       align-items: center;
@@ -1412,6 +1442,16 @@
               data-i18n-ph="focus.note.ph"
               onkeydown="if(event.key === 'Enter') saveTaskNote(); if(event.key === 'Escape') closeTaskNote();"
             />
+            <div class="emoji-row" role="group" data-i18n-aria="focus.note.emoji.aria" aria-label="Быстрые эмодзи">
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('🎯')">🎯</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('🧠')">🧠</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('💡')">💡</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('🧩')">🧩</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('✅')">✅</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('😐')">😐</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('😴')">😴</button>
+              <button type="button" class="emoji-btn" onclick="pickNoteEmoji('🧘')">🧘</button>
+            </div>
             <div class="task-note-actions">
               <button class="action-btn" style="padding: 6px 12px; font-size: 13px;" onclick="saveTaskNote()" data-i18n="focus.note.save">Записать</button>
               <button class="pill-btn" onclick="closeTaskNote()" data-i18n="focus.note.cancel">Отмена</button>
@@ -1818,6 +1858,9 @@
     // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
     // длина работы перестаёт быть единственной наградой.
     const DAILY_CAP = 8;
+    // Ряд эмодзи для заметки. Список один, а кнопки в разметке статические:
+    // тест сверяет их, чтобы набор не мог разойтись в двух местах.
+    const NOTE_EMOJIS = ['🎯', '🧠', '💡', '🧩', '✅', '😐', '😴', '🧘'];
     // Дефолт для уже сохранённых данных: ровно прежний набор, поэтому у того,
     // кто уже пользуется панелью, ничего не меняется ни на строку.
     const DEFAULT_SPHERES = [
@@ -2799,6 +2842,18 @@
       const btn = document.getElementById('taskNoteBtn');
       if (btn) btn.setAttribute('aria-expanded', 'false');
     }
+    // Эмодзи ставится в позицию курсора: в пустом поле это начало записи,
+    // а если текст уже написан — туда, где человек продолжает писать.
+    function pickNoteEmoji(emoji) {
+      const input = document.getElementById('taskNoteInput');
+      if (!input || !emoji) return;
+      const value = String(input.value || '');
+      const at = typeof input.selectionStart === 'number' ? input.selectionStart : value.length;
+      input.value = value.slice(0, at) + emoji + ' ' + value.slice(at);
+      const caret = at + emoji.length + 1;
+      if (typeof input.setSelectionRange === 'function') input.setSelectionRange(caret, caret);
+      if (input.focus) input.focus();
+    }
     function saveTaskNote() {
       const input = document.getElementById('taskNoteInput');
       if (!input) return;
@@ -3777,6 +3832,14 @@
       renderAll();
       flashMessage(t('reserve.used', { left: state.reservePool }));
     }
+    // Ведущий эмодзи вынимается из строки и рисуется крупным знаком,
+    // а в экспорт и бэкап уходит исходный текст — там он и нужен как текст.
+    function logTextHtml(text) {
+      const raw = String(text || '');
+      const lead = NOTE_EMOJIS.find(e => raw.indexOf(e) === 0);
+      if (!lead) return escapeHtml(raw);
+      return `<span class="log-emoji">${lead}</span>${escapeHtml(raw.slice(lead.length).trim())}`;
+    }
     function renderDiary() {
       const list = document.getElementById('logList');
       if (state.logs.length === 0) {
@@ -3789,7 +3852,7 @@
             <div style="font-size: 12px; color: var(--green-title); margin-bottom: 3px;">
               ${item.time} | ${escapeHtml(item.kind)}
             </div>
-            <div style="color: var(--text-white); font-size: 14.5px;">${escapeHtml(item.text)}</div>
+            <div style="color: var(--text-white); font-size: 14.5px;">${logTextHtml(item.text)}</div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <!-- НОВАЯ КНОПКА УДАЛЕНИЯ -->
@@ -4451,6 +4514,7 @@
       'focus.note.cancel': ['Отмена', 'Скасувати', 'Cancel', 'Abbrechen'],
       'focus.note.empty': ['Сначала напиши хоть слово', 'Спочатку напиши хоч слово', 'Write at least one word first', 'Schreib zuerst wenigstens ein Wort'],
       'focus.note.saved': ['Заметка легла в дневник', 'Нотатка лягла в щоденник', 'Note saved to the diary', 'Notiz im Tagebuch gespeichert'],
+      'focus.note.emoji.aria': ['Быстрые эмодзи', 'Швидкі емодзі', 'Quick emoji', 'Schnelle Emoji'],
       'focus.minutes': ['{n} мин', '{n} хв', '{n} min', '{n} Min'],
       'focus.custom.placeholder': ['свои', 'свої', 'own', 'eigene'],
       'focus.custom.aria': ['Свои минуты таймера', 'Свої хвилини таймера', 'Your own timer length', 'Eigene Minuten'],
