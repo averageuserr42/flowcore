@@ -456,6 +456,19 @@
       color: #ffffff;
       box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.28);
     }
+    /* Счётчик дневника: тихая цифра рядом с подписью, а не скобки в тексте */
+    .nav-count {
+      display: inline-block;
+      margin-left: 5px;
+      padding: 0 5px;
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      background: rgba(var(--surface-mid-rgb), 0.9);
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 15px;
+      vertical-align: 1px;
+    }
     /* MAIN VIEWPORT STAGE (Spacious, centered like Portfolio) */
     .stage-container {
       position: relative;
@@ -776,9 +789,16 @@
     }
     /* Телефон: компактная шапка в одну строку навигации и меньше отступов */
     @media (max-width: 600px) {
+      /* Навигация теперь внизу: липкая шапка на телефоне только отнимала место.
+         backdrop-filter убираем сознательно: он делает шапку "контейнером",
+         и вложенная в неё полоса с position: fixed прибивалась бы к шапке,
+         а не к экрану */
       .top-header {
+        position: static;
         padding: 10px 12px;
         gap: 10px;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
       }
       .header-left {
         flex: 1 1 100%;
@@ -819,18 +839,77 @@
       #quotaText {
         white-space: nowrap;
       }
+      /* Навигация уезжает вниз: четыре раздела в одной полосе под большим
+         пальцем, шапка освобождается и больше не липнет к верху */
       .header-nav {
-        flex: 1 1 100%;
-        gap: 6px;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 32;
+        gap: 0;
+        padding: 0 2px env(safe-area-inset-bottom, 0px);
+        background: rgba(var(--surface-deep-rgb), 0.94);
+        border-top: 1px solid rgba(var(--accent-alt-rgb), 0.22);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
-      .nav-btn {
-        flex: 1 1 auto;
+      /* 54 px: выше нормы Android (48 dp) и Apple (44 pt) с запасом на палец.
+         Селектор с шапкой впереди — чтобы позже идущие правила по ".nav-btn"
+         (сорок пикселей общим кнопкам) не срезали высоту вкладок */
+      .header-nav .nav-btn {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 54px;
+        padding: 8px 2px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        color: var(--text-muted);
         font-size: 12.5px;
-        padding: 6px 8px;
+        /* Полоса — это место раздела, а не кнопка: без рамки и тени */
+        transition: color 0.15s ease;
       }
+      .header-nav .nav-btn:hover {
+        border: 0;
+        box-shadow: none;
+        color: var(--text-white);
+      }
+      .header-nav .nav-btn.active,
+      .header-nav .nav-btn.active:hover {
+        background: transparent;
+        border: 0;
+        color: var(--green-title);
+        box-shadow: none;
+      }
+      /* Активная вкладка: тонкая полоса сверху, как в панелях вкладок */
+      .header-nav .nav-btn.active::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 18%;
+        right: 18%;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+        background: var(--green-neon);
+        box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.55);
+      }
+      .nav-count {
+        margin-left: 4px;
+        padding: 0 4px;
+        font-size: 10.5px;
+      }
+      /* Место под полосой навигации: последняя кнопка не уезжает под неё */
       .stage-container {
-        padding: 20px 14px 40px;
-        min-height: calc(100vh - 120px);
+        padding: 20px 14px calc(86px + env(safe-area-inset-bottom, 0px));
+        min-height: calc(100vh - 70px);
+      }
+      /* Тост отмены поднимается над полосой, а не прячется за ней.
+         По id — базовое правило тоста идёт ниже по файлу и иначе победит */
+      #undoToast {
+        bottom: calc(68px + env(safe-area-inset-bottom, 0px));
       }
       .glow-card {
         padding: 22px 18px;
@@ -854,10 +933,6 @@
       }
       #flashToast:empty {
         display: none;
-      }
-      .top-header.compact .nav-btn {
-        padding: 4px 8px;
-        font-size: 12px;
       }
     }
     /* Узкие телефоны: в шапке остаётся только номер недели */
@@ -1571,11 +1646,20 @@
       </div>
       <span id="flashToast" role="status" aria-live="polite" style="font-size: 13px; color: var(--green-title);"></span>
     </div>
-    <nav class="header-nav">
-      <button id="nav-main" class="nav-btn active" onclick="showSection('main')" data-i18n="nav.focus">Фокус</button>
-      <button id="nav-diary" class="nav-btn" onclick="showSection('diary')"><span data-i18n="nav.diary">Дневник</span> (<span id="diaryCount">1</span>)</button>
-      <button id="nav-breathe" class="nav-btn" onclick="showSection('breathe')" data-i18n="nav.breathe">Дыхание</button>
-      <button id="nav-system" class="nav-btn" onclick="showSection('system')" data-i18n="nav.system">Система</button>
+    <nav class="header-nav" data-i18n-aria="nav.aria" aria-label="Разделы приложения">
+      <button id="nav-main" class="nav-btn active" onclick="showSection('main')" aria-current="page">
+        <span class="nav-label" data-i18n="nav.focus">Фокус</span>
+      </button>
+      <button id="nav-diary" class="nav-btn" onclick="showSection('diary')">
+        <span class="nav-label" data-i18n="nav.diary">Дневник</span>
+        <span class="nav-count" id="diaryCount">1</span>
+      </button>
+      <button id="nav-breathe" class="nav-btn" onclick="showSection('breathe')">
+        <span class="nav-label" data-i18n="nav.breathe">Дыхание</span>
+      </button>
+      <button id="nav-system" class="nav-btn" onclick="showSection('system')">
+        <span class="nav-label" data-i18n="nav.system">Система</span>
+      </button>
     </nav>
   </header>
   <!-- MAIN WORKSPACE STAGE -->
@@ -2756,8 +2840,13 @@
       if (sec !== 'breathe') stopBrownNoise();
       ['main', 'diary', 'breathe', 'system'].forEach(id => {
         document.getElementById('view-' + id).classList.toggle('hidden', id !== sec);
-        document.getElementById('nav-' + id).classList.toggle('active', id === sec);
+        const tab = document.getElementById('nav-' + id);
+        tab.classList.toggle('active', id === sec);
+        // Текущая вкладка названа текущей и для скринридера, не только цветом
+        tab.setAttribute('aria-current', id === sec ? 'page' : 'false');
       });
+      // Смена раздела — это переход, а не прокрутка: новый экран с начала
+      if (window.scrollTo) window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
     // Липкая шапка: при прокрутке поджимается, но навигация остаётся на виду
     function initStickyHeader() {
@@ -4811,6 +4900,7 @@
     const STRINGS = {
       'app.title': ['FlowCore | Дневник фокуса и восстановления', 'FlowCore | Щоденник фокусу та відновлення', 'FlowCore | A focus and recovery diary', 'FlowCore | Ein Tagebuch für Fokus und Erholung'],
       'app.description': ['Дневник фокуса и восстановления: короткие отрезки работы, сигналы тела и недельный зачёт без давления.', 'Щоденник фокусу та відновлення: короткі відрізки роботи, сигнали тіла й тижневий залік без тиску.', 'A focus and recovery diary: short stretches of work, body signals and a weekly score without pressure.', 'Ein Tagebuch für Fokus und Erholung: kurze Arbeitsabschnitte, Körpersignale und ein Wochenziel ohne Druck.'],
+      'nav.aria': ['Разделы приложения', 'Розділи застосунку', 'App sections', 'App-Bereiche'],
       'nav.focus': ['Фокус', 'Фокус', 'Focus', 'Fokus'],
       'nav.diary': ['Дневник', 'Щоденник', 'Diary', 'Tagebuch'],
       'nav.breathe': ['Дыхание', 'Дихання', 'Breathing', 'Atmen'],

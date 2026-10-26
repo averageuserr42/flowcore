@@ -28,12 +28,19 @@ function makeContext(fixedTs, seed, lang = 'ru') {
   store['flowCoreLangV1'] = lang;
   if (seed !== undefined) store['flowCorePortfolioV5'] = JSON.stringify(seed);
 
-  const el = () => ({
-    textContent: '', innerHTML: '', value: '', className: '', style: {},
-    classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } },
-    appendChild() {}, focus() {}, addEventListener() {}, getAttribute() { return null; },
-    setAttribute() {}, querySelector() { return null; }, querySelectorAll() { return []; },
-  });
+  // Атрибуты запоминаются: иначе aria-current и подобное в тестах не увидеть
+  const el = () => {
+    const attrs = new Map();
+    return {
+      textContent: '', innerHTML: '', value: '', className: '', style: {},
+      classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } },
+      appendChild() {}, focus() {}, addEventListener() {},
+      getAttribute: k => (attrs.has(k) ? attrs.get(k) : null),
+      setAttribute: (k, v) => attrs.set(k, String(v)),
+      removeAttribute: k => attrs.delete(k),
+      querySelector() { return null; }, querySelectorAll() { return []; },
+    };
+  };
 
   class FakeDate extends Date {
     constructor(...a) { if (a.length === 0) super(fixedTs); else super(...a); }
@@ -524,6 +531,43 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('сводки: строки адресуются по id', html.includes('id="timerPresets"') && html.includes('id="firstStepRow"'), true);
   // Скрытие живёт в CSS: без этих правил сводки ничего не прячут
   check('сводки: css держит раскрытие', html.includes('#timerPresets.open') && html.includes('#firstStepRow.open'), true);
+}
+
+// --- 15m. Нижняя навигация на телефоне: одна полоса, крупные цели, текущая вкладка ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  const tabs = [...html.matchAll(/id="nav-(main|diary|breathe|system)"/g)].map(m => m[1]);
+  check('навигация: четыре раздела', tabs.join(','), 'main,diary,breathe,system');
+  check('навигация: у каждой вкладки своя подпись',
+    [...html.matchAll(/id="nav-(?:main|diary|breathe|system)"[^>]*>\s*<span class="nav-label"/g)].length, 4);
+  check('навигация: счётчик дневника отдельной цифрой', /class="nav-count" id="diaryCount"/.test(html), true);
+
+  // Полоса внизу живёт только на телефоне: на десктопе навигация остаётся в шапке
+  check('навигация: на телефоне полоса прижата к низу',
+    /\.header-nav \{[^}]*position: fixed[^}]*bottom: 0/.test(html), true);
+  check('навигация: вкладки делят ширину, а не переносятся',
+    /\.nav-btn \{[^}]*flex: 1 1 0/.test(html), true);
+  check('навигация: цель касания 54 px', /\.nav-btn \{[^}]*min-height: 54px/.test(html), true);
+  check('навигация: шапка на телефоне не липнет',
+    /\.top-header \{\s*position: static/.test(html), true);
+  check('навигация: контент не уезжает под полосу',
+    /\.stage-container \{[^}]*padding: 20px 14px calc\(86px/.test(html), true);
+  check('навигация: тост отмены поднят над полосой',
+    /#undoToast \{[^}]*bottom: calc\(68px/.test(html), true);
+
+  // Состояние вкладки видно не только цветом
+  check('навигация: старт помечен текущим', /id="nav-main"[^>]*aria-current="page"/.test(html), true);
+  q("showSection('diary');");
+  check('навигация: выбранная вкладка — текущая',
+    q("document.getElementById('nav-diary').getAttribute('aria-current')"), 'page');
+  check('навигация: прежняя вкладка снята',
+    q("document.getElementById('nav-main').getAttribute('aria-current')"), 'false');
+
+  // Переход на другой раздел начинается с верха страницы, а не с середины
+  q('window.scrollTo = () => { window.__scrolls = (window.__scrolls || 0) + 1; };');
+  q("showSection('breathe');");
+  check('навигация: смена раздела прокручивает вверх', q('window.__scrolls'), 1);
 }
 
 // --- 15i. Эмодзи в заметке и в строке дневника ---
