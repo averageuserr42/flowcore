@@ -469,6 +469,17 @@
       line-height: 15px;
       vertical-align: 1px;
     }
+    /* Точка «есть новое»: маленький сигнал вместо постоянной цифры */
+    .nav-new {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-left: 5px;
+      border-radius: 50%;
+      background: var(--green-neon);
+      box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.85);
+      vertical-align: 2px;
+    }
     /* MAIN VIEWPORT STAGE (Spacious, centered like Portfolio) */
     .stage-container {
       position: relative;
@@ -896,10 +907,13 @@
         background: var(--green-neon);
         box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.55);
       }
+      /* На телефоне постоянной цифры нет: у вкладки остаётся только сигнал
+         о том, что появилось что-то новое с последнего открытия дневника */
       .nav-count {
+        display: none;
+      }
+      .nav-new {
         margin-left: 4px;
-        padding: 0 4px;
-        font-size: 10.5px;
       }
       /* Место под полосой навигации: последняя кнопка не уезжает под неё */
       .stage-container {
@@ -1653,6 +1667,7 @@
       <button id="nav-diary" class="nav-btn" onclick="showSection('diary')">
         <span class="nav-label" data-i18n="nav.diary">Дневник</span>
         <span class="nav-count" id="diaryCount">1</span>
+        <span class="nav-new hidden" id="diaryNew" role="img" data-i18n-aria="nav.diary.new" aria-label="Есть новые записи"></span>
       </button>
       <button id="nav-breathe" class="nav-btn" onclick="showSection('breathe')">
         <span class="nav-label" data-i18n="nav.breathe">Дыхание</span>
@@ -2445,6 +2460,7 @@
         // в первом экране — худшее, что можно ему показать
         onboarded: false,
         points: 0,
+        diarySeenAt: 0,
         logs: []
       });
     }
@@ -2576,6 +2592,12 @@
         restBreathDay: typeof raw.restBreathDay === 'string' ? raw.restBreathDay : '',
         breatheMode: normalizeBreatheMode(raw.breatheMode),
         reservePool: Math.max(0, Math.min(RESERVE_CAP, Number(raw.reservePool) || 0)),
+        // Момент, до которого дневник прочитан. Нет поля (старый профиль или
+        // бэкап) — значит всё, что уже лежит в дневнике, человек видел:
+        // иначе после обновления вкладка загорелась бы из-за старого архива
+        diarySeenAt: Number.isFinite(Number(raw.diarySeenAt))
+          ? Math.max(0, Number(raw.diarySeenAt))
+          : logs.reduce((max, l) => Math.max(max, Number(l.ts) || 0), 0),
         weeks: dedupeWeeks(weeks),
         timer: normalizeTimer(raw.timer)
       };
@@ -2834,6 +2856,25 @@
       }
     }
     // --- VIEW NAVIGATION (Keeps main screen clean & spacious) ---
+    let currentSection = 'main';
+    // «Новое» — всё, что попало в дневник после того, как его в последний раз
+    // открывали: точка на вкладке гаснет сама, когда человек зашёл
+    function diaryNewCount() {
+      const seen = Number(state.diarySeenAt) || 0;
+      return state.logs.filter(l => (Number(l.ts) || 0) > seen).length;
+    }
+    function markDiarySeen() {
+      const latest = state.logs.reduce((max, l) => Math.max(max, Number(l.ts) || 0), 0);
+      if (latest > (Number(state.diarySeenAt) || 0)) {
+        state.diarySeenAt = latest;
+        saveState();
+      }
+    }
+    function renderDiaryBadge() {
+      const dot = document.getElementById('diaryNew');
+      if (!dot) return;
+      dot.classList.toggle('hidden', diaryNewCount() === 0);
+    }
     function showSection(sec) {
       // Шум — помощь для экрана дыхания; уходя с него, звук выключаем,
       // иначе вкладка гудит в фоне без всякой причины
@@ -2845,6 +2886,9 @@
         // Текущая вкладка названа текущей и для скринридера, не только цветом
         tab.setAttribute('aria-current', id === sec ? 'page' : 'false');
       });
+      currentSection = sec;
+      if (sec === 'diary') markDiarySeen();
+      renderDiaryBadge();
       // Смена раздела — это переход, а не прокрутка: новый экран с начала
       if (window.scrollTo) window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
@@ -3515,6 +3559,8 @@
         type: type || 'note',
         spentMs: Math.max(0, Number(spentMs) || 0)
       });
+      // Запись, добавленная на открытом дневнике, уже прочитана — точка не горит
+      if (currentSection === 'diary') state.diarySeenAt = state.logs[0].ts;
       saveState();
       renderAll();
       return points;
@@ -4157,6 +4203,7 @@
         dotsWrap.appendChild(d);
       }
       document.getElementById('diaryCount').textContent = state.logs.length;
+      renderDiaryBadge();
     }
     function renderMain() {
       ['micro', 'draft', 'wave'].forEach(m => {
@@ -4903,6 +4950,7 @@
       'nav.aria': ['Разделы приложения', 'Розділи застосунку', 'App sections', 'App-Bereiche'],
       'nav.focus': ['Фокус', 'Фокус', 'Focus', 'Fokus'],
       'nav.diary': ['Дневник', 'Щоденник', 'Diary', 'Tagebuch'],
+      'nav.diary.new': ['Есть новые записи', 'Є нові записи', 'New entries', 'Neue Einträge'],
       'nav.breathe': ['Дыхание', 'Дихання', 'Breathing', 'Atmen'],
       'nav.system': ['Система', 'Система', 'System', 'System'],
       'header.quota.title': ['Недельный аккумулятор: очки живут до конца недели, пропуски дней ничего не сбрасывают', 'Тижневий акумулятор: очки живуть до кінця тижня, пропущені дні нічого не скидають', 'Weekly battery: points live until the end of the week, missed days reset nothing', 'Wochenpuffer: Punkte gelten bis Wochenende, verpasste Tage setzen nichts zurück'],

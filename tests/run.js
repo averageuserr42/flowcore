@@ -33,7 +33,19 @@ function makeContext(fixedTs, seed, lang = 'ru') {
     const attrs = new Map();
     return {
       textContent: '', innerHTML: '', value: '', className: '', style: {},
-      classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } },
+      classList: (() => {
+        const names = new Set();
+        return {
+          toggle(name, force) {
+            const on = force === undefined ? !names.has(name) : !!force;
+            on ? names.add(name) : names.delete(name);
+            return on;
+          },
+          add(...list) { list.forEach(n => names.add(n)); },
+          remove(...list) { list.forEach(n => names.delete(n)); },
+          contains: name => names.has(name),
+        };
+      })(),
       appendChild() {}, focus() {}, addEventListener() {},
       getAttribute: k => (attrs.has(k) ? attrs.get(k) : null),
       setAttribute: (k, v) => attrs.set(k, String(v)),
@@ -568,6 +580,46 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   q('window.scrollTo = () => { window.__scrolls = (window.__scrolls || 0) + 1; };');
   q("showSection('breathe');");
   check('навигация: смена раздела прокручивает вверх', q('window.__scrolls'), 1);
+}
+
+// --- 15n. Вкладка дневника: постоянная цифра только на десктопе, точка — про новое ---
+{
+  const { ctx } = makeContext(NOW, { version: 6, points: 0, goal: 12, logs: [], weeks: [], onboarded: true });
+  const q = expr => vm.runInContext(expr, ctx);
+  const dotHidden = () => q("document.getElementById('diaryNew').classList.contains('hidden')");
+
+  check('новое: пустой дневник — сигнала нет', q('diaryNewCount()'), 0);
+  check('новое: точка спрятана на старте', dotHidden(), true);
+
+  q("addLogEntry('Course work', 'one lab step', 2, 'action');");
+  check('новое: запись зажгла сигнал', q('diaryNewCount()'), 1);
+  check('новое: точка видна', dotHidden(), false);
+
+  q("showSection('diary');");
+  check('новое: дневник прочитан', q('diaryNewCount()'), 0);
+  check('новое: точка погасла', dotHidden(), true);
+
+  // Запись, добавленная при открытом дневнике, не зажигает точку
+  q("showSection('diary'); state.diarySeenAt = 0; addLogEntry('A', 'while reading', 1, 'action');");
+  check('новое: запись на открытом дневнике не горит', q('diaryNewCount()'), 0);
+  check('новое: отметка сдвинулась', q('state.diarySeenAt'), q('state.logs[0].ts'));
+
+  // Вернулись на фокус, позже появилась запись — сигнал снова есть
+  q("showSection('main'); state.logs.unshift({ id: nextLogId(), ts: state.diarySeenAt + 60000, time: '12:00', kind: 'A', text: 'later', pts: 1, type: 'action' }); renderAll();");
+  check('новое: запись после возврата — снова сигнал', q('diaryNewCount()'), 1);
+  check('новое: точка снова видна', dotHidden(), false);
+
+  // Старый профиль без поля: всё, что уже лежит в дневнике, — прочитано
+  const legacy = makeContext(NOW, { version: 6, onboarded: true, logs: [
+    { id: 1, ts: NOW - 60000, time: '11:59', kind: 'A', text: 'old', pts: 1, type: 'action' },
+  ] });
+  check('новое: старая запись без поля — не новое', vm.runInContext('diaryNewCount()', legacy.ctx), 0);
+  check('новое: отметка взята из старых записей', vm.runInContext('state.diarySeenAt', legacy.ctx), NOW - 60000);
+
+  check('новое: точка есть в разметке', /id="diaryNew"/.test(html), true);
+  check('новое: точка называется для скринридера', /data-i18n-aria="nav.diary.new"/.test(html), true);
+  check('новое: цифра прячется на телефоне', /\.nav-count \{[^}]*display: none/.test(html), true);
+  check('новое: текст точки в словаре', q("t('nav.diary.new')"), 'Есть новые записи');
 }
 
 // --- 15i. Эмодзи в заметке и в строке дневника ---
