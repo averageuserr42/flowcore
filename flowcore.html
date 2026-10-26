@@ -548,6 +548,53 @@
       border-color: var(--green-neon);
       box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.18);
     }
+    /* Кнопка бэкапа: нейтральный контур вместо акцентной заливки. На янтаре
+       заливка сливалась с фоном, а бэкап — единственный путь назад, его нельзя
+       терять из вида. Стиль сознательно не зависит от скина: сигнал важнее стиля. */
+    .btn-quiet {
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-soft);
+      background: transparent;
+      border: 1px solid rgba(var(--text-white-rgb), 0.26);
+      border-radius: 8px;
+      padding: 9px 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .btn-quiet:hover {
+      color: var(--text-white);
+      border-color: rgba(var(--text-white-rgb), 0.5);
+      background: rgba(var(--text-white-rgb), 0.07);
+    }
+    .btn-quiet .ico {
+      font-size: 15px;
+      line-height: 1;
+      opacity: 0.85;
+    }
+    /* Переключатель потолка живёт внутри строки «сегодня»: он не должен
+       спорить с кнопками и читаться как второстепенная ссылка. */
+    .link-btn {
+      font-family: var(--font-body);
+      font-size: inherit;
+      color: var(--green-title);
+      background: none;
+      border: 0;
+      padding: 0;
+      margin-left: 6px;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+    }
+    .link-btn:hover {
+      color: var(--text-white);
+    }
     /* Left Card: Circular Timer & Active Task (Matches Circular Glasses Icon Layout) */
     .focus-hero {
       display: flex;
@@ -1102,6 +1149,8 @@
     .nav-btn:focus-visible,
     .action-btn:focus-visible,
     .action-btn-secondary:focus-visible,
+    .btn-quiet:focus-visible,
+    .link-btn:focus-visible,
     .clean-input:focus-visible {
       outline: 2px solid var(--green-title);
       outline-offset: 2px;
@@ -1206,8 +1255,8 @@
       <div id="lockError" class="lock-error" role="alert"></div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="action-btn" onclick="unlockVault()" data-i18n="lock.open">Открыть</button>
-        <label class="action-btn-secondary" style="cursor: pointer;">
-          <span data-i18n="sys.backup.upload">Загрузить бэкап</span>
+        <label class="btn-quiet" style="cursor: pointer;">
+          <span class="ico" aria-hidden="true">↑</span><span data-i18n="sys.backup.upload">Загрузить бэкап</span>
           <input type="file" accept=".json" style="display: none;" onchange="importBackupJson(event)" />
         </label>
       </div>
@@ -1428,7 +1477,7 @@
           <div id="backupNudgeText" class="nudge-text"></div>
         </div>
         <div class="nudge-actions">
-          <button class="action-btn" onclick="exportBackupJson()" data-i18n="nudge.download">Скачать бэкап</button>
+          <button class="btn-quiet" onclick="exportBackupJson()"><span class="ico" aria-hidden="true">↓</span><span data-i18n="nudge.download">Скачать бэкап</span></button>
           <button class="action-btn-secondary" onclick="snoozeBackupNudge()" data-i18n="nudge.later">Позже</button>
         </div>
       </div>
@@ -1654,9 +1703,9 @@
             <span data-i18n="sys.backup.hint">Без замка записи лежат открыто в этом браузере. Бэкап — обычный JSON: единственный путь назад, если пароль забудешь.</span>
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <button class="action-btn-secondary" onclick="exportBackupJson()" data-i18n="sys.backup.download">Скачать бэкап (.json)</button>
-            <label class="action-btn-secondary" style="cursor: pointer;">
-              <span data-i18n="sys.backup.upload">Загрузить бэкап</span>
+            <button class="btn-quiet" onclick="exportBackupJson()"><span class="ico" aria-hidden="true">↓</span><span data-i18n="sys.backup.download">Скачать бэкап (.json)</span></button>
+            <label class="btn-quiet" style="cursor: pointer;">
+              <span class="ico" aria-hidden="true">↑</span><span data-i18n="sys.backup.upload">Загрузить бэкап</span>
               <input type="file" accept=".json" style="display: none;" onchange="importBackupJson(event)" />
             </label>
           </div>
@@ -1975,6 +2024,7 @@
         lastExportAt: 0,
         nudgeSnoozeUntil: 0,
         firstStep: '',
+        capOffDay: '',
         lastStop: null,
         skin: storedSkin(),
         spheres: starterSpheres(),
@@ -2107,6 +2157,7 @@
         lastExportAt: Number(raw.lastExportAt) || 0,
         nudgeSnoozeUntil: Number(raw.nudgeSnoozeUntil) || 0,
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
+        capOffDay: typeof raw.capOffDay === 'string' ? raw.capOffDay : '',
         lastStop: normalizeLastStop(raw.lastStop),
         skin: normalizeSkin(raw.skin || storedSkin()),
         // Всё, что уже сохранено до появления интервью, считается пройденным:
@@ -2514,9 +2565,14 @@
         tail: mins ? t('today.minutes', { n: mins }) : ''
       });
       const pts = pointsToday();
-      box.textContent = pts >= DAILY_CAP
-        ? t('today.closed', { head, pts })
-        : t('today.open', { head, pts, cap: DAILY_CAP });
+      const off = capOffToday();
+      const line = off
+        ? t('today.uncapped', { head, pts })
+        : (pts >= DAILY_CAP
+          ? t('today.closed', { head, pts })
+          : t('today.open', { head, pts, cap: DAILY_CAP }));
+      const toggle = `<button class="link-btn" type="button" onclick="toggleCapOff()">${escapeHtml(off ? t('today.cap.restore') : t('today.cap.lift'))}</button>`;
+      box.innerHTML = escapeHtml(line) + ' ' + toggle;
       const restLine = document.getElementById('restLine');
       if (restLine) {
         const charges = Number(state.restBonus) || 0;
@@ -2762,7 +2818,22 @@
     function pointsToday() {
       return dayPointsOn(Date.now());
     }
+    // Потолок снимается только на текущий день: дата сравнивается в момент
+    // чтения, поэтому смена суток возвращает ограничение сама — без таймеров
+    // и без фоновых задач, которых в одном файле быть не должно.
+    // DAILY_CAP при этом не меняется: от него считается ещё и заряд отдыха.
+    function capOffToday(target = state, now = new Date()) {
+      return !!target && target.capOffDay === dayKey(now);
+    }
+    function toggleCapOff() {
+      if (!state) return;
+      state.capOffDay = capOffToday() ? '' : dayKey(new Date());
+      saveState();
+      renderMain();
+      renderTodayLine();
+    }
     function remainingPointsToday() {
+      if (capOffToday()) return Infinity;
       return Math.max(0, DAILY_CAP - pointsToday());
     }
     function cappedPoints(requested) {
@@ -2878,6 +2949,8 @@
         && (kindOf === 'action' || kindOf === 'stop')
         && wanted > 0
         && (Number(state.restBonus) || 0) > 0
+        // Без потолка компенсировать нечего: заряд остаётся на другой день
+        && !capOffToday()
         && remainingPointsToday() > wanted;
       if (canSpendBonus) state.restBonus = Math.max(0, (Number(state.restBonus) || 0) - 1);
       const points = cappedPoints(wanted + (canSpendBonus ? 1 : 0));
@@ -4327,6 +4400,9 @@
       'today.minutes': [' · {n} мин в таймере', ' · {n} хв у таймері', ' · {n} min on the timer', ' · {n} Min im Timer'],
       'today.closed': ['{head} · {pts} очк. — день закрыт, записи идут без очков', '{head} · {pts} очк. — день закрито, записи йдуть без очок', '{head} · {pts} pts — day capped, entries no longer count', '{head} · {pts} Pkt. — Tag voll, Einträge zählen nicht mehr'],
       'today.open': ['{head} · {pts} из {cap} очк.', '{head} · {pts} з {cap} очк.', '{head} · {pts} of {cap} pts', '{head} · {pts} von {cap} Pkt.'],
+      'today.uncapped': ['{head} · {pts} очк. — сегодня без потолка', '{head} · {pts} очк. — сьогодні без стелі', '{head} · {pts} pts — no cap for the rest of today', '{head} · {pts} Pkt. — heute ohne Deckel'],
+      'today.cap.lift': ['Снять потолок на сегодня', 'Зняти стелю на сьогодні', 'Lift the cap for today', 'Deckel für heute aufheben'],
+      'today.cap.restore': ['Вернуть потолок', 'Повернути стелю', 'Restore the cap', 'Deckel zurück'],
       'rest.line': [
         { one: '⚡ Отдых: {n} заряд — +1 к следующему шагу', few: '⚡ Отдых: {n} заряда — +1 к следующим шагам', many: '⚡ Отдых: {n} зарядов — +1 к следующим шагам', other: '⚡ Отдых: {n} заряда — +1 к следующим шагам' },
         { one: '⚡ Відпочинок: {n} заряд — +1 до наступного кроку', few: '⚡ Відпочинок: {n} заряди — +1 до наступних кроків', many: '⚡ Відпочинок: {n} зарядів — +1 до наступних кроків', other: '⚡ Відпочинок: {n} заряди — +1 до наступних кроків' },

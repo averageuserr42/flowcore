@@ -27,7 +27,7 @@ If you are in a hurry:
 
 **A week, not a day.** Points collect over the week (12 by default, adjustable). A missed day resets nothing, and the week closes into the archive on its own. The panel shows a heat map for the last 12 weeks and a chart of recent weeks.
 
-**A soft cap of 8 points a day.** Past it, notes keep going in and points stop growing, so the length of work stops being the only reward. An optional strict mode gives points only for the time the timer actually ran.
+**A soft cap of 8 points a day.** Past it, notes keep going in and points stop growing, so the length of work stops being the only reward. On a day that is going well the cap can be lifted until midnight with one click on the today line; the next day it is back on its own. An optional strict mode gives points only for the time the timer actually ran.
 
 **A level for all time.** 10 experience points make a level, counted from every point you ever earned, so a new week does not burn it. Levels unlock skins: emerald (1), amber (3), cyber (6), aurora (10). Each one changes the whole palette, the background pulse included.
 

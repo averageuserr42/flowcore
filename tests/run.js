@@ -396,6 +396,67 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('на сегодня доступно все 8', q('remainingPointsToday()'), 8);
 }
 
+// --- 15c. Потолок можно снять на сегодня ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.logs = []; state.weeks = []; state.points = 0; state.mode = 'wave'; state.capOffDay = '';");
+  check('потолок: по умолчанию включён', q('capOffToday()'), false);
+  q('state.timer.ranMs = 60000; completeActiveTask(); completeActiveTask(); completeActiveTask();');
+  check('потолок: три отрезка дают 8', q('state.points'), 8);
+  q('toggleCapOff();');
+  check('потолок: снят на сегодня', q('capOffToday()'), true);
+  check('потолок: снятие записано в состояние', q('state.capOffDay'), '2026-10-24');
+  check('потолок: снятие легло на диск', JSON.parse(store['flowCorePortfolioV5']).capOffDay, '2026-10-24');
+  // Infinity через JSON.stringify становится null, поэтому сравниваем предикатом
+  check('потолок: места не ограничено', q('remainingPointsToday() === Infinity'), true);
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('потолок: сверх восьми начисляют', q('state.points'), 11);
+  check('потолок: в записи полные три очка', q('state.logs[0].pts'), 3);
+  q('toggleCapOff();');
+  check('потолок: вернули — снова режет', q('remainingPointsToday()'), 0);
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('потолок: после возврата очков нет', q('state.points'), 11);
+  q("state.capOffDay = '2026-10-01';");
+  check('потолок: вчерашнее снятие не действует', q('capOffToday()'), false);
+  check('потолок: и место снова кончилось', q('remainingPointsToday()'), 0);
+}
+
+// --- 15d. Строка дня показывает переключатель потолка ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.logs = []; state.weeks = []; state.points = 0; state.capOffDay = '';");
+  q('state.timer.ranMs = 60000; completeActiveTask();');
+  check('строка дня: переключатель на месте', q("renderTodayLine(); document.getElementById('todayLine').innerHTML.indexOf('toggleCapOff()') > -1"), true);
+  check('строка дня: пока с потолком', q("document.getElementById('todayLine').innerHTML.indexOf('Снять потолок на сегодня') > -1"), true);
+  q('toggleCapOff();');
+  check('строка дня: говорит про снятый потолок', q("document.getElementById('todayLine').innerHTML.indexOf('без потолка') > -1"), true);
+  check('строка дня: предлагает вернуть', q("document.getElementById('todayLine').innerHTML.indexOf('Вернуть потолок') > -1"), true);
+}
+
+// --- 15e. Без потолка заряд отдыха не сгорает ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.logs = []; state.weeks = []; state.points = 0; state.restBonus = 2; state.capOffDay = '2026-10-24';");
+  q("addLogEntry('Своё дело', 'шаг', 3, 'action');");
+  check('без потолка: очки начислены полностью', q('state.logs[0].pts'), 3);
+  check('без потолка: заряд отдыха цел', q('state.restBonus'), 2);
+}
+
+// --- 15f. Поле снятия потолка переживает бэкап и мусор ---
+{
+  const seed = {
+    version: 6, weekKey: '2026-W43', weekStart: '2026-10-19', points: 0, goal: 12,
+    logs: [], weeks: [], capOffDay: '2026-10-24',
+  };
+  const kept = makeContext(NOW, seed);
+  check('потолок из бэкапа: снят', vm.runInContext('capOffToday()', kept.ctx), true);
+  const junk = makeContext(NOW, { version: 6, capOffDay: 12345 });
+  check('потолок: мусор в поле — потолок на месте', vm.runInContext('capOffToday()', junk.ctx), false);
+}
+
 // --- 16. Мост к следующей сессии ---
 {
   const first = makeContext(NOW, MULTI_SPHERE_PROFILE);
