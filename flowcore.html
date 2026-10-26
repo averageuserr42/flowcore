@@ -922,6 +922,92 @@
       padding: 3px 10px;
       font-size: 12px;
     }
+    /* Сводки на телефоне: частое остаётся на виду, настройки живут за одной
+       кнопкой. На широком экране кнопки скрыты, строки видны всегда. */
+    .disclosure-toggle {
+      display: none;
+    }
+    .preset-caret {
+      display: inline-block;
+      font-size: 12px;
+      line-height: 1;
+      opacity: 0.85;
+      transition: transform 0.18s ease;
+    }
+    .disclosure-toggle.open .preset-caret {
+      transform: rotate(180deg);
+    }
+    @media (max-width: 360px) {
+      .focus-tab {
+        padding: 7px 9px;
+        font-size: 12px;
+      }
+    }
+    .note-btn {
+      padding: 0;
+      width: 34px;
+      height: 34px;
+      justify-content: center;
+      font-size: 14px;
+      flex: none;
+    }
+    @media (max-width: 600px) {
+      .disclosure-toggle {
+        display: inline-flex;
+        margin-top: 10px;
+      }
+      #timerPresets {
+        display: none;
+      }
+      #timerPresets.open {
+        display: flex;
+      }
+      #firstStepRow {
+        display: none;
+      }
+      #firstStepRow.open {
+        display: flex;
+      }
+      .steps-row .steps-label {
+        display: none;
+      }
+      /* Цели касания: 40 px обычным, 44 px главному действию (Apple 44 pt) */
+      .pill-btn:not(.tiny),
+      .nav-btn,
+      .focus-tab,
+      .emoji-btn,
+      .action-btn,
+      .action-btn-secondary {
+        min-height: 40px;
+      }
+      .focus-tab,
+      #completeTaskBtn {
+        min-height: 44px;
+      }
+      .emoji-btn {
+        min-width: 40px;
+      }
+      .note-btn {
+        width: 40px;
+        height: 40px;
+      }
+      .reset-quiet {
+        min-height: 40px;
+        padding: 0 2px;
+        background: transparent;
+        border-color: transparent;
+        color: var(--text-muted);
+        box-shadow: none;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .reset-quiet:hover {
+        background: transparent;
+        border-color: transparent;
+        color: var(--text-white);
+        box-shadow: none;
+      }
+    }
     .custom-timer {
       display: inline-flex;
       align-items: center;
@@ -1314,6 +1400,8 @@
     /* Доступность */
     .timer-orb:focus-visible,
     .pill-btn:focus-visible,
+    .focus-tab:focus-visible,
+    .emoji-btn:focus-visible,
     .nav-btn:focus-visible,
     .action-btn:focus-visible,
     .action-btn-secondary:focus-visible,
@@ -1527,7 +1615,7 @@
                 <div id="activeTaskTitle" style="font-size: 16px; font-weight: 600; color: var(--text-white); margin-bottom: 6px; flex: 1;">
                   Подучиться 5 минут или поковырять черновик кода без оценки
                 </div>
-                <button id="taskNoteBtn" class="pill-btn" style="padding: 2px 9px; font-size: 13px; flex: none;" onclick="toggleTaskNote()" data-i18n-title="focus.note.title" data-i18n-aria="focus.note.title" aria-label="Заметка к задаче" aria-expanded="false">✎</button>
+                <button id="taskNoteBtn" class="pill-btn note-btn" onclick="toggleTaskNote()" data-i18n-title="focus.note.title" data-i18n-aria="focus.note.title" aria-label="Заметка к задаче" aria-expanded="false">✎</button>
               </div>
               <div id="activeTaskNote" style="font-size: 13.5px; color: var(--text-muted);">
                 Правило 5 минут: если не пошло после сигнала, можно спокойно закрыть задачу.
@@ -1561,7 +1649,11 @@
             </div>
           </div>
           <div class="timer-controls">
-            <div class="timer-presets" role="group" data-i18n-aria="focus.timer.aria.group" aria-label="Длительность таймера">
+            <button id="presetToggle" class="pill-btn disclosure-toggle" onclick="toggleTimerPresets()" aria-expanded="false" aria-controls="timerPresets" data-i18n-aria="focus.timer.aria.group" aria-label="Длительность таймера">
+              <span id="presetSummary">5 мин</span>
+              <span class="preset-caret" aria-hidden="true">▾</span>
+            </button>
+            <div id="timerPresets" class="timer-presets" role="group" data-i18n-aria="focus.timer.aria.group" aria-label="Длительность таймера">
               <button class="pill-btn" data-min="5" onclick="setTimerMinutes(5)" data-i18n="focus.preset5">5 мин</button>
               <button class="pill-btn" data-min="15" onclick="setTimerMinutes(15)" data-i18n="focus.preset15">15 мин</button>
               <button class="pill-btn" data-min="30" onclick="setTimerMinutes(30)" data-i18n="focus.preset30">30 мин</button>
@@ -1599,6 +1691,10 @@
                 <button class="pill-btn" onclick="resetTimer()" data-i18n="focus.finish">Закончить</button>
               </div>
             </div>
+            <button id="stepToggle" class="pill-btn disclosure-toggle" onclick="toggleFirstStep()" aria-expanded="false" aria-controls="firstStepRow" data-i18n-aria="focus.steps.aria" aria-label="Первый шаг">
+              <span id="stepSummary" data-i18n="focus.steps.aria">Первый шаг</span>
+              <span class="preset-caret" aria-hidden="true">▾</span>
+            </button>
             <div id="firstStepRow" class="steps-row" role="group" data-i18n-aria="focus.steps.aria" aria-label="Первый шаг"></div>
           </div>
         </div>
@@ -1606,7 +1702,7 @@
           <button class="action-btn" id="completeTaskBtn" onclick="completeActiveTask()">
             Выполнено (+2 в зачет)
           </button>
-          <button class="action-btn-secondary" onclick="resetTimer()" data-i18n="focus.reset">
+          <button class="action-btn-secondary reset-quiet" onclick="resetTimer()" data-i18n="focus.reset">
             Сбросить таймер
           </button>
         </div>
@@ -2731,7 +2827,27 @@
       if (!step) return;
       state.firstStep = state.firstStep === step ? '' : step;
       saveState();
+      stepsOpen = false;
       renderMain();
+    }
+    // --- СВОДКА ПЕРВОГО ШАГА ---
+    // Три чипа шага занимают три строки на телефоне. Под одной кнопкой они не
+    // исчезают: выбор пишется в состояние и виден прямо в сводке.
+    let stepsOpen = false;
+    function toggleFirstStep() {
+      stepsOpen = !stepsOpen;
+      renderStepRow();
+    }
+    function renderStepRow() {
+      const row = document.getElementById('firstStepRow');
+      if (row) row.classList.toggle('open', stepsOpen);
+      const toggle = document.getElementById('stepToggle');
+      if (toggle) {
+        toggle.classList.toggle('open', stepsOpen);
+        toggle.setAttribute('aria-expanded', stepsOpen ? 'true' : 'false');
+      }
+      const summary = document.getElementById('stepSummary');
+      if (summary) summary.textContent = (state && state.firstStep) || t('focus.steps.aria');
     }
     // --- TIMER ORB (считает по абсолютному времени: не плывет в фоне и переживает перезагрузку) ---
     function timerRemainingMs() {
@@ -2813,11 +2929,33 @@
       document.querySelectorAll('.timer-presets [data-min]').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.min) === minutes);
       });
+      renderPresetRow();
+    }
+    // --- СВОДКА РАЗМЕРА ТАЙМЕРА ---
+    // Пять одинаковых кнопок перед стартом — это пять решений вместо одного,
+    // поэтому на узком экране строка живёт за сводкой и закрывается после
+    // выбора. На широком экране кнопка скрыта, строка видна всегда.
+    let presetsOpen = false;
+    function toggleTimerPresets() {
+      presetsOpen = !presetsOpen;
+      renderPresetRow();
+    }
+    function renderPresetRow() {
+      const row = document.getElementById('timerPresets');
+      if (row) row.classList.toggle('open', presetsOpen);
+      const toggle = document.getElementById('presetToggle');
+      if (toggle) {
+        toggle.classList.toggle('open', presetsOpen);
+        toggle.setAttribute('aria-expanded', presetsOpen ? 'true' : 'false');
+      }
+      const summary = document.getElementById('presetSummary');
+      if (summary) summary.textContent = t('focus.presets.summary', { n: Math.round((Number(state.timer.totalMs) || 0) / 60000) });
     }
     function setTimerMinutes(mins) {
       const safe = clampMinutes(mins);
       state.timer = defaultTimer(safe * 60000);
       saveState();
+      presetsOpen = false;
       renderTimer();
     }
     function clampMinutes(value) {
@@ -3948,6 +4086,7 @@
         stepsRow.innerHTML = `<span class="steps-label">${escapeHtml(t('focus.steps.label'))}</span>` +
           (sp.steps || []).map((step, i) => `<button class="pill-btn${state.firstStep === step ? ' active' : ''}" onclick="pickFirstStep(${i})" aria-pressed="${state.firstStep === step}">${escapeHtml(step)}</button>`).join('');
       }
+      renderStepRow();
     }
     // Резерв показывается только там, где он может помочь: когда неделя недобрана
     function renderReserve() {
@@ -4685,7 +4824,7 @@
       'focus.title': ['Точка старта', 'Точка старту', 'Starting point', 'Startpunkt'],
       'focus.switch.aria': ['Какая карточка перед глазами', 'Яка картка перед очима', 'Which card is in front of you', 'Welche Karte vor dir liegt'],
       'focus.hint': ['Выбери текущее состояние ниже. Задача и таймер подстроятся без давления.', 'Вибери поточний стан нижче. Задача й таймер підлаштуються без тиску.', 'Pick the state you are in. The task and the timer adjust without pressure.', 'Wähle deinen jetzigen Zustand. Aufgabe und Timer passen sich ohne Druck an.'],
-      'focus.sphere.switch': ['{name} (сменить)', '{name} (змінити)', '{name} (switch)', '{name} (wechseln)'],
+      'focus.sphere.switch': ['⇄ {name}', '⇄ {name}', '⇄ {name}', '⇄ {name}'],
       'focus.mode.micro': ['Совсем мало сил (+1)', 'Зовсім мало сил (+1)', 'Barely any energy (+1)', 'Kaum Energie (+1)'],
       'focus.mode.draft': ['Немного сил (+2)', 'Трохи сил (+2)', 'Some energy (+2)', 'Etwas Energie (+2)'],
       'focus.mode.wave': ['Полные силы (+3)', 'Повні сили (+3)', 'Full energy (+3)', 'Volle Energie (+3)'],
@@ -4709,6 +4848,7 @@
       'focus.custom.aria': ['Свои минуты таймера', 'Свої хвилини таймера', 'Your own timer length', 'Eigene Minuten'],
       'focus.custom.ok': ['ОК', 'ОК', 'OK', 'OK'],
       'focus.timer.aria.group': ['Длительность таймера', 'Тривалість таймера', 'Timer length', 'Timer-Dauer'],
+      'focus.presets.summary': ['{n} мин', '{n} хв', '{n} min', '{n} Min'],
       'focus.steps.label': ['Первый шаг:', 'Перший крок:', 'First step:', 'Erster Schritt:'],
       'focus.steps.aria': ['Первый шаг', 'Перший крок', 'First step', 'Erster Schritt'],
 

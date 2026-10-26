@@ -502,6 +502,30 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('карточки: в разметке обе кнопки', buttons.join(','), 'start,words');
 }
 
+// --- 15l. Сводки на телефоне: размер таймера и первый шаг ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('сводка размера: свёрнута по умолчанию', q('presetsOpen'), false);
+  q('toggleTimerPresets();');
+  check('сводка размера: раскрылась', q('presetsOpen'), true);
+  q('setTimerMinutes(15);');
+  check('сводка размера: выбор закрыл строку', q('presetsOpen'), false);
+  check('сводка размера: минуты применились', q('Math.round(state.timer.totalMs / 60000)'), 15);
+  check('сводка размера: текст из словаря', q("t('focus.presets.summary', { n: 15 })"), '15 мин');
+  check('сводка шага: свёрнута по умолчанию', q('stepsOpen'), false);
+  q('toggleFirstStep();');
+  check('сводка шага: раскрылась', q('stepsOpen'), true);
+  q('pickFirstStep(1);');
+  check('сводка шага: выбор закрыл строку', q('stepsOpen'), false);
+  check('сводка шага: выбранный шаг в состоянии', q('state.firstStep === currentSphere().steps[1]'), true);
+  check('сводка шага: сводка показывает шаг', q("document.getElementById('stepSummary').textContent === currentSphere().steps[1]"), true);
+  check('сводки: кнопки в разметке', html.includes('id="presetToggle"') && html.includes('id="stepToggle"'), true);
+  check('сводки: строки адресуются по id', html.includes('id="timerPresets"') && html.includes('id="firstStepRow"'), true);
+  // Скрытие живёт в CSS: без этих правил сводки ничего не прячут
+  check('сводки: css держит раскрытие', html.includes('#timerPresets.open') && html.includes('#firstStepRow.open'), true);
+}
+
 // --- 15i. Эмодзи в заметке и в строке дневника ---
 {
   const { ctx } = makeContext(NOW);
@@ -872,7 +896,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('интервью: квота из ответа', q('state.goal'), 20);
   check('интервью: отмечено пройденным', q('state.onboarded'), true);
   check('интервью: индекс на первой сфере', q('state.sphereIndex'), 0);
-  check('интервью: на главной новое имя', q("document.getElementById('sphereBadgeText').textContent"), 'Курс по сетям (сменить)');
+  check('интервью: на главной новое имя', q("document.getElementById('sphereBadgeText').textContent"), '⇄ Курс по сетям');
 
   const saved = JSON.parse(store['flowCorePortfolioV5']);
   check('интервью: результат на диске', saved.spheres.length, 2);
