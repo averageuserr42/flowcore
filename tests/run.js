@@ -525,6 +525,31 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('шаблон: отказ ничего не меняет', q('state.spheres[0].tasks.micro'), 'ручной текст');
 }
 
+// --- 15k. Эмодзи в дневнике и выключатель ряда ---
+{
+  const { ctx, store } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  const diaryMarkup = [...html.matchAll(/pickDiaryEmoji\('([^']+)'\)/g)].map(m => m[1]).join('');
+  check('дневник: ряд эмодзи в разметке', diaryMarkup, q('NOTE_EMOJIS.join("")'));
+  check('дневник: оба ряда в разметке', [html.indexOf('id="taskNoteEmojiRow"') > -1, html.indexOf('id="diaryEmojiRow"') > -1], [true, true]);
+  q("document.getElementById('diaryQuickInput').value = ''; pickDiaryEmoji('💡');");
+  check('дневник: знак попал в поле', q("document.getElementById('diaryQuickInput').value"), '💡 ');
+  q("document.getElementById('diaryQuickInput').value = '💡 понял, зачем нужен флаг'; addQuickDiaryNote();");
+  check('дневник: пометка с эмодзи записана', q('state.logs[0].text'), '💡 понял, зачем нужен флаг');
+  check('эмодзи: по умолчанию ряд включён', q('emojiRowsEnabled()'), true);
+  check('эмодзи: кнопка говорит «Вкл»', q("renderEmojiRows(); document.getElementById('emojiToggleBtn').textContent"), 'Эмодзи: Вкл');
+  q('toggleEmojiRow();');
+  check('эмодзи: выключились', q('emojiRowsEnabled()'), false);
+  check('эмодзи: кнопка говорит «Выкл»', q("document.getElementById('emojiToggleBtn').textContent"), 'Эмодзи: Выкл');
+  check('эмодзи: выбор лёг на диск', JSON.parse(store['flowCorePortfolioV5']).emojiEnabled, false);
+  q('toggleEmojiRow();');
+  check('эмодзи: снова включились', q('emojiRowsEnabled()'), true);
+  const kept = makeContext(NOW, { version: 6, emojiEnabled: false });
+  check('эмодзи: выключенность переживает бэкап', vm.runInContext('emojiRowsEnabled()', kept.ctx), false);
+  const junk = makeContext(NOW, { version: 6, emojiEnabled: 0 });
+  check('эмодзи: только явное false выключает', vm.runInContext('emojiRowsEnabled()', junk.ctx), true);
+}
+
 // --- 16. Мост к следующей сессии ---
 {
   const first = makeContext(NOW, MULTI_SPHERE_PROFILE);

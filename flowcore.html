@@ -142,27 +142,29 @@
       --surface-inner-rgb: 21, 23, 29;
       --surface-deep-rgb: 9, 10, 14;
       --surface-mid-rgb: 18, 19, 26;
-      /* Панель — нейтральный холодный свет: спектр живёт в полосе, а не в фоне,
-         иначе призма читается как ещё один оттенок изумруда. */
-      --accent-rgb: 176, 196, 214;
-      --accent-alt-rgb: 200, 216, 232;
-      --accent-light-rgb: 232, 242, 255;
+      /* Панель — синий вечер: спектр в полосе и в подтоне поверхностей, но без
+         переливания. Цвет есть, движения нет. */
+      --accent-rgb: 138, 178, 255;
+      --accent-alt-rgb: 164, 198, 255;
+      --accent-light-rgb: 214, 228, 255;
       --accent-second-rgb: 255, 176, 74;
-      --text-white-rgb: 242, 246, 250;
-      --tint-bg-rgb: 26, 31, 38;
-      --tint-hover-rgb: 38, 46, 56;
-      --tint-active-rgb: 48, 58, 70;
-      --tint-nav-rgb: 22, 27, 33;
+      --text-white-rgb: 242, 246, 252;
+      --tint-bg-rgb: 28, 36, 54;
+      --tint-hover-rgb: 42, 54, 80;
+      --tint-active-rgb: 54, 68, 100;
+      --tint-nav-rgb: 24, 31, 46;
     }
     html[data-skin="prism"] .glow-card {
-      background-image: linear-gradient(90deg,
-        rgba(44, 230, 102, 0.65) 0%,
-        rgba(255, 176, 74, 0.6) 33%,
-        rgba(44, 197, 230, 0.65) 66%,
-        rgba(168, 120, 255, 0.65) 100%);
-      background-repeat: no-repeat;
-      background-size: 100% 2px;
-      background-position: top left;
+      background-image:
+        linear-gradient(90deg,
+          rgba(44, 230, 102, 0.9) 0%,
+          rgba(255, 176, 74, 0.85) 33%,
+          rgba(44, 197, 230, 0.9) 66%,
+          rgba(168, 120, 255, 0.9) 100%),
+        linear-gradient(180deg, rgba(138, 178, 255, 0.12) 0%, transparent 42%);
+      background-repeat: no-repeat, no-repeat;
+      background-size: 100% 3px, 100% 100%;
+      background-position: top left, top left;
     }
     * {
       box-sizing: border-box;
@@ -1484,7 +1486,7 @@
               data-i18n-ph="focus.note.ph"
               onkeydown="if(event.key === 'Enter') saveTaskNote(); if(event.key === 'Escape') closeTaskNote();"
             />
-            <div class="emoji-row" role="group" data-i18n-aria="focus.note.emoji.aria" aria-label="Быстрые эмодзи">
+            <div id="taskNoteEmojiRow" class="emoji-row" role="group" data-i18n-aria="focus.note.emoji.aria" aria-label="Быстрые эмодзи">
               <button type="button" class="emoji-btn" onclick="pickNoteEmoji('🎯')">🎯</button>
               <button type="button" class="emoji-btn" onclick="pickNoteEmoji('🧠')">🧠</button>
               <button type="button" class="emoji-btn" onclick="pickNoteEmoji('💡')">💡</button>
@@ -1680,6 +1682,16 @@
                 + В дневник
               </button>
             </div>
+            <div id="diaryEmojiRow" class="emoji-row" role="group" data-i18n-aria="focus.note.emoji.aria" aria-label="Быстрые эмодзи">
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('🎯')">🎯</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('🧠')">🧠</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('💡')">💡</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('🧩')">🧩</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('✅')">✅</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('😐')">😐</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('😴')">😴</button>
+              <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('🧘')">🧘</button>
+            </div>
           </div>
           <div id="sparkWrap" class="spark-wrap hidden">
             <div class="spark-label" data-i18n="diary.spark">Последние недели</div>
@@ -1825,6 +1837,16 @@
             <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.gate.hint">«Выполнено» даст очки, только если таймер отработал 5 минут</div>
           </div>
           <button id="timerGateBtn" class="pill-btn" onclick="toggleTimerGate()" data-i18n="sys.gate.off">Строго: Выкл</button>
+        </div>
+        <hr class="green-divider" />
+        <hr class="green-divider" />
+        <!-- 2e. Быстрые эмодзи в заметках: по желанию, по умолчанию включены -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <div style="font-weight: 600; color: var(--text-white);" data-i18n="sys.emoji.title">Быстрые эмодзи</div>
+            <div style="font-size: 13px; color: var(--text-muted);" data-i18n="sys.emoji.hint">Ряд знаков у заметки и в дневнике. Уже поставленные эмодзи остаются на месте.</div>
+          </div>
+          <button id="emojiToggleBtn" class="pill-btn" onclick="toggleEmojiRow()" data-i18n="sys.emoji.on">Эмодзи: Вкл</button>
         </div>
         <hr class="green-divider" />
         <!-- 3. Standalone Gemini API Key -->
@@ -2173,6 +2195,7 @@
         firstStep: '',
         capOffDay: '',
         wordsCollapsed: false,
+        emojiEnabled: true,
         lastStop: null,
         skin: storedSkin(),
         spheres: starterSpheres(),
@@ -2307,6 +2330,7 @@
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
         capOffDay: typeof raw.capOffDay === 'string' ? raw.capOffDay : '',
         wordsCollapsed: raw.wordsCollapsed === true,
+        emojiEnabled: raw.emojiEnabled !== false,
         lastStop: normalizeLastStop(raw.lastStop),
         skin: normalizeSkin(raw.skin || storedSkin()),
         // Всё, что уже сохранено до появления интервью, считается пройденным:
@@ -2885,10 +2909,11 @@
       const btn = document.getElementById('taskNoteBtn');
       if (btn) btn.setAttribute('aria-expanded', 'false');
     }
-    // Эмодзи ставится в позицию курсора: в пустом поле это начало записи,
-    // а если текст уже написан — туда, где человек продолжает писать.
-    function pickNoteEmoji(emoji) {
-      const input = document.getElementById('taskNoteInput');
+    // Один вставщик на два поля: заметка к задаче и быстрая пометка в дневнике.
+    // Знак встаёт в позицию курсора: в пустом поле это начало записи, а если
+    // текст уже написан — туда, где человек продолжает писать.
+    function insertEmoji(inputId, emoji) {
+      const input = document.getElementById(inputId);
       if (!input || !emoji) return;
       const value = String(input.value || '');
       const at = typeof input.selectionStart === 'number' ? input.selectionStart : value.length;
@@ -2896,6 +2921,31 @@
       const caret = at + emoji.length + 1;
       if (typeof input.setSelectionRange === 'function') input.setSelectionRange(caret, caret);
       if (input.focus) input.focus();
+    }
+    function pickNoteEmoji(emoji) { insertEmoji('taskNoteInput', emoji); }
+    function pickDiaryEmoji(emoji) { insertEmoji('diaryQuickInput', emoji); }
+    // Ряд эмодзи — по желанию: выключенный ряд прячется у обоих полей,
+    // но уже записанные знаки в дневнике остаются на месте.
+    function emojiRowsEnabled() {
+      return !state || state.emojiEnabled !== false;
+    }
+    function renderEmojiRows() {
+      const on = emojiRowsEnabled();
+      ['taskNoteEmojiRow', 'diaryEmojiRow'].forEach(id => {
+        const row = document.getElementById(id);
+        if (row) row.classList.toggle('hidden', !on);
+      });
+      const btn = document.getElementById('emojiToggleBtn');
+      if (!btn) return;
+      btn.classList.toggle('active', on);
+      btn.textContent = on ? t('sys.emoji.on') : t('sys.emoji.off');
+    }
+    function toggleEmojiRow() {
+      if (!state) return;
+      state.emojiEnabled = !emojiRowsEnabled();
+      saveState();
+      renderEmojiRows();
+      flashMessage(state.emojiEnabled ? t('sys.emoji.toast.on') : t('sys.emoji.toast.off'));
     }
     function saveTaskNote() {
       const input = document.getElementById('taskNoteInput');
@@ -4349,6 +4399,7 @@
       renderBridge();
       renderTodayLine();
       renderWordsCard();
+      renderEmojiRows();
       renderSystem();
       renderTimer();
       renderBreathe();
@@ -4850,6 +4901,12 @@
       'sys.sphere.template.apply': ['Взять тексты', 'Взяти тексти', 'Use the texts', 'Texte übernehmen'],
       'sys.sphere.template.confirm': ['Заменить задачи и шаги текстами шаблона «{name}»? Название сферы останется твоё.', 'Замінити задачі та кроки текстами шаблону «{name}»? Назва сфери залишиться твоя.', 'Replace the tasks and steps with the texts of “{name}”? The area keeps its name.', 'Aufgaben und Schritte durch die Texte von „{name}“ ersetzen? Der Bereichsname bleibt.'],
       'sys.sphere.template.done': ['Тексты шаблона «{name}» подставлены', 'Тексти шаблону «{name}» підставлено', 'Texts from “{name}” are in place', 'Texte aus „{name}“ sind übernommen'],
+      'sys.emoji.title': ['Быстрые эмодзи', 'Швидкі емодзі', 'Quick emoji', 'Schnelle Emoji'],
+      'sys.emoji.hint': ['Ряд знаков у заметки и в дневнике. Уже поставленные эмодзи остаются на месте.', 'Ряд знаків біля нотатки й у щоденнику. Уже поставлені емодзі залишаються на місці.', 'A row of signs at the note and in the diary. Emoji already written stay where they are.', 'Eine Reihe Zeichen an der Notiz und im Tagebuch. Bereits geschriebene Emoji bleiben stehen.'],
+      'sys.emoji.on': ['Эмодзи: Вкл', 'Емодзі: Увімк', 'Emoji: On', 'Emoji: An'],
+      'sys.emoji.off': ['Эмодзи: Выкл', 'Емодзі: Вимк', 'Emoji: Off', 'Emoji: Aus'],
+      'sys.emoji.toast.on': ['Ряд эмодзи включён', 'Ряд емодзі увімкнено', 'The emoji row is on', 'Die Emoji-Reihe ist an'],
+      'sys.emoji.toast.off': ['Ряд эмодзи скрыт', 'Ряд емодзі приховано', 'The emoji row is hidden', 'Die Emoji-Reihe ist aus'],
       'sys.sphere.removed': ['Сфера удалена', 'Сферу видалено', 'Area deleted', 'Bereich gelöscht'],
       'sys.sphere.step': ['Первый шаг {n}', 'Перший крок {n}', 'First step {n}', 'Erster Schritt {n}'],
       'sys.sphere.mode.micro': ['Совсем мало сил', 'Зовсім мало сил', 'Barely any energy', 'Kaum Energie'],
