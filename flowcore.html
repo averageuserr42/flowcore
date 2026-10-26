@@ -15,7 +15,7 @@
     try {
       var earlySkin = localStorage.getItem('flowCoreSkinV1');
       // Все скины, а не только первые два: иначе кибер и аврора мигали зелёным
-      var earlyMap = { amber: 'amber', cyber: 'cyber', aurora: 'aurora', ice: 'cyber' };
+      var earlyMap = { amber: 'amber', cyber: 'cyber', aurora: 'aurora', prism: 'prism', ice: 'cyber' };
       var earlyTarget = Object.prototype.hasOwnProperty.call(earlyMap, earlySkin) ? earlyMap[earlySkin] : '';
       if (earlyTarget) {
         document.documentElement.setAttribute('data-skin', earlyTarget);
@@ -132,6 +132,37 @@
       --tint-hover-rgb: 52, 38, 80;
       --tint-active-rgb: 62, 46, 96;
       --tint-nav-rgb: 32, 24, 50;
+    }
+    /* Уровень 5: четыре палитры сходятся в одной тонкой полосе по верху карточек.
+       Градиент статичный: движение остаётся «Авроре», иначе два скина спорят
+       за одно и то же внимание. */
+    html[data-skin="prism"] {
+      --void-rgb: 6, 6, 9;
+      --surface-rgb: 14, 15, 20;
+      --surface-inner-rgb: 21, 23, 29;
+      --surface-deep-rgb: 9, 10, 14;
+      --surface-mid-rgb: 18, 19, 26;
+      /* Панель — нейтральный холодный свет: спектр живёт в полосе, а не в фоне,
+         иначе призма читается как ещё один оттенок изумруда. */
+      --accent-rgb: 176, 196, 214;
+      --accent-alt-rgb: 200, 216, 232;
+      --accent-light-rgb: 232, 242, 255;
+      --accent-second-rgb: 255, 176, 74;
+      --text-white-rgb: 242, 246, 250;
+      --tint-bg-rgb: 26, 31, 38;
+      --tint-hover-rgb: 38, 46, 56;
+      --tint-active-rgb: 48, 58, 70;
+      --tint-nav-rgb: 22, 27, 33;
+    }
+    html[data-skin="prism"] .glow-card {
+      background-image: linear-gradient(90deg,
+        rgba(44, 230, 102, 0.65) 0%,
+        rgba(255, 176, 74, 0.6) 33%,
+        rgba(44, 197, 230, 0.65) 66%,
+        rgba(168, 120, 255, 0.65) 100%);
+      background-repeat: no-repeat;
+      background-size: 100% 2px;
+      background-position: top left;
     }
     * {
       box-sizing: border-box;
@@ -349,6 +380,17 @@
       font-size: 12px;
       color: var(--text-muted);
       margin: 8px 0 3px;
+    }
+    .sphere-tpl-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .sphere-tpl-select {
+      flex: 1;
+      padding: 7px 10px;
+      font-size: 13px;
     }
     .sphere-edit-text {
       width: 100%;
@@ -1846,13 +1888,14 @@
     const SKINS = {
       emerald: { name: 'Изумруд', theme: '#030704', minLevel: 1 },
       amber: { name: 'Янтарь', theme: '#070503', minLevel: 3 },
+      prism: { name: 'Призма', theme: '#060609', minLevel: 5 },
       cyber: { name: 'Кибер', theme: '#020609', minLevel: 6 },
       aurora: { name: 'Аврора', theme: '#050409', minLevel: 10 }
     };
     const SKIN_ALIASES = { ice: 'cyber' };
     // Ключи имён — отдельной картой: склейка строки с ключом внутри вызова t()
     // не видна словарному тесту, а здесь каждый ключ лежит целиком и проверяется.
-    const SKIN_KEYS = { emerald: 'skin.emerald', amber: 'skin.amber', cyber: 'skin.cyber', aurora: 'skin.aurora' };
+    const SKIN_KEYS = { emerald: 'skin.emerald', amber: 'skin.amber', prism: 'skin.prism', cyber: 'skin.cyber', aurora: 'skin.aurora' };
     const SKIN_STORAGE = 'flowCoreSkinV1';
     const SKIN_DEFAULT = 'emerald';
     // Мягкий потолок дня: после него записи идут дальше, но очки не растут —
@@ -3917,6 +3960,12 @@
             <button class="pill-btn" onclick="removeSphere(${i})"
               title="${escapeHtml(t('sys.sphere.remove'))}" aria-label="${escapeHtml(t('sys.sphere.remove.aria', { name: sp.name }))}">✖</button>
           </div>
+          <div class="sphere-tpl-row">
+            <select class="clean-input sphere-tpl-select" id="sphereTpl${i}" aria-label="${escapeHtml(t('sys.sphere.template.aria', { n: i + 1 }))}">
+              ${ONBOARD_TEMPLATES.map(tpl => `<option value="${tpl.key}">${escapeHtml(onboardTemplate(tpl.key).label)}</option>`).join('')}
+            </select>
+            <button class="pill-btn" onclick="applySphereTemplate(${i})">${escapeHtml(t('sys.sphere.template.apply'))}</button>
+          </div>
           ${['micro', 'draft', 'wave'].map(mode => `
             <label class="sphere-edit-label">${escapeHtml(t(SPHERE_MODE_KEYS[mode]))}</label>
             <textarea class="clean-input sphere-edit-text" rows="2"
@@ -3953,6 +4002,23 @@
       }
       saveState();
       renderMain();
+    }
+    // Шаблон — заготовка, а не приказ: тексты меняются только после
+    // подтверждения, а имя сферы остаётся своё — его человек выбирал сам.
+    function applySphereTemplate(index) {
+      if (!state || !Array.isArray(state.spheres)) return;
+      const sphere = state.spheres[index];
+      const select = document.getElementById('sphereTpl' + index);
+      if (!sphere || !select) return;
+      const tpl = onboardTemplate(select.value);
+      if (!window.confirm(t('sys.sphere.template.confirm', { name: tpl.label }))) return;
+      const filled = normalizeSphere(tpl.sphere, sphere);
+      sphere.tasks = filled.tasks;
+      sphere.steps = filled.steps;
+      sphere.notes = filled.notes;
+      saveState();
+      renderAll();
+      flashMessage(t('sys.sphere.template.done', { name: tpl.label }));
     }
     function addSphere() {
       if (!state) return;
@@ -4303,6 +4369,18 @@
             tasks: { micro: t('tpl.study.micro'), draft: t('tpl.study.draft'), wave: t('tpl.study.wave') },
             steps: [t('tpl.study.step1'), t('tpl.study.step2'), t('tpl.study.step3')],
             notes: { micro: t('tpl.study.note.micro'), draft: t('tpl.study.note.draft'), wave: t('tpl.study.note.wave') }
+          }
+        })
+      },
+      {
+        key: 'course',
+        build: () => ({
+          label: t('tpl.course.label'),
+          sphere: {
+            name: t('tpl.course.name'),
+            tasks: { micro: t('tpl.course.micro'), draft: t('tpl.course.draft'), wave: t('tpl.course.wave') },
+            steps: [t('tpl.course.step1'), t('tpl.course.step2'), t('tpl.course.step3')],
+            notes: { micro: t('tpl.course.note.micro'), draft: t('tpl.course.note.draft'), wave: t('tpl.course.note.wave') }
           }
         })
       },
@@ -4755,6 +4833,7 @@
       'skin.emerald': ['Изумруд', 'Смарагд', 'Emerald', 'Smaragd'],
       'skin.amber': ['Янтарь', 'Бурштин', 'Amber', 'Bernstein'],
       'skin.cyber': ['Кибер', 'Кібер', 'Cyber', 'Cyber'],
+      'skin.prism': ['Призма', 'Призма', 'Prism', 'Prisma'],
       'skin.aurora': ['Аврора', 'Аврора', 'Aurora', 'Aurora'],
       'toast.skin': ['Скин: {name}', 'Скін: {name}', 'Skin: {name}', 'Skin: {name}'],
       'toast.skin.locked': ['{name} откроется на {n} уровне', '{name} відкриється на {n} рівні', '{name} unlocks at level {n}', '{name} schaltet auf Level {n} frei'],
@@ -4767,6 +4846,10 @@
       'sys.sphere.remove.confirm': ['Удалить сферу «{name}»?', 'Видалити сферу «{name}»?', 'Delete the area “{name}”?', 'Bereich „{name}“ löschen?'],
       'sys.sphere.needOne': ['Нужна хотя бы одна сфера', 'Потрібна хоча б одна сфера', 'At least one area has to stay', 'Mindestens ein Bereich muss bleiben'],
       'sys.sphere.added': ['Сфера добавлена', 'Сферу додано', 'Area added', 'Bereich hinzugefügt'],
+      'sys.sphere.template.aria': ['Шаблон текстов для сферы {n}', 'Шаблон текстів для сфери {n}', 'Template texts for area {n}', 'Vorlagentexte für Bereich {n}'],
+      'sys.sphere.template.apply': ['Взять тексты', 'Взяти тексти', 'Use the texts', 'Texte übernehmen'],
+      'sys.sphere.template.confirm': ['Заменить задачи и шаги текстами шаблона «{name}»? Название сферы останется твоё.', 'Замінити задачі та кроки текстами шаблону «{name}»? Назва сфери залишиться твоя.', 'Replace the tasks and steps with the texts of “{name}”? The area keeps its name.', 'Aufgaben und Schritte durch die Texte von „{name}“ ersetzen? Der Bereichsname bleibt.'],
+      'sys.sphere.template.done': ['Тексты шаблона «{name}» подставлены', 'Тексти шаблону «{name}» підставлено', 'Texts from “{name}” are in place', 'Texte aus „{name}“ sind übernommen'],
       'sys.sphere.removed': ['Сфера удалена', 'Сферу видалено', 'Area deleted', 'Bereich gelöscht'],
       'sys.sphere.step': ['Первый шаг {n}', 'Перший крок {n}', 'First step {n}', 'Erster Schritt {n}'],
       'sys.sphere.mode.micro': ['Совсем мало сил', 'Зовсім мало сил', 'Barely any energy', 'Kaum Energie'],
@@ -4900,6 +4983,17 @@
       'tpl.study.note.micro': ['Сейчас достаточно просто коснуться темы.', 'Зараз достатньо просто торкнутися теми.', 'For now it is enough just to touch the topic.', 'Im Moment reicht es, das Thema nur zu berühren.'],
       'tpl.study.note.draft': ['Идёт в зачёт недели, даже если получилось мало.', 'Іде в залік тижня, навіть якщо зробив мало.', 'It counts towards the week, even if little got done.', 'Es zählt für die Woche, auch wenn nur wenig geschah.'],
       'tpl.study.note.wave': ['Остановиться по сигналу важнее, чем досидеть.', 'Зупинитися за сигналом важливіше, ніж досидіти.', 'Stopping at the signal matters more than sitting it out.', 'Beim Signal zu stoppen zählt mehr als Auszuharren.'],
+      'tpl.course.label': ['Курс и задания', 'Курс і завдання', 'Course work', 'Kurs und Aufgaben'],
+      'tpl.course.name': ['Курс и задания', 'Курс і завдання', 'Course work', 'Kurs und Aufgaben'],
+      'tpl.course.micro': ['Открыть раздел курса и прочитать только заголовки (2-5 мин)', 'Відкрити розділ курсу й прочитати лише заголовки (2-5 хв)', 'Open the course module and read only the headings (2-5 min)', 'Kursmodul öffnen und nur die Überschriften lesen (2-5 Min)'],
+      'tpl.course.draft': ['Разобрать один вопрос или пройти пять вопросов теста не спеша', 'Розібрати одне питання або пройти п’ять питань тесту не поспішаючи', 'Work through one question, or five quiz items without rushing', 'Eine Frage durcharbeiten oder fünf Testfragen ohne Eile beantworten'],
+      'tpl.course.wave': ['Один шаг лабораторной или конспект по одной теме (30 мин)', 'Один крок лабораторної або конспект по одній темі (30 хв)', 'One lab step, or notes on a single topic (30 min)', 'Ein Laborschritt oder Notizen zu einem Thema (30 Min)'],
+      'tpl.course.step1': ['Открыть конспект на последней странице', 'Відкрити конспект на останній сторінці', 'Open the notes where you stopped', 'Notizen an der letzten Seite öffnen'],
+      'tpl.course.step2': ['Выписать три вопроса по теме', 'Виписати три питання по темі', 'Write down three questions about the topic', 'Drei Fragen zum Thema notieren'],
+      'tpl.course.step3': ['Записать, что осталось непонятным', 'Записати, що залишилося незрозумілим', 'Write down what stayed unclear', 'Notieren, was unklar geblieben ist'],
+      'tpl.course.note.micro': ['Нулевое давление: задача — только коснуться темы на пару минут.', 'Нульовий тиск: завдання — лише торкнутися теми на кілька хвилин.', 'No pressure: the task is just to touch the topic for a couple of minutes.', 'Kein Druck: die Aufgabe ist nur, das Thema ein paar Minuten zu berühren.'],
+      'tpl.course.note.draft': ['Правило 5 минут: если не пошло, можно закрыть без вины.', 'Правило 5 хвилин: якщо не пішло, можна закрити без провини.', 'Five minute rule: if it does not go, closing it costs nothing.', 'Fünf-Minuten-Regel: läuft es nicht, kostet Schließen nichts.'],
+      'tpl.course.note.wave': ['Защита от выгорания: перерыв по сигналу таймера.', 'Захист від вигорання: перерва за сигналом таймера.', 'Burnout guard: take the break when the timer signals.', 'Schutz vor Ausbrennen: Pause, sobald der Timer es signalisiert.'],
       'tpl.code.label': ['Код и проекты', 'Код і проєкти', 'Code and projects', 'Code und Projekte'],
       'tpl.code.name': ['Код и проекты', 'Код і проєкти', 'Code and projects', 'Code und Projekte'],
       'tpl.code.micro': ['Открыть проект и посмотреть, где остановился (2-5 мин)', 'Відкрити проєкт і подивитися, де зупинився (2-5 хв)', 'Open the project and see where you stopped (2-5 min)', 'Projekt öffnen und sehen, wo du stehengeblieben bist (2-5 Min)'],

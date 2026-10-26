@@ -511,6 +511,20 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('дневник: обычный текст не меняется', q("logTextHtml('просто запись')"), 'просто запись');
 }
 
+// --- 15j. Шаблон подставляется в готовую сферу ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.spheres[0].name = 'Курс по сетям'; state.spheres[0].tasks.micro = 'старый текст';", );
+  q("document.getElementById('sphereTpl0').value = 'course'; window.confirm = () => true; applySphereTemplate(0);");
+  check('шаблон: задача заменена', q('state.spheres[0].tasks.micro'), q('onboardTemplate("course").sphere.tasks.micro'));
+  check('шаблон: шаги заменены', q('state.spheres[0].steps[0]'), q('onboardTemplate("course").sphere.steps[0]'));
+  check('шаблон: заметки заменены', q('state.spheres[0].notes.wave'), q('onboardTemplate("course").sphere.notes.wave'));
+  check('шаблон: имя сферы осталось своё', q('state.spheres[0].name'), 'Курс по сетям');
+  q("state.spheres[0].tasks.micro = 'ручной текст'; window.confirm = () => false; applySphereTemplate(0);");
+  check('шаблон: отказ ничего не меняет', q('state.spheres[0].tasks.micro'), 'ручной текст');
+}
+
 // --- 16. Мост к следующей сессии ---
 {
   const first = makeContext(NOW, MULTI_SPHERE_PROFILE);
@@ -577,8 +591,11 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const { ctx, store } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
   check('скин по умолчанию', q('state.skin'), 'emerald');
-  check('в наборе четыре скина', q('Object.keys(SKINS).length'), 4);
+  check('в наборе пять скинов', q('Object.keys(SKINS).length'), 5);
   check('пороги: янтарь на 3 уровне', q('SKINS.amber.minLevel'), 3);
+  check('пороги: призма на 5', q('SKINS.prism.minLevel'), 5);
+  check('призма сидит между янтарём и кибером', q('[SKINS.amber.minLevel, SKINS.prism.minLevel, SKINS.cyber.minLevel]'), [3, 5, 6]);
+  check('у призмы своя полоса в шапке', html.indexOf('[data-skin="prism"] .glow-card') > -1, true);
   check('пороги: кибер на 6, аврора на 10', q('[SKINS.cyber.minLevel, SKINS.aurora.minLevel]'), [6, 10]);
   check('на первом уровне изумруд открыт', q('skinUnlocked("emerald")'), true);
   check('на первом уровне янтарь заперт', q('skinUnlocked("amber")'), false);
@@ -792,7 +809,11 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('старт: интервью не пройдено', q('state.onboarded'), false);
   check('старт: дневник пуст', q('state.logs.length'), 0);
   check('старт: очки не начислены', q('state.points'), 0);
-  check('старт: шаблонов семь', q('ONBOARD_TEMPLATES.length'), 7);
+  check('старт: шаблонов восемь', q('ONBOARD_TEMPLATES.length'), 8);
+  check('старт: есть шаблон под курс', q("onboardTemplate('course').label"), 'Курс и задания');
+  check('старт: курс по-немецки', q("uiLang = 'de'; onboardTemplate('course').label"), 'Kurs und Aufgaben');
+  q("uiLang = 'ru';");
+  check('старт: у курса три шага', q('onboardTemplate("course").sphere.steps.length'), 3);
   check('старт: все шаблоны со своими задачами', q('ONBOARD_TEMPLATES.every(tpl => { const s = tpl.build().sphere; return s.tasks.micro && s.tasks.micro.length > 3 && s.steps.length === 3; })'), true);
   check('старт: у каждого шаблона есть имя', q('ONBOARD_TEMPLATES.every(tpl => tpl.build().label && tpl.build().sphere.name)'), true);
   // Шаблоны собираются из словаря: сырой ключ вроде tpl.study.micro не должен попасть в сферу
@@ -877,6 +898,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('ранний скин: янтарь ставится до загрузки', runEarly('amber'), 'amber');
   check('ранний скин: кибер ставится до загрузки', runEarly('cyber'), 'cyber');
   check('ранний скин: аврора ставится до загрузки', runEarly('aurora'), 'aurora');
+  check('ранний скин: призма ставится до загрузки', runEarly('prism'), 'prism');
   check('ранний скин: старое имя ice ведёт в кибер', runEarly('ice'), 'cyber');
   check('ранний скин: мусор не ломает шапку', runEarly('constructor'), '');
 }
