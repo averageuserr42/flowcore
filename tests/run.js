@@ -582,11 +582,38 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   q("state.logs = []; state.points = 0; quickDiaryEntry('diary.chip.chest.text', 'signal');");
   check('чип: запись добавлена', q('state.logs.length'), 1);
   check('чип: тип сигнала', q('state.logs[0].type'), 'signal');
-  check('чип: очко начислено', q('state.logs[0].pts'), 1);
+  check('чип: очков не даёт', q('state.logs[0].pts'), 0);
+  check('чип: в зачёт недели не идёт', q('state.points'), 0);
   check('чип: заголовок строки — сигнал', q('state.logs[0].kind'), q("t('log.kind.signal')"));
   q("quickDiaryEntry('diary.chip.pause.text', 'stop');");
   check('чип остановки: тип stop', q('state.logs[0].type'), 'stop');
   check('чип остановки: заголовок — остановка', q('state.logs[0].kind'), q("t('log.kind.stop')"));
+  check('чип остановки: тоже без очков', q('state.points'), 0);
+}
+
+// --- 15h2b. Дневник: заголовок дня и фильтр по типу ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  const day = 24 * 60 * 60 * 1000;
+  q(`state.logs = [
+    { id: 3, ts: ${NOW}, time: '3', kind: 'k', text: 'сегодня', pts: 1, type: 'action' },
+    { id: 2, ts: ${NOW} - 60000, time: '2', kind: 'k', text: 'сегодня раньше', pts: 0, type: 'signal' },
+    { id: 1, ts: ${NOW} - ${day}, time: '1', kind: 'k', text: 'вчера', pts: 0, type: 'stop' }
+  ];`);
+  check('дни: две группы на три записи', q('groupLogsByDay(state.logs).length'), 2);
+  check('дни: порядок внутри дня сохранён', q('groupLogsByDay(state.logs)[0].items.map(l => l.id).join()'), '3,2');
+  check('дни: вчера во второй группе', q('groupLogsByDay(state.logs)[1].items[0].id'), 1);
+  check('дни: сегодня подписано', q('dayLabel(state.logs[0].ts)'), q("t('diary.day.today')"));
+  check('дни: вчера подписано', q('dayLabel(state.logs[2].ts)'), q("t('diary.day.yesterday')"));
+  check('дни: запись без времени — без даты', q('dayLabel(0)'), q("t('diary.day.unknown')"));
+  check('дни: запись без ts не падает', q("groupLogsByDay([{ id: 9, time: '1', kind: 'k', text: 'x' }])[0].key"), 'nodate');
+  check('фильтр: только сигналы', q("filterLogs(state.logs, 'signal').length"), 1);
+  check('фильтр: всё — весь список', q("filterLogs(state.logs, 'all').length"), 3);
+  check('фильтр: пустой тип даёт пусто', q("filterLogs(state.logs, 'note').length"), 0);
+  check('фильтр: пять кнопок в разметке', (html.match(/data-filter="/g) || []).length, 5);
+  check('фильтр: кнопка переключает ленту', q("setDiaryFilter('stop'); document.getElementById('logList').innerHTML.includes('вчера')"), true);
+  check('дни: заголовок дня в ленте', q("setDiaryFilter('all'); document.getElementById('logList').innerHTML.indexOf('day-head') > -1"), true);
 }
 
 // --- 15h3. Значок типа в готовой строке дневника ---
@@ -638,16 +665,20 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
     [...html.matchAll(/id="nav-(?:main|diary|breathe|system)"[^>]*>\s*<span class="nav-label"/g)].length, 4);
   check('навигация: счётчик дневника отдельной цифрой', /class="nav-count" id="diaryCount"/.test(html), true);
 
-  // Полоса внизу живёт только на телефоне: на десктопе навигация остаётся в шапке
-  check('навигация: на телефоне полоса прижата к низу',
-    /\.header-nav \{[^}]*position: fixed[^}]*bottom: 0/.test(html), true);
+  // Полоса внизу живёт только на телефоне: на десктопе навигация остаётся в шапке.
+  // На телефоне она стоит в колонке последней, а не висит оверлеем: иначе её
+  // край резал кнопку «Выполнено» и прятал нижние контролы карточки
+  check('навигация: на телефоне полоса последняя в колонке',
+    /\.header-nav \{[^}]*position: static[^}]*order: 2/.test(html), true);
   check('навигация: вкладки делят ширину, а не переносятся',
     /\.nav-btn \{[^}]*flex: 1 1 0/.test(html), true);
   check('навигация: цель касания 54 px', /\.nav-btn \{[^}]*min-height: 54px/.test(html), true);
-  check('навигация: шапка на телефоне не липнет',
-    /\.top-header \{\s*position: static/.test(html), true);
-  check('навигация: контент не уезжает под полосу',
-    /\.stage-container \{[^}]*padding: 20px 14px calc\(86px/.test(html), true);
+  check('навигация: шапка на телефоне отдаёт место колонке',
+    /\.top-header \{\s*display: contents/.test(html), true);
+  check('навигация: прокручивается только середина',
+    /\.stage-container \{[^}]*overflow-y: auto/.test(html), true);
+  check('навигация: середина занимает остаток высоты',
+    /\.stage-container \{[^}]*flex: 1 1 auto/.test(html), true);
   check('навигация: тост отмены поднят над полосой',
     /#undoToast \{[^}]*bottom: calc\(68px/.test(html), true);
 
@@ -750,6 +781,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('дневник: знак попал в поле', q("document.getElementById('diaryQuickInput').value"), '💡 ');
   q("document.getElementById('diaryQuickInput').value = '💡 понял, зачем нужен флаг'; addQuickDiaryNote();");
   check('дневник: пометка с эмодзи записана', q('state.logs[0].text'), '💡 понял, зачем нужен флаг');
+  check('дневник: пометка не даёт очков', q('state.logs[0].pts'), 0);
   check('эмодзи: по умолчанию ряд включён', q('emojiRowsEnabled()'), true);
   check('эмодзи: кнопка говорит «Вкл»', q("renderEmojiRows(); document.getElementById('emojiToggleBtn').textContent"), 'Эмодзи: Вкл');
   q('toggleEmojiRow();');

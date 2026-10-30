@@ -749,19 +749,37 @@
     }
     /* Телефон: компактная шапка в одну строку навигации и меньше отступов */
     @media (max-width: 600px) {
-      /* Навигация теперь внизу: липкая шапка на телефоне только отнимала место.
-         backdrop-filter убираем сознательно: он делает шапку "контейнером",
-         и вложенная в неё полоса с position: fixed прибивалась бы к шапке,
-         а не к экрану */
+      /* Телефон — одна колонка во весь экран: шапка сверху, разделы в
+         середине, навигация снизу. Полоса занимает место в колонке, а не
+         лежит поверх: оверлеем она резала кнопку «Выполнено» и прятала под
+         собой нижние контролы карточки */
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+      }
+      /* Шапка перестаёт быть коробкой: её части сами становятся элементами
+         колонки и получают своё место — сверху и снизу */
       .top-header {
-        position: static;
-        padding: 10px 12px;
-        gap: 10px;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
+        display: contents;
       }
       .header-left {
-        flex: 1 1 100%;
+        order: 0;
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(var(--surface-deep-rgb, 6, 14, 9), 0.82);
+        border-bottom: 1px solid rgba(var(--accent-alt-rgb), 0.22);
+      }
+      .header-left {
+        /* Не тянется по высоте: в колонке процентная основа читалась как
+           «займи весь экран», и шапка съедала четверть телефона */
+        flex: 0 0 auto;
         flex-wrap: wrap;
         gap: 10px;
       }
@@ -802,10 +820,9 @@
       /* Навигация уезжает вниз: четыре раздела в одной полосе под большим
          пальцем, шапка освобождается и больше не липнет к верху */
       .header-nav {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        position: static;
+        order: 2;
+        flex: 0 0 auto;
         z-index: 32;
         gap: 0;
         padding: 0 2px env(safe-area-inset-bottom, 0px);
@@ -864,10 +881,19 @@
       .nav-new {
         margin-left: 4px;
       }
-      /* Место под полосой навигации: последняя кнопка не уезжает под неё */
+      /* Середина колонки — единственное, что прокручивается; полоса уже
+         стоит внизу и больше ничего не перекрывает */
       .stage-container {
-        padding: 20px 14px calc(86px + env(safe-area-inset-bottom, 0px));
-        min-height: calc(100vh - 70px);
+        order: 1;
+        flex: 1 1 auto;
+        min-height: 0;
+        /* Обычный поток: вертикальное центрирование в прокручиваемой
+           коробке срезает верх длинной карточки, и до него не доскроллить */
+        display: block;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 20px 14px 24px;
       }
       /* Тост отмены поднимается над полосой, а не прячется за ней.
          По id — базовое правило тоста идёт ниже по файлу и иначе победит */
@@ -1305,15 +1331,39 @@
       border: none;
     }
     /* Log Rows */
+    /* Лента дневника живёт вместе со страницей: вложенный скролл на телефоне
+       перехватывает палец и прячет конец списка, а дни и так отделены
+       заголовками, поэтому коробке внутри коробки делать нечего */
     .log-scroll {
-      max-height: 310px;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
       padding-right: 4px;
-      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
-      mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
+    }
+    /* Заголовок дня: тонкая линия до конца строки вместо второй рамки */
+    .day-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0 0;
+      font-family: var(--font-heading);
+      font-size: 11.5px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .day-head::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(var(--accent-alt-rgb), 0.2);
+    }
+    /* Фильтр по типу записи: типы уже лежат в каждой строке, здесь только выбор */
+    .diary-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .log-type {
       flex: 0 0 18px;
@@ -1499,6 +1549,13 @@
         display: block;
         min-height: 0;
         padding: 0;
+      }
+      /* На бумаге колонка не нужна: обычный поток и никакой обрезки */
+      html,
+      body {
+        display: block;
+        height: auto;
+        overflow: visible;
       }
       .single-card-wrap {
         max-width: none;
@@ -1852,6 +1909,13 @@
               <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('😴')">😴</button>
               <button type="button" class="emoji-btn" onclick="pickDiaryEmoji('🧘')">🧘</button>
             </div>
+          </div>
+          <div id="diaryFilters" class="diary-filters" role="group" data-i18n-aria="diary.filter.aria" aria-label="Фильтр записей">
+            <button class="pill-btn active" data-filter="all" aria-pressed="true" onclick="setDiaryFilter('all')" data-i18n="diary.filter.all">Все</button>
+            <button class="pill-btn" data-filter="action" aria-pressed="false" onclick="setDiaryFilter('action')" data-i18n="diary.filter.action">Шаги</button>
+            <button class="pill-btn" data-filter="signal" aria-pressed="false" onclick="setDiaryFilter('signal')" data-i18n="diary.filter.signal">Сигналы</button>
+            <button class="pill-btn" data-filter="stop" aria-pressed="false" onclick="setDiaryFilter('stop')" data-i18n="diary.filter.stop">Остановки</button>
+            <button class="pill-btn" data-filter="note" aria-pressed="false" onclick="setDiaryFilter('note')" data-i18n="diary.filter.note">Заметки</button>
           </div>
           <div id="sparkWrap" class="spark-wrap hidden">
             <div class="spark-label" data-i18n="diary.spark">Последние недели</div>
@@ -2812,7 +2876,10 @@
       currentSection = sec;
       if (sec === 'diary') markDiarySeen();
       renderDiaryBadge();
-      // Смена раздела — это переход, а не прокрутка: новый экран с начала
+      // Смена раздела — это переход, а не прокрутка: новый экран с начала.
+      // На телефоне прокручивается середина колонки, на компьютере — окно.
+      const stage = document.querySelector('.stage-container');
+      if (stage) stage.scrollTop = 0;
       if (window.scrollTo) window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
     // Липкая шапка: при прокрутке поджимается, но навигация остаётся на виду
@@ -3229,16 +3296,19 @@
     // Чип сразу пишет в дневник с готовым типом: иначе симптом уходил
     // бы в раздел «заметки» и отчёт для врача терял разницу между шагом,
     // телесным сигналом и ранним стопом.
+    // Чип — это память, а не работа: ощущение остаётся описанием, а не
+    // наградой за описание. Очки приносит только подтверждённое время, иначе
+    // десять секунд тапов по симптомам стоили бы дороже получаса работы.
     function quickDiaryEntry(textKey, type) {
-      const awarded = addLogEntry(t(LOG_TYPE_KINDS[type] || 'log.kind.note'), t(textKey), 1, type);
-      flashMessage(awarded ? t('toast.awarded', { n: awarded }) : t('diary.note.capped'));
+      addLogEntry(t(LOG_TYPE_KINDS[type] || 'log.kind.note'), t(textKey), 0, type);
+      flashMessage(t('diary.note.added'));
     }
     function addQuickDiaryNote() {
       const input = document.getElementById('diaryQuickInput');
       const text = input.value.trim() || t('diary.note.default');
-      const awarded = addLogEntry(t('diary.note.kind'), text, 1, 'note');
+      addLogEntry(t('diary.note.kind'), text, 0, 'note');
       input.value = '';
-      flashMessage(awarded ? t('diary.note.added') : t('diary.note.capped'));
+      flashMessage(t('diary.note.added'));
     }
     function findLog(id) {
       const inCurrent = state.logs.findIndex(l => l.id === id);
@@ -4197,13 +4267,47 @@
       const glyph = LOG_TYPE_GLYPHS[item.type] || LOG_TYPE_GLYPHS.note;
       return `<span class="log-type" aria-hidden="true">${glyph}</span>`;
     }
-    function renderDiary() {
-      const list = document.getElementById('logList');
-      if (state.logs.length === 0) {
-        list.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 24px;">${escapeHtml(t('diary.empty'))}</div>`;
-        return;
-      }
-      list.innerHTML = state.logs.map(item => `
+    // --- ДНЕВНИК: ДНИ, А НЕ ЛЕНТА ---
+    // Записи одного дня стоят под одним заголовком: через месяц дневник ищут
+    // по дате, а не по памяти о том, что было между двумя строками.
+    const DIARY_FILTERS = ['all', 'action', 'signal', 'stop', 'note'];
+    let diaryFilter = 'all';
+    function logTypeOf(item) {
+      return (item && (item.type || inferLogType(item.kind, item.text))) || 'note';
+    }
+    function filterLogs(logs, filter) {
+      const all = logs || [];
+      if (!filter || filter === 'all') return all.slice();
+      return all.filter(item => logTypeOf(item) === filter);
+    }
+    // Соседние записи одного дня — одна группа; порядок внутри дня не меняется
+    function groupLogsByDay(logs) {
+      const groups = [];
+      let current = null;
+      (logs || []).forEach(item => {
+        const ts = Number(item.ts);
+        const key = Number.isFinite(ts) && ts > 0 ? dayKey(new Date(ts)) : 'nodate';
+        if (!current || current.key !== key) {
+          current = { key, ts: key === 'nodate' ? 0 : ts, items: [] };
+          groups.push(current);
+        }
+        current.items.push(item);
+      });
+      return groups;
+    }
+    function dayLabel(ts) {
+      if (!ts) return t('diary.day.unknown');
+      const key = dayKey(new Date(ts));
+      if (key === dayKey(new Date())) return t('diary.day.today');
+      if (key === dayKey(new Date(Date.now() - DAY_MS))) return t('diary.day.yesterday');
+      return new Date(ts).toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'long' });
+    }
+    function setDiaryFilter(key) {
+      diaryFilter = DIARY_FILTERS.indexOf(key) >= 0 ? key : 'all';
+      renderDiary();
+    }
+    function logRowHtml(item) {
+      return `
         <div class="log-row">
           ${logTypeBadge(item)}
           <div style="flex: 1;">
@@ -4213,15 +4317,34 @@
             <div style="color: var(--text-white); font-size: 14.5px;">${logTextHtml(item.text)}</div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <!-- НОВАЯ КНОПКА УДАЛЕНИЯ -->
             <button class="pill-btn" style="padding: 2px 8px; font-size: 11px; color: #ff5555; border-color: rgba(255,85,85,0.3);" onclick="deleteLogEntry(${item.id})" title="${escapeHtml(t('diary.delete'))}">✖</button>
-            
             <button class="pill-btn" style="padding: 2px 8px; font-size: 11px;" onclick="appendNoteToLog(${item.id})" title="${escapeHtml(t('diary.edit.title'))}">✎</button>
             <span style="font-family: var(--font-heading); font-weight: 700; color: var(--green-title); white-space: nowrap;">
               ${item.pts > 0 ? '+' + item.pts : ''}
             </span>
           </div>
-        </div>
+        </div>`;
+    }
+    function renderDiary() {
+      const list = document.getElementById('logList');
+      document.querySelectorAll('#diaryFilters [data-filter]').forEach(btn => {
+        const on = btn.dataset.filter === diaryFilter;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      const all = state.logs || [];
+      if (all.length === 0) {
+        list.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 24px;">${escapeHtml(t('diary.empty'))}</div>`;
+        return;
+      }
+      const shown = filterLogs(all, diaryFilter);
+      if (shown.length === 0) {
+        list.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 24px;">${escapeHtml(t('diary.filter.empty'))}</div>`;
+        return;
+      }
+      list.innerHTML = groupLogsByDay(shown).map(group => `
+        <div class="day-head">${escapeHtml(dayLabel(group.ts))}</div>
+        ${group.items.map(logRowHtml).join('')}
       `).join('');
     }
     function notificationsSupported() {
@@ -5048,14 +5171,24 @@
       'diary.undo.restore': ['Вернуть', 'Повернути', 'Restore', 'Zurückholen'],
       'diary.undo.more': ['Вернули. Ещё в стеке: {n}', 'Повернули. Ще в стеку: {n}', 'Restored. Still in the stack: {n}', 'Zurückgeholt. Noch im Stapel: {n}'],
       'diary.undo.restored': ['Запись восстановлена', 'Запис відновлено', 'Entry restored', 'Eintrag wiederhergestellt'],
+      // Дни в ленте: дата — заголовок, а не повод запоминать строки
+      'diary.day.today': ['Сегодня', 'Сьогодні', 'Today', 'Heute'],
+      'diary.day.yesterday': ['Вчера', 'Учора', 'Yesterday', 'Gestern'],
+      'diary.day.unknown': ['Без даты', 'Без дати', 'No date', 'Ohne Datum'],
+      'diary.filter.aria': ['Фильтр записей по типу', 'Фільтр записів за типом', 'Filter entries by type', 'Einträge nach Typ filtern'],
+      'diary.filter.all': ['Все', 'Усі', 'All', 'Alle'],
+      'diary.filter.action': ['Шаги', 'Кроки', 'Steps', 'Schritte'],
+      'diary.filter.signal': ['Сигналы', 'Сигнали', 'Signals', 'Signale'],
+      'diary.filter.stop': ['Остановки', 'Зупинки', 'Stops', 'Stopps'],
+      'diary.filter.note': ['Заметки', 'Нотатки', 'Notes', 'Notizen'],
+      'diary.filter.empty': ['Записей этого типа пока нет', 'Записів цього типу ще немає', 'No entries of this type yet', 'Noch keine Einträge dieses Typs'],
       'diary.note.default': ['Короткая отметка в дневнике', 'Коротка позначка в щоденнику', 'A short diary note', 'Kurze Tagebuchnotiz'],
       'diary.note.kind': ['Заметка', 'Нотатка', 'Note', 'Notiz'],
       'log.kind.action': ['Шаг', 'Крок', 'Step', 'Schritt'],
       'log.kind.signal': ['Сигнал', 'Сигнал', 'Signal', 'Signal'],
       'log.kind.stop': ['Остановка', 'Зупинка', 'Stop', 'Stopp'],
       'log.kind.note': ['Заметка', 'Нотатка', 'Note', 'Notiz'],
-      'diary.note.added': ['Добавлено в дневник (+1)', 'Додано в щоденник (+1)', 'Added to the diary (+1)', 'Ins Tagebuch aufgenommen (+1)'],
-      'diary.note.capped': ['Добавлено. День закрыт — без очков', 'Додано. День закрито — без очок', 'Added. The day is capped — no points', 'Hinzugefügt. Tag voll — ohne Punkte'],
+      'diary.note.added': ['Добавлено в дневник', 'Додано в щоденник', 'Added to the diary', 'Ins Tagebuch aufgenommen'],
       'diary.edit.prompt': ['Добавить или изменить комментарий к записи:', 'Додати або змінити коментар до запису:', 'Add or edit a comment on the entry:', 'Kommentar zum Eintrag ergänzen oder ändern:'],
       'diary.edit.saved': ['Запись обновлена', 'Запис оновлено', 'Entry updated', 'Eintrag aktualisiert'],
       'diary.edit.title': ['Дописать или изменить текст', 'Дописати або змінити текст', 'Add to or edit the text', 'Text ergänzen oder ändern'],
