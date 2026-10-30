@@ -8,7 +8,7 @@
 
 *Русская версия: [README.ru.md](README.ru.md).*
 
-Pick one of your areas, say how much energy you have today, and do a single five-minute step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 340 KB HTML file: no build, no server, no dependencies.
+Pick one of your areas, say how much energy you have today, and do a single short step. Points collect over the week, a missed day takes nothing away, and an early stop counts as rest, not as failure. The whole app is one 340 KB HTML file: no build, no server, no dependencies.
 
 ## What it does
 
@@ -19,7 +19,7 @@ If you are in a hurry:
 - A missed day costs nothing: points live on the week, not the day.
 - Your diary stays in the browser: no account, no server, works offline.
 
-**Three levels of energy.** Barely any, some, full. The level picks which task is in front of you and how long the timer starts; it no longer decides the points. Every area keeps its own task for each level, so you never invent the wording again.
+**Three levels of energy.** Barely any, some, full. The level picks the task and starts the timer at the length that buys its price: 5, 15 and 30 minutes. Every area keeps its own task for each level, so you never invent the wording again.
 
 **Points are the time you confirm, not the mood you picked.** A confirmed stretch gives one point for every ten minutes, rounded: 5–14 minutes give 1, 15–24 give 2, 25 and more give 3, and an hour is still 3. Under five minutes gives nothing, so the five-minute rule keeps its own reward. The button says the amount before you press it: the timer sets the price, not a dropdown.
 
@@ -29,7 +29,7 @@ If you are in a hurry:
 
 **A quick note in the diary, and a small mark on every row.** Six chips — a work step, stopped in time, fog or fatigue, tightness in the chest, shallow breathing, good focus — write an entry in one tap with its own type, so the doctor report keeps steps, body signals and early stops apart. Every row also carries a small type mark (a step, a signal, a stop, a note) whenever the entry has no emoji of its own. The separate "In your own words" card is gone: it did the same job as this block but paid differently for the same act, and one place to write is enough.
 
-**On a phone, two summary buttons.** The row of timer lengths and the three first-step chips fold behind "5 min ▾" and "First step ▾": they open in place, close after a choice, and the summary keeps the current value. Every target grows to 40 px, and the primary action to 44, so nothing has to be aimed at on a bad day. The four sections themselves move into a 54 px bar along the bottom, the current one marked by a line; the header stops sticking and a new section opens from the top. The diary tab carries a dot, not a number: it appears only when something was written since you last opened the diary, and goes out the moment you do.
+**On a phone, two summary buttons.** The row of timer lengths and the three first-step chips fold behind a button with the current length and "First step ▾": they open in place, close after a choice, and the summary keeps the current value. Every target grows to 40 px, and the primary action to 44, so nothing has to be aimed at on a bad day. The four sections themselves move into a 54 px bar along the bottom, the current one marked by a line; the header stops sticking and a new section opens from the top. The diary tab carries a dot, not a number: it appears only when something was written since you last opened the diary, and goes out the moment you do.
 
 **A bridge after stopping.** If you stopped yesterday, a line at the top says where, with one button that starts five minutes from that exact place. Coming back does not require remembering where you were.
 
@@ -120,7 +120,7 @@ On Windows, `FlowCore.cmd` does the same from a double click.
 node tests/run.js
 ```
 
-There are **480 checks**: week rollover and the archive, migration of older backups, the lock, points from confirmed time, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the quick chips and their types, the type mark in the diary rows, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
+There are **488 checks**: week rollover and the archive, migration of older backups, the lock, points from confirmed time, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the quick chips and their types, the type mark in the diary rows, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
 The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
