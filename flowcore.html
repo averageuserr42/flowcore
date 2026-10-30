@@ -2204,8 +2204,9 @@
     const LOG_TYPE_GLYPHS = { action: '⚡', signal: '🌡️', stop: '⏸️', note: '💬' };
     const LOG_TYPE_KINDS = { action: 'log.kind.action', signal: 'log.kind.signal', stop: 'log.kind.stop', note: 'log.kind.note' };
     const SPHERE_MODE_KEYS = { micro: 'sys.sphere.mode.micro', draft: 'sys.sphere.mode.draft', wave: 'sys.sphere.mode.wave' };
+    // Длина — это цена режима: 5 / 15 / 30 минут дают 1 / 2 / 3 очка.
     // 45 минут вызывали отторжение — теперь верхняя граница 30
-    const modeTimers = { micro: 5, draft: 5, wave: 30 };
+    const modeTimers = { micro: 5, draft: 15, wave: 30 };
     const TIMER_MAX_MINUTES = 180;
     let logIdSeq = 0;
     let state = null;                               // появляется после загрузки или разблокировки

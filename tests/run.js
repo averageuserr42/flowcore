@@ -284,10 +284,10 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
 {
   const { ctx } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
-  check('минуты: 0 -> 5 (по умолчанию)', q('clampMinutes(0)'), 5);
+  check('минуты: 0 -> 15 (длина среднего режима)', q('clampMinutes(0)'), 15);
   check('минуты: 500 -> 180', q('clampMinutes(500)'), 180);
   check('минуты: 25 -> 25', q('clampMinutes(25)'), 25);
-  check('минуты: мусор -> 5', q('clampMinutes("abc")'), 5);
+  check('минуты: мусор -> 15', q('clampMinutes("abc")'), 15);
   check('верхняя граница стоп-крана 30 минут', q('modeTimers.wave'), 30);
   check('градация тепла: 0', q('heatLevel(0)'), 0);
   check('градация тепла: 2', q('heatLevel(2)'), 1);
@@ -518,6 +518,21 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   // Подписи режимов больше не обещают очков
   check('режимы: подпись без числа', q("t('focus.mode.micro')"), 'Совсем мало сил');
   check('режимы: в разметке нет обещаний очков', html.indexOf('(+3)') === -1, true);
+
+  // Режим сам ставит длину, которая стоит его цену
+  check('длина режима: мало сил — 5 минут', q('modeTimers.micro'), 5);
+  check('длина режима: немного сил — 15 минут', q('modeTimers.draft'), 15);
+  check('длина режима: полные силы — 30 минут', q('modeTimers.wave'), 30);
+  q("setMode('micro');");
+  check('выбор режима: мало сил ставит 5 минут', q('Math.round(state.timer.totalMs / 60000)'), 5);
+  q("setMode('draft');");
+  check('выбор режима: немного сил ставит 15 минут', q('Math.round(state.timer.totalMs / 60000)'), 15);
+  q("setMode('wave');");
+  check('выбор режима: полные силы ставят 30 минут', q('Math.round(state.timer.totalMs / 60000)'), 30);
+  check('цена длины совпадает с ценой режима',
+    q('[pointsForSession(modeTimers.micro * 60000), pointsForSession(modeTimers.draft * 60000), pointsForSession(modeTimers.wave * 60000)].join()'),
+    '1,2,3');
+  check('сброс длины возвращает средний режим', q('clampMinutes(0)'), 15);
 
   // Карточка «своими словами» убрана, её теги живут в дневнике
   check('слова: карточки больше нет', /id="wordsCard"/.test(html), false);
