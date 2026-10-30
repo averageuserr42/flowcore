@@ -19,13 +19,15 @@ If you are in a hurry:
 - A missed day costs nothing: points live on the week, not the day.
 - Your diary stays in the browser: no account, no server, works offline.
 
-**Three levels of energy.** Barely any (+1), some (+2), full (+3). Every area keeps its own task for each level, so you never invent the wording again.
+**Three levels of energy.** Barely any, some, full. The level picks which task is in front of you and how long the timer starts; it no longer decides the points. Every area keeps its own task for each level, so you never invent the wording again.
+
+**Points are the time you confirm, not the mood you picked.** A confirmed stretch gives one point for every ten minutes, rounded: 5–14 minutes give 1, 15–24 give 2, 25 and more give 3, and an hour is still 3. Under five minutes gives nothing, so the five-minute rule keeps its own reward. The button says the amount before you press it: the timer sets the price, not a dropdown.
 
 **A first step instead of "go work".** Each task comes with three concrete physical actions: open the editor, read the last paragraph, write down one question. Five minutes count as work even if you stop right there.
 
 **A note on the task itself.** The pencil next to the task opens a line right there, with eight emoji that insert into the text. The note lands in the diary under the area's name and gives no points: it is memory, not a finished step. The row of emoji is optional and switches off in System; the quick note in the diary offers the same eight signs.
 
-**Two cards, one switch.** "Starting point" and "In your own words" trade places through a switch above them: the chosen card takes the whole width, the other waits one tap away, and the choice is remembered. On a phone that is one screen instead of a scroll.
+**A quick note in the diary, and a small mark on every row.** Six chips — a work step, stopped in time, fog or fatigue, tightness in the chest, shallow breathing, good focus — write an entry in one tap with its own type, so the doctor report keeps steps, body signals and early stops apart. Every row also carries a small type mark (a step, a signal, a stop, a note) whenever the entry has no emoji of its own. The separate "In your own words" card is gone: it did the same job as this block but paid differently for the same act, and one place to write is enough.
 
 **On a phone, two summary buttons.** The row of timer lengths and the three first-step chips fold behind "5 min ▾" and "First step ▾": they open in place, close after a choice, and the summary keeps the current value. Every target grows to 40 px, and the primary action to 44, so nothing has to be aimed at on a bad day. The four sections themselves move into a 54 px bar along the bottom, the current one marked by a line; the header stops sticking and a new section opens from the top. The diary tab carries a dot, not a number: it appears only when something was written since you last opened the diary, and goes out the moment you do.
 
@@ -33,7 +35,7 @@ If you are in a hurry:
 
 **A week, not a day.** Points collect over the week (12 by default, adjustable). A missed day resets nothing, and the week closes into the archive on its own. The panel shows a heat map for the last 12 weeks and a chart of recent weeks.
 
-**A soft cap of 8 points a day.** Past it, notes keep going in and points stop growing, so the length of work stops being the only reward. On a day that is going well the cap can be lifted until midnight with one click on the today line; the next day it is back on its own. An optional strict mode gives points only for the time the timer actually ran.
+**A soft cap of 8 points a day.** Past it, notes keep going in and points stop growing, so the length of work stops being the only reward. On a day that is going well the cap can be lifted until midnight with one click on the today line; the next day it is back on its own. An optional strict mode refuses the button until the timer has run five minutes; without it a short note still goes into the diary, it just brings no points.
 
 **A level for all time.** 10 experience points make a level, counted from every point you ever earned, so a new week does not burn it. Levels unlock skins: emerald (1), amber (3), prism (5), cyber (6), aurora (10). Each one changes the whole palette, the background pulse included; prism turns the panel blue-violet and gives each card a thin static line of all four palettes.
 
@@ -43,7 +45,7 @@ If you are in a hurry:
 
 **Breathing: two techniques and a background.** "Calm exhale 4/6" runs for a minute. "A five-minute sigh" is two breaths in through the nose and one long breath out through the mouth, which is what takes the edge off acute anxiety when a minute is not enough. Next to it sits a brown noise generator with a volume slider. The noise is computed in the browser, so there are no files and no network. On a phone the sound stops when the screen locks, which makes this a tool for five or ten minutes, not for falling asleep.
 
-**Diary and export.** Notes in one tap, a summary built locally, an AI summary if you add your own Gemini key, the whole diary copied as text, and a week exported as `.md` with YAML front matter that Obsidian reads as is.
+**Diary and export.** Notes in one tap with a type mark on every row, a summary built locally, an AI summary if you add your own Gemini key, the whole diary copied as text, and a week exported as `.md` with YAML front matter that Obsidian reads as is.
 
 **Your own areas and wording.** The first run asks three questions: what is on your mind, how many points a week, what to call the main thing. One button skips all three and leaves two neutral areas, one thing of your own and rest, both in the interface language. Names, tasks and steps are edited in the panel afterwards.
 
@@ -118,7 +120,7 @@ On Windows, `FlowCore.cmd` does the same from a double click.
 node tests/run.js
 ```
 
-There are **462 checks**: week rollover and the archive, migration of older backups, the lock, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the card switch, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
+There are **480 checks**: week rollover and the archive, migration of older backups, the lock, points from confirmed time, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the quick chips and their types, the type mark in the diary rows, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
 The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
