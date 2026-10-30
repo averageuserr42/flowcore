@@ -21,7 +21,7 @@ If you are in a hurry:
 
 **Three levels of energy.** Barely any, some, full. The level picks the task and starts the timer at the length that buys its price: 5, 15 and 30 minutes. Every area keeps its own task for each level, so you never invent the wording again.
 
-**Points are the time you confirm, not the mood you picked.** A confirmed stretch gives one point for every ten minutes, rounded: 5–14 minutes give 1, 15–24 give 2, 25 and more give 3, and an hour is still 3. Under five minutes gives nothing, so the five-minute rule keeps its own reward. The button says the amount before you press it: the timer sets the price, not a dropdown.
+**Points are the time you confirm, not the mood you picked.** A confirmed stretch gives one point for every ten minutes, rounded: 5–14 minutes give 1, 15–24 give 2, 25 and more give 3, and an hour is still 3. Under five minutes gives nothing, so the five-minute rule keeps its own reward. The button says the amount before you press it: the timer sets the price, not a dropdown. A finished stretch writes itself into the diary when you take another one or reset the timer, so worked minutes are never lost; Done mid-stretch still records what you have at that moment.
 
 **A first step instead of "go work".** Each task comes with three concrete physical actions: open the editor, read the last paragraph, write down one question. Five minutes count as work even if you stop right there.
 
@@ -120,7 +120,7 @@ On Windows, `FlowCore.cmd` does the same from a double click.
 node tests/run.js
 ```
 
-There are **488 checks**: week rollover and the archive, migration of older backups, the lock, points from confirmed time, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the quick chips and their types, the type mark in the diary rows, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
+There are **502 checks**: week rollover and the archive, migration of older backups, the lock, points from confirmed time, the daily cap and lifting it for a day, level and skins, the reserve, the rest bonus, the quick chips and their types, the type mark in the diary rows, the phone summaries, the task note and its emoji set, breathing techniques and their phases, noise under the master sound switch, Markdown export, the area editor, the first-run interview, and the dictionary in four languages (every key from the markup and the code exists, plurals go through `Intl.PluralRules`). The tests cut the script out of the real `flowcore.html`, so they check the file the browser actually opens.
 
 The same checks run on GitHub Actions for every push and pull request, see `.github/workflows/tests.yml`. There is no build, so the job is three steps.
 
