@@ -198,7 +198,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('строгий режим: запись не появилась', q('state.logs.length'), 0);
   q("state.timer.ranMs = 5 * 60000;");
   q("completeActiveTask();");
-  check('строгий режим: после 5 минут очки есть', q('state.points'), 2);
+  check('строгий режим: после 5 минут очки есть', q('state.points'), 1);
   check('строгий режим: запись появилась', q('state.logs.length'), 1);
   check('строгий режим: счетчик времени сброшен', q('state.timer.ranMs'), 0);
   check('тип у новой записи', q('state.logs[0].type'), 'action');
@@ -335,10 +335,10 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const q = expr => vm.runInContext(expr, ctx);
   q("state.mode = 'draft'; state.logs = []; state.points = 0; pickFirstStep(0);");
   check('первый шаг выбран', q('state.firstStep'), 'Достать нужное');
-  q('completeActiveTask();');
+  q('state.timer.ranMs = 5 * 60000; completeActiveTask();');
   check('шаг попал в текст записи', q("state.logs[0].text.includes('первый шаг')"), true);
   check('после записи шаг пуст', q('state.firstStep'), '');
-  check('очки начислены', q('state.points'), 2);
+  check('очки начислены', q('state.points'), 1);
 }
 
 // --- 13. Отрезок — шаг, а не финиш: минуты в логе и продолжение ---
@@ -349,7 +349,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   q("state.mode = 'wave'; state.logs = []; state.points = 0; setTimerMinutes(15); toggleTimer(); state.timer.ranMs = 15 * 60000; completeActiveTask();");
   check('отрезок виден в записи', q("state.logs[0].text.includes('отрезок 15 мин')"), true);
   check('минуты отрезка сохранены', q('state.logs[0].spentMs'), 900000);
-  check('очки за отрезок', q('state.points'), 3);
+  check('очки за отрезок', q('state.points'), 2);
   check('сегодня: одна отметка', q('todayStats().count'), 1);
   check('сегодня: 15 минут', q('todayStats().ms'), 900000);
   q('continueTimer(30)');
@@ -384,21 +384,22 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   q('state.logs = []; state.weeks = []; state.points = 0; state.mode = \'wave\';');
   check('пустой день: очков 0', q('pointsToday()'), 0);
   check('пустой день: осталось 8', q('remainingPointsToday()'), 8);
-  q('state.timer.ranMs = 60000; completeActiveTask();');
-  check('первый отрезок: 3 очка', q('state.points'), 3);
-  q('state.timer.ranMs = 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
+  check('полчаса: 3 очка', q('state.points'), 3);
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('второй отрезок: 6 очков', q('state.points'), 6);
-  q('state.timer.ranMs = 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('третий отрезок урезан до потолка', q('state.points'), 8);
   check('в записи стоит реально начисленное', q('state.logs[0].pts'), 2);
   check('после потолка осталось 0', q('remainingPointsToday()'), 0);
-  q('state.timer.ranMs = 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('сверх потолка очков не дают', q('state.points'), 8);
   check('но запись сохранена', q('state.logs[0].kind'), 'Своё дело');
   check('в записи ноль очков', q('state.logs[0].pts'), 0);
   check('дневник не потерял отметку', q('state.logs.length'), 4);
   q('state.logs = []; state.points = 0; state.timer.ranMs = 0; completeActiveTask();');
-  check('после уборки журнала счёт снова свободен', q('remainingPointsToday()'), 5);
+  check('после уборки журнала счёт снова свободен', q('remainingPointsToday()'), 8);
+  check('короткая сессия очков не даёт', q('state.logs[0].pts'), 0);
 }
 
 // --- 15b. Вчерашние очки не съедают сегодняшний потолок ---
@@ -421,7 +422,10 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const q = expr => vm.runInContext(expr, ctx);
   q("state.logs = []; state.weeks = []; state.points = 0; state.mode = 'wave'; state.capOffDay = '';");
   check('потолок: по умолчанию включён', q('capOffToday()'), false);
-  q('state.timer.ranMs = 60000; completeActiveTask(); completeActiveTask(); completeActiveTask();');
+  // Сессия обнуляет счётчик времени: перед каждым нажатием он ставится заново
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('потолок: три отрезка дают 8', q('state.points'), 8);
   q('toggleCapOff();');
   check('потолок: снят на сегодня', q('capOffToday()'), true);
@@ -429,12 +433,12 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('потолок: снятие легло на диск', JSON.parse(store['flowCorePortfolioV5']).capOffDay, '2026-10-24');
   // Infinity через JSON.stringify становится null, поэтому сравниваем предикатом
   check('потолок: места не ограничено', q('remainingPointsToday() === Infinity'), true);
-  q('state.timer.ranMs = 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('потолок: сверх восьми начисляют', q('state.points'), 11);
   check('потолок: в записи полные три очка', q('state.logs[0].pts'), 3);
   q('toggleCapOff();');
   check('потолок: вернули — снова режет', q('remainingPointsToday()'), 0);
-  q('state.timer.ranMs = 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('потолок: после возврата очков нет', q('state.points'), 11);
   q("state.capOffDay = '2026-10-01';");
   check('потолок: вчерашнее снятие не действует', q('capOffToday()'), false);
@@ -446,7 +450,7 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   const { ctx } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
   q("state.logs = []; state.weeks = []; state.points = 0; state.capOffDay = '';");
-  q('state.timer.ranMs = 60000; completeActiveTask();');
+  q('state.timer.ranMs = 30 * 60000; completeActiveTask();');
   check('строка дня: переключатель на месте', q("renderTodayLine(); document.getElementById('todayLine').innerHTML.indexOf('toggleCapOff()') > -1"), true);
   check('строка дня: пока с потолком', q("document.getElementById('todayLine').innerHTML.indexOf('Снять потолок на сегодня') > -1"), true);
   q('toggleCapOff();');
@@ -494,31 +498,62 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('дневник: строка без очков не показывает +0', q("document.getElementById('logList').innerHTML.indexOf('+0')"), -1);
 }
 
-// --- 15h. Карточки переключаются по кнопке, выбор запоминается ---
+// --- 15h. Очки за время, а не за выбранные силы ---
 {
-  const { ctx, store } = makeContext(NOW);
+  const { ctx } = makeContext(NOW);
   const q = expr => vm.runInContext(expr, ctx);
-  check('карточки: по умолчанию точка старта', q('state.focusCard'), 'start');
-  // classList в заглушке пустой, поэтому пишем вызовы и смотрим, что дошло до сетки
-  q("globalThis.__cls = []; globalThis.__grid = { classList: { toggle: (c, on) => __cls.push(c + ':' + on) } };");
-  q("document.querySelector = sel => sel === '.main-grid' ? __grid : null;");
-  q('renderFocusCard();');
-  check('карточки: старт помечен на сетке', q('__cls.join()'), 'focus-start:true,focus-words:false');
-  q("setFocusCard('words');");
-  check('карточки: переключились на слова', q('state.focusCard'), 'words');
-  check('карточки: выбор лёг на диск', JSON.parse(store['flowCorePortfolioV5']).focusCard, 'words');
-  check('карточки: слова помечены на сетке', q('__cls.slice(-2).join()'), 'focus-start:false,focus-words:true');
-  q("setFocusCard('что-то');");
-  check('карточки: незнакомое имя возвращает старт', q('state.focusCard'), 'start');
-  const kept = makeContext(NOW, { version: 6, focusCard: 'words' });
-  check('карточки: выбор переживает бэкап', vm.runInContext('state.focusCard', kept.ctx), 'words');
-  const junk = makeContext(NOW, { version: 6, focusCard: 'да' });
-  check('карточки: мусор в поле — старт', vm.runInContext('state.focusCard', junk.ctx), 'start');
-  // Скрытие живёт в CSS: без этих правил переключатель ничего не переключает
-  check('карточки: css прячет точку старта', /\.main-grid\.focus-words #startCard \{\s*display: none/.test(html), true);
-  check('карточки: css прячет слова', /\.main-grid\.focus-start #wordsCard \{\s*display: none/.test(html), true);
-  const buttons = [...html.matchAll(/setFocusCard\('([a-z]+)'\)/g)].map(m => m[1]);
-  check('карточки: в разметке обе кнопки', buttons.join(','), 'start,words');
+  check('очки: 4 минуты — ноль', q('pointsForSession(4 * 60000)'), 0);
+  check('очки: 5 минут — одно', q('pointsForSession(5 * 60000)'), 1);
+  check('очки: 15 минут — два', q('pointsForSession(15 * 60000)'), 2);
+  check('очки: 30 минут — три', q('pointsForSession(30 * 60000)'), 3);
+  check('очки: час не даёт больше трёх', q('pointsForSession(60 * 60000)'), 3);
+  check('очки: режим не влияет на цену', q("state.mode = 'wave'; [pointsForSession(15 * 60000), pointsForSession(15 * 60000)].join()"), '2,2');
+
+  // Кнопка называет то, что получится, до нажатия
+  q('state.timer.ranMs = 0; renderCompleteButton();');
+  check('кнопка: без времени обещает ноль', q("document.getElementById('completeTaskBtn').textContent"), q("t('focus.complete.short', { n: 5 })"));
+  q('state.timer.ranMs = 15 * 60000; renderCompleteButton();');
+  check('кнопка: за 15 минут обещает +2', q("document.getElementById('completeTaskBtn').textContent"), q("t('focus.complete', { n: 2 })"));
+
+  // Подписи режимов больше не обещают очков
+  check('режимы: подпись без числа', q("t('focus.mode.micro')"), 'Совсем мало сил');
+  check('режимы: в разметке нет обещаний очков', html.indexOf('(+3)') === -1, true);
+
+  // Карточка «своими словами» убрана, её теги живут в дневнике
+  check('слова: карточки больше нет', /id="wordsCard"/.test(html), false);
+  check('слова: переключатель убран', /id="focusTabWords"/.test(html), false);
+  check('слова: поле freeform убрано', /id="freeformInput"/.test(html), false);
+  check('теги: симптом в дневнике', /quickDiaryEntry\('diary\.chip\.chest\.text', 'signal'\)/.test(html), true);
+  check('теги: остановка пишется как stop', /quickDiaryEntry\('diary\.chip\.pause\.text', 'stop'\)/.test(html), true);
+}
+
+// --- 15h2. Быстрая пометка: один тап — одна запись со своим типом ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.logs = []; state.points = 0; quickDiaryEntry('diary.chip.chest.text', 'signal');");
+  check('чип: запись добавлена', q('state.logs.length'), 1);
+  check('чип: тип сигнала', q('state.logs[0].type'), 'signal');
+  check('чип: очко начислено', q('state.logs[0].pts'), 1);
+  check('чип: заголовок строки — сигнал', q('state.logs[0].kind'), q("t('log.kind.signal')"));
+  q("quickDiaryEntry('diary.chip.pause.text', 'stop');");
+  check('чип остановки: тип stop', q('state.logs[0].type'), 'stop');
+  check('чип остановки: заголовок — остановка', q('state.logs[0].kind'), q("t('log.kind.stop')"));
+}
+
+// --- 15h3. Значок типа в готовой строке дневника ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  check('значок: четыре типа', q("Object.keys(LOG_TYPE_GLYPHS).join()"), 'action,signal,stop,note');
+  q("state.logs = []; addLogEntry('k', 'шаг', 1, 'action'); addLogEntry('k', 'сигнал', 1, 'signal'); addLogEntry('k', 'стоп', 1, 'stop'); addLogEntry('k', 'заметка', 1, 'note'); renderDiary();");
+  const list = q("document.getElementById('logList').innerHTML");
+  check('значок: шаг', list.indexOf('⚡') > -1, true);
+  check('значок: сигнал', list.indexOf('🌡️') > -1, true);
+  check('значок: остановка', list.indexOf('⏸️') > -1, true);
+  check('значок: заметка', list.indexOf('💬') > -1, true);
+  check('значок: css объявлен', html.includes('.log-type'), true);
+  check('значок: свой эмодзи важнее типа', q("(() => { state.logs = [{ id: 1, ts: Date.now(), time: '1', kind: 'k', text: '🎯 разобрал', pts: 1, type: 'action' }]; renderDiary(); return document.getElementById('logList').innerHTML.indexOf('log-type'); })()"), -1);
 }
 
 // --- 15l. Сводки на телефоне: размер таймера и первый шаг ---

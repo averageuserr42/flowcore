@@ -490,7 +490,7 @@
       justify-content: center;
       padding: 36px 24px 56px 24px;
     }
-    /* Одна карточка за раз: переключатель решает, какая перед глазами */
+    /* Одна карточка: таймер, задача и заметка */
     .main-grid {
       width: 100%;
       max-width: 820px;
@@ -498,50 +498,6 @@
       grid-template-columns: 1fr;
       gap: 22px;
       align-items: stretch;
-    }
-    /* Переключатель карточек: выбранная занимает ширину, вторая в одном нажатии */
-    .focus-switch {
-      grid-column: 1 / -1;
-      justify-self: center;
-      display: flex;
-      gap: 4px;
-      padding: 4px;
-      border-radius: 999px;
-      background: rgba(var(--surface-inner-rgb), 0.9);
-      border: 1px solid var(--green-border);
-    }
-    .focus-tab {
-      font-family: var(--font-body);
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 999px;
-      padding: 7px 18px;
-      cursor: pointer;
-      transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    }
-    .focus-tab:hover {
-      color: var(--text-white);
-    }
-    .focus-tab.active {
-      color: var(--text-white);
-      background: rgba(var(--tint-nav-rgb), 0.85);
-      box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.22);
-    }
-    @media (max-width: 600px) {
-      .focus-tab {
-        padding: 7px 13px;
-        font-size: 12.5px;
-      }
-    }
-    /* Неактивная карточка остаётся в разметке: состояние, поля и таймер живут */
-    .main-grid.focus-start #wordsCard {
-      display: none;
-    }
-    .main-grid.focus-words #startCard {
-      display: none;
     }
     @media (max-width: 860px) {
       .top-header {
@@ -779,13 +735,6 @@
       line-height: 1;
       margin-right: 5px;
       vertical-align: -2px;
-    }
-    /* Карточка «своими словами» держит кнопки у нижнего края */
-    .words-card {
-      justify-content: flex-start;
-    }
-    .words-card > div:last-child {
-      margin-top: auto;
     }
     /* Left Card: Circular Timer & Active Task (Matches Circular Glasses Icon Layout) */
     .focus-hero {
@@ -1026,12 +975,6 @@
     .disclosure-toggle.open .preset-caret {
       transform: rotate(180deg);
     }
-    @media (max-width: 360px) {
-      .focus-tab {
-        padding: 7px 9px;
-        font-size: 12px;
-      }
-    }
     .note-btn {
       padding: 0;
       width: 34px;
@@ -1063,13 +1006,11 @@
       /* Цели касания: 40 px обычным, 44 px главному действию (Apple 44 pt) */
       .pill-btn:not(.tiny),
       .nav-btn,
-      .focus-tab,
       .emoji-btn,
       .action-btn,
       .action-btn-secondary {
         min-height: 40px;
       }
-      .focus-tab,
       #completeTaskBtn {
         min-height: 44px;
       }
@@ -1374,6 +1315,14 @@
       -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
       mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
     }
+    .log-type {
+      flex: 0 0 18px;
+      font-size: 15px;
+      line-height: 1.35;
+      text-align: center;
+      opacity: 0.9;
+      user-select: none;
+    }
     .log-row {
       background: var(--bg-card-inner);
       border: 1px solid rgba(var(--accent-alt-rgb), 0.22);
@@ -1489,7 +1438,6 @@
     /* Доступность */
     .timer-orb:focus-visible,
     .pill-btn:focus-visible,
-    .focus-tab:focus-visible,
     .emoji-btn:focus-visible,
     .nav-btn:focus-visible,
     .action-btn:focus-visible,
@@ -1679,14 +1627,9 @@
   </header>
   <!-- MAIN WORKSPACE STAGE -->
   <main class="stage-container">
-    <!-- 1. MAIN VIEW: ONE CARD AT A TIME, CHOSEN BY THE SWITCH -->
-    <section id="view-main" class="main-grid focus-start">
-      <!-- ПЕРЕКЛЮЧАТЕЛЬ: две карточки не стоят рядом, одна сменяет другую -->
-      <div class="focus-switch" role="group" data-i18n-aria="focus.switch.aria" aria-label="Какая карточка перед глазами">
-        <button id="focusTabStart" class="focus-tab active" onclick="setFocusCard('start')" aria-pressed="true" data-i18n="focus.title">Точка старта</button>
-        <button id="focusTabWords" class="focus-tab" onclick="setFocusCard('words')" aria-pressed="false" data-i18n="words.title">Своими словами</button>
-      </div>
-      <!-- LEFT CARD: CURRENT FOCUS & TIMER ORB -->
+    <!-- 1. MAIN VIEW: TIMER, TASK AND NOTE ON ONE CARD -->
+    <section id="view-main" class="main-grid">
+      <!-- ЕДИНСТВЕННАЯ КАРТОЧКА: таймер, задача и заметка -->
       <div class="glow-card" id="startCard">
         <div>
           <p class="card-subtext" data-i18n="focus.hint">
@@ -1695,9 +1638,9 @@
           <!-- State Pill Switcher: слева силы, справа сфера (она тише по цвету) -->
           <div class="mode-row">
             <div class="pill-row">
-              <button id="mode-micro" class="pill-btn" onclick="setMode('micro')" data-i18n="focus.mode.micro">Совсем мало сил (+1)</button>
-              <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')" data-i18n="focus.mode.draft">Немного сил (+2)</button>
-              <button id="mode-wave" class="pill-btn" onclick="setMode('wave')" data-i18n="focus.mode.wave">Полные силы (+3)</button>
+              <button id="mode-micro" class="pill-btn" onclick="setMode('micro')" data-i18n="focus.mode.micro">Совсем мало сил</button>
+              <button id="mode-draft" class="pill-btn active" onclick="setMode('draft')" data-i18n="focus.mode.draft">Немного сил</button>
+              <button id="mode-wave" class="pill-btn" onclick="setMode('wave')" data-i18n="focus.mode.wave">Полные силы</button>
             </div>
             <button class="pill-btn sphere-pill" onclick="cycleSphere()" data-i18n-title="focus.sphere.title" title="Переключить сферу">
               <span id="sphereBadgeText">Код и песочница</span>
@@ -1806,41 +1749,6 @@
           </button>
         </div>
       </div>
-      <!-- SECOND CARD: IN YOUR OWN WORDS ("СВОИМИ СЛОВАМИ") -->
-      <div class="glow-card words-card" id="wordsCard">
-        <div>
-          <p class="card-subtext" style="margin-top: 0;" data-i18n="words.hint">
-            Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.
-          </p>
-          <!-- Pill Tags (Matches Windows | Linux | Git | Netzwerke pills) -->
-          <div class="pill-row">
-            <button class="pill-btn" onclick="addTagKey('words.tag.minutes')" data-i18n="words.tag.minutes">+ 5-10 мин</button>
-            <button class="pill-btn" onclick="addTagKey('words.tag.chest')" data-i18n="words.tag.chest">+ слабый ком в груди</button>
-            <button class="pill-btn" onclick="addTagKey('words.tag.fog')" data-i18n="words.tag.fog">+ туман в голове</button>
-            <button class="pill-btn" onclick="addTagKey('words.tag.breath')" data-i18n="words.tag.breath">+ поверхн. дыхание</button>
-            <button class="pill-btn" onclick="addTagKey('words.tag.stopped')" data-i18n="words.tag.stopped">+ вовремя остановился</button>
-          </div>
-          <input
-            id="freeformInput"
-            type="text"
-            class="clean-input"
-            placeholder="Например: поработал 5-10 мин, слабый ком в груди, решил остановиться..."
-            data-i18n-ph="words.placeholder"
-            onkeydown="if(event.key === 'Enter') saveFreeform(t('words.stop.kind'), 2, 'stop')"
-          />
-        </div>
-        <div>
-          <hr class="green-divider" />
-          <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
-            <button class="action-btn" onclick="saveFreeform(t('words.stop.kind'), 2, 'stop')" data-i18n="words.stop">
-              Вовремя остановился (+2)
-            </button>
-            <button class="action-btn-secondary" onclick="saveFreeform(t('words.signal.kind'), 1, 'signal')" data-i18n="words.signal">
-              Записать симптом (+1)
-            </button>
-          </div>
-        </div>
-      </div>
       <!-- ПРОГРЕСС: тепловая карта за 12 недель -->
       <div class="glow-card progress-card">
         <div class="progress-head">
@@ -1913,10 +1821,12 @@
               Быстрая пометка в дневник (можно в 1 клик или парой слов)
             </div>
             <div class="pill-row" style="margin-bottom: 10px;">
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.work.text'))" data-i18n="diary.chip.work">⚡ Рабочий шаг</button>
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.pause.text'))" data-i18n="diary.chip.pause">⏸ Вовремя пауза</button>
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.fog.text'))" data-i18n="diary.chip.fog">🌫 Туман / усталость</button>
-              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryChip(t('diary.chip.focus.text'))" data-i18n="diary.chip.focus">🟢 Хороший фокус</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryEntry('diary.chip.work.text', 'action')" data-i18n="diary.chip.work">⚡ Рабочий шаг</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryEntry('diary.chip.pause.text', 'stop')" data-i18n="diary.chip.pause">⏸️ Вовремя остановился</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryEntry('diary.chip.fog.text', 'signal')" data-i18n="diary.chip.fog">💤 Туман / усталость</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryEntry('diary.chip.chest.text', 'signal')" data-i18n="diary.chip.chest">💢 Ком в груди</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryEntry('diary.chip.breath.text', 'signal')" data-i18n="diary.chip.breath">🌬️ Поверхн. дыхание</button>
+              <button class="pill-btn" style="font-size: 12px; padding: 4px 10px;" onclick="quickDiaryEntry('diary.chip.focus.text', 'action')" data-i18n="diary.chip.focus">🟢 Хороший фокус</button>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <input
@@ -2278,7 +2188,21 @@
         : 0;
       return list[index];
     }
-    const modePoints = { micro: 1, draft: 2, wave: 3 };
+    const MODES = ['micro', 'draft', 'wave'];
+    // Очки считаются от отработанного времени, а не от выбранных сил:
+    // сессия короче пяти минут не даёт ничего, дальше — по очку за каждые
+    // десять минут, но не больше трёх за сессию.
+    const SESSION_MIN_MINUTES = 5;
+    const SESSION_POINT_MINUTES = 10;
+    const SESSION_POINTS_CAP = 3;
+    function pointsForSession(ms) {
+      const minutes = Math.max(0, Number(ms) || 0) / 60000;
+      if (minutes < SESSION_MIN_MINUTES) return 0;
+      return Math.max(1, Math.min(SESSION_POINTS_CAP, Math.round(minutes / SESSION_POINT_MINUTES)));
+    }
+    // Значок типа записи: список дневника читается без чтения текста
+    const LOG_TYPE_GLYPHS = { action: '⚡', signal: '🌡️', stop: '⏸️', note: '💬' };
+    const LOG_TYPE_KINDS = { action: 'log.kind.action', signal: 'log.kind.signal', stop: 'log.kind.stop', note: 'log.kind.note' };
     const SPHERE_MODE_KEYS = { micro: 'sys.sphere.mode.micro', draft: 'sys.sphere.mode.draft', wave: 'sys.sphere.mode.wave' };
     // 45 минут вызывали отторжение — теперь верхняя граница 30
     const modeTimers = { micro: 5, draft: 5, wave: 30 };
@@ -2444,7 +2368,6 @@
         nudgeSnoozeUntil: 0,
         firstStep: '',
         capOffDay: '',
-        focusCard: 'start',
         emojiEnabled: true,
         lastStop: null,
         skin: storedSkin(),
@@ -2569,7 +2492,7 @@
         points,
         logs,
         goal,
-        mode: modePoints[raw.mode] ? raw.mode : 'draft',
+        mode: MODES.includes(raw.mode) ? raw.mode : 'draft',
         spheres: sphereList,
         sphereIndex: Number.isInteger(raw.sphereIndex) && raw.sphereIndex >= 0 && raw.sphereIndex < sphereList.length ? raw.sphereIndex : 0,
         heartActive: raw.heartActive !== false,
@@ -2580,7 +2503,6 @@
         nudgeSnoozeUntil: Number(raw.nudgeSnoozeUntil) || 0,
         firstStep: typeof raw.firstStep === 'string' ? raw.firstStep : '',
         capOffDay: typeof raw.capOffDay === 'string' ? raw.capOffDay : '',
-        focusCard: raw.focusCard === 'words' ? 'words' : 'start',
         emojiEnabled: raw.emojiEnabled !== false,
         lastStop: normalizeLastStop(raw.lastStop),
         skin: normalizeSkin(raw.skin || storedSkin()),
@@ -2936,8 +2858,8 @@
         }
       }
       const sp = currentSphere();
-      const pts = modePoints[state.mode];
       const spentMs = Number(state.timer.ranMs) || 0;
+      const pts = pointsForSession(spentMs);
       const spentMin = Math.round(spentMs / 60000);
       const step = state.firstStep ? t('log.step', { step: state.firstStep }) : '';
       const text = sp.tasks[state.mode] + step + (spentMin >= 1 ? t('log.segment', { n: spentMin }) : '');
@@ -2950,7 +2872,9 @@
       renderBridge();
       flashMessage(awarded
         ? t('toast.awarded', { n: awarded })
-        : t('toast.capped', { cap: DAILY_CAP }));
+        : (remainingPointsToday() === 0
+          ? t('toast.capped', { cap: DAILY_CAP })
+          : t('toast.short', { n: SESSION_MIN_MINUTES })));
     }
     // Первый шаг: конкретное физическое действие вместо «сесть и поработать»
     // Повторный клик по выбранному шагу снимает его
@@ -3002,6 +2926,7 @@
       else hint.textContent = translate('focus.timer.start');
       renderTimerPresets();
       renderContinueRow();
+      renderCompleteButton();
     }
     function renderContinueRow() {
       const row = document.getElementById('continueRow');
@@ -3162,18 +3087,6 @@
       }
       tickBreathe();
     }
-    // --- FREE-FORM INPUT ("СВОИМИ СЛОВАМИ") ---
-    function addTag(fragment) {
-      const input = document.getElementById('freeformInput');
-      const cur = input.value.trim();
-      input.value = cur ? `${cur}, ${fragment}` : fragment;
-      input.focus();
-    }
-    // Тег на кнопке — это ключ интерфейса, а в поле попадает готовый текст
-    // на выбранном языке: дальше он живёт в дневнике как обычная запись.
-    function addTagKey(key) {
-      addTag(t(key + '.text'));
-    }
     // --- WEB AUDIO SYNTHESIZER (NO EXTERNAL FILES NEEDED) ---
     // Один AudioContext на страницу: браузер разрешает их единицы, а не десятки
     function getAudioContext() {
@@ -3286,43 +3199,13 @@
       closeTaskNote();
       flashMessage(t('focus.note.saved'));
     }
-    // --- ПЕРЕКЛЮЧАТЕЛЬ КАРТОЧЕК ---
-    // Две карточки не стоят рядом: одна перед глазами, вторая в одном нажатии.
-    // Выбор запоминается, чтобы при возврате не искать нужную заново.
-    const FOCUS_CARDS = ['start', 'words'];
-    function setFocusCard(card) {
-      if (!state) return;
-      state.focusCard = FOCUS_CARDS.includes(card) ? card : 'start';
-      saveState();
-      renderFocusCard();
-    }
-    function renderFocusCard() {
-      const active = state && FOCUS_CARDS.includes(state.focusCard) ? state.focusCard : 'start';
-      const grid = document.querySelector('.main-grid');
-      if (grid) {
-        grid.classList.toggle('focus-start', active === 'start');
-        grid.classList.toggle('focus-words', active === 'words');
-      }
-      FOCUS_CARDS.forEach(key => {
-        const btn = document.getElementById(key === 'start' ? 'focusTabStart' : 'focusTabWords');
-        if (!btn) return;
-        const on = key === active;
-        btn.classList.toggle('active', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-    }
-    function saveFreeform(kind, pts, type) {
-      const input = document.getElementById('freeformInput');
-      const text = input.value.trim() || t('words.emptySuffix', { kind: kind });
-      const awarded = addLogEntry(kind, text, pts, type || 'note');
-      input.value = '';
-      flashMessage(awarded ? t('words.saved', { n: awarded }) : t('words.saved.capped', { cap: DAILY_CAP }));
-    }
-    function quickDiaryChip(label) {
-      const input = document.getElementById('diaryQuickInput');
-      const cur = input.value.trim();
-      input.value = cur ? `${cur}, ${label}` : label;
-      input.focus();
+    // --- БЫСТРАЯ ПОМЕТКА: ОДИН ТАП — ОДНА ЗАПИСЬ ---
+    // Чип сразу пишет в дневник с готовым типом: иначе симптом уходил
+    // бы в раздел «заметки» и отчёт для врача терял разницу между шагом,
+    // телесным сигналом и ранним стопом.
+    function quickDiaryEntry(textKey, type) {
+      const awarded = addLogEntry(t(LOG_TYPE_KINDS[type] || 'log.kind.note'), t(textKey), 1, type);
+      flashMessage(awarded ? t('toast.awarded', { n: awarded }) : t('diary.note.capped'));
     }
     function addQuickDiaryNote() {
       const input = document.getElementById('diaryQuickInput');
@@ -3474,7 +3357,7 @@
       if (!sphere || !Number.isFinite(ts) || ts <= 0) return null;
       return {
         sphere,
-        mode: modePoints[raw.mode] ? raw.mode : 'draft',
+        mode: MODES.includes(raw.mode) ? raw.mode : 'draft',
         text: String(raw.text || ''),
         ts,
         resumed: !!raw.resumed
@@ -3514,7 +3397,7 @@
       if (!stop) return;
       const idx = spheresOf().findIndex(sp => sp.name === stop.sphere);
       if (idx >= 0) state.sphereIndex = idx;
-      if (modePoints[stop.mode]) state.mode = stop.mode;
+      if (MODES.includes(stop.mode)) state.mode = stop.mode;
       stop.resumed = true;
       showSection('main');
       setTimerMinutes(5);
@@ -4210,19 +4093,29 @@
         document.getElementById('mode-' + m).classList.toggle('active', state.mode === m);
       });
       const sp = currentSphere();
-      const pts = modePoints[state.mode];
       document.getElementById('sphereBadgeText').textContent = t('focus.sphere.switch', { name: sp.name });
       document.getElementById('activeTaskTitle').textContent = sp.tasks[state.mode];
       document.getElementById('activeTaskNote').textContent = sp.notes[state.mode];
-      document.getElementById('completeTaskBtn').textContent = remainingPointsToday() === 0
-        ? t('focus.complete.capped')
-        : t('focus.complete', { n: pts });
+      renderCompleteButton();
       const stepsRow = document.getElementById('firstStepRow');
       if (stepsRow) {
         stepsRow.innerHTML = `<span class="steps-label">${escapeHtml(t('focus.steps.label'))}</span>` +
           (sp.steps || []).map((step, i) => `<button class="pill-btn${state.firstStep === step ? ' active' : ''}" onclick="pickFirstStep(${i})" aria-pressed="${state.firstStep === step}">${escapeHtml(step)}</button>`).join('');
       }
       renderStepRow();
+    }
+    // Кнопка честно называет то, что получится: без пяти минут таймера — ноль
+    function renderCompleteButton() {
+      const btn = document.getElementById('completeTaskBtn');
+      if (!btn) return;
+      if (remainingPointsToday() === 0) {
+        btn.textContent = t('focus.complete.capped');
+        return;
+      }
+      const pts = pointsForSession(state.timer.ranMs);
+      btn.textContent = pts > 0
+        ? t('focus.complete', { n: pts })
+        : t('focus.complete.short', { n: SESSION_MIN_MINUTES });
     }
     // Резерв показывается только там, где он может помочь: когда неделя недобрана
     function renderReserve() {
@@ -4261,11 +4154,22 @@
     }
     // Ведущий эмодзи вынимается из строки и рисуется крупным знаком,
     // а в экспорт и бэкап уходит исходный текст — там он и нужен как текст.
+    function leadingEmoji(text) {
+      const raw = String(text || '');
+      return NOTE_EMOJIS.find(e => raw.indexOf(e) === 0) || '';
+    }
     function logTextHtml(text) {
       const raw = String(text || '');
-      const lead = NOTE_EMOJIS.find(e => raw.indexOf(e) === 0);
+      const lead = leadingEmoji(raw);
       if (!lead) return escapeHtml(raw);
       return `<span class="log-emoji">${lead}</span>${escapeHtml(raw.slice(lead.length).trim())}`;
+    }
+    // Значок типа ставится только там, где своего эмодзи нет: два знака
+    // в одной строке спорили бы друг с другом.
+    function logTypeBadge(item) {
+      if (leadingEmoji(item.text)) return '';
+      const glyph = LOG_TYPE_GLYPHS[item.type] || LOG_TYPE_GLYPHS.note;
+      return `<span class="log-type" aria-hidden="true">${glyph}</span>`;
     }
     function renderDiary() {
       const list = document.getElementById('logList');
@@ -4275,6 +4179,7 @@
       }
       list.innerHTML = state.logs.map(item => `
         <div class="log-row">
+          ${logTypeBadge(item)}
           <div style="flex: 1;">
             <div style="font-size: 12px; color: var(--green-title); margin-bottom: 3px;">
               ${item.time} | ${escapeHtml(item.kind)}
@@ -4732,7 +4637,6 @@
       renderBackupNudge();
       renderBridge();
       renderTodayLine();
-      renderFocusCard();
       renderEmojiRows();
       renderSystem();
       renderTimer();
@@ -4960,18 +4864,18 @@
 
       // Главный экран
       'focus.title': ['Точка старта', 'Точка старту', 'Starting point', 'Startpunkt'],
-      'focus.switch.aria': ['Какая карточка перед глазами', 'Яка картка перед очима', 'Which card is in front of you', 'Welche Karte vor dir liegt'],
       'focus.hint': ['Выбери текущее состояние ниже. Задача и таймер подстроятся без давления.', 'Вибери поточний стан нижче. Задача й таймер підлаштуються без тиску.', 'Pick the state you are in. The task and the timer adjust without pressure.', 'Wähle deinen jetzigen Zustand. Aufgabe und Timer passen sich ohne Druck an.'],
       'focus.sphere.switch': ['⇄ {name}', '⇄ {name}', '⇄ {name}', '⇄ {name}'],
-      'focus.mode.micro': ['Совсем мало сил (+1)', 'Зовсім мало сил (+1)', 'Barely any energy (+1)', 'Kaum Energie (+1)'],
-      'focus.mode.draft': ['Немного сил (+2)', 'Трохи сил (+2)', 'Some energy (+2)', 'Etwas Energie (+2)'],
-      'focus.mode.wave': ['Полные силы (+3)', 'Повні сили (+3)', 'Full energy (+3)', 'Volle Energie (+3)'],
+      'focus.mode.micro': ['Совсем мало сил', 'Зовсім мало сил', 'Barely any energy', 'Kaum Energie'],
+      'focus.mode.draft': ['Немного сил', 'Трохи сил', 'Some energy', 'Etwas Energie'],
+      'focus.mode.wave': ['Полные силы', 'Повні сили', 'Full energy', 'Volle Energie'],
       'focus.timer.start': ['Старт', 'Старт', 'Start', 'Start'],
       'focus.timer.pause': ['Пауза', 'Пауза', 'Pause', 'Pause'],
       'focus.timer.resume': ['Продолжить', 'Продовжити', 'Resume', 'Weiter'],
       'focus.timer.go': ['Идёт отсчёт', 'Іде відлік', 'Running', 'Läuft'],
       'focus.timer.aria': ['Таймер фокуса: старт или пауза', 'Таймер фокусу: старт або пауза', 'Focus timer: start or pause', 'Fokus-Timer: Start oder Pause'],
-      'focus.complete': ['Выполнено (+{n} в зачет)', 'Виконано (+{n} у залік)', 'Done (+{n} to the week)', 'Erledigt (+{n} auf die Woche)'],
+      'focus.complete': ['Выполнено (+{n} в зачёт)', 'Виконано (+{n} у залік)', 'Done (+{n} to the week)', 'Erledigt (+{n} auf die Woche)'],
+      'focus.complete.short': ['Выполнено (меньше {n} мин — без очков)', 'Виконано (менше {n} хв — без очок)', 'Done (under {n} min — no points)', 'Erledigt (unter {n} Min — keine Punkte)'],
       'focus.complete.capped': ['Выполнено (день закрыт — без очков)', 'Виконано (день закрито — без очок)', 'Done (day is capped — no points)', 'Erledigt (Tag voll — keine Punkte)'],
       'focus.reset': ['Сбросить таймер', 'Скинути таймер', 'Reset timer', 'Timer zurücksetzen'],
       'focus.note.title': ['Заметка к задаче', 'Нотатка до завдання', 'Note on this task', 'Notiz zur Aufgabe'],
@@ -4990,18 +4894,6 @@
       'focus.steps.label': ['Первый шаг:', 'Перший крок:', 'First step:', 'Erster Schritt:'],
       'focus.steps.aria': ['Первый шаг', 'Перший крок', 'First step', 'Erster Schritt'],
 
-      // Своими словами
-      'words.title': ['Своими словами', 'Своїми словами', 'In your own words', 'In deinen Worten'],
-      'words.hint': ['Когда шаблоны не подходят: запиши состояние коротко или нажми на готовые теги.', 'Коли шаблони не підходять: запиши стан коротко або натисни на готові теги.', 'When the templates do not fit: write the state in a few words or tap a ready tag.', 'Wenn die Vorlagen nicht passen: notiere den Zustand kurz oder tippe auf einen fertigen Tag.'],
-      'words.tag.minutes': ['+ 5-10 мин', '+ 5-10 хв', '+ 5-10 min', '+ 5-10 Min'],
-      'words.tag.chest': ['+ слабый ком в груди', '+ слабкий клубок у грудях', '+ slight tightness in the chest', '+ leichter Druck in der Brust'],
-      'words.tag.fog': ['+ туман в голове', '+ туман у голові', '+ fog in the head', '+ Nebel im Kopf'],
-      'words.tag.breath': ['+ поверхн. дыхание', '+ поверхн. дихання', '+ shallow breathing', '+ flache Atmung'],
-      'words.tag.stopped': ['+ вовремя остановился', '+ вчасно зупинився', '+ stopped in time', '+ rechtzeitig gestoppt'],
-      'words.placeholder': ['Например: поработал 5-10 мин, слабый ком в груди, решил остановиться...', 'Наприклад: попрацював 5-10 хв, слабкий клубок у грудях, вирішив зупинитися...', 'For example: worked 5-10 min, slight tightness in the chest, decided to stop...', 'Zum Beispiel: 5-10 Min gearbeitet, leichter Druck in der Brust, beschlossen aufzuhören...'],
-      'words.stop': ['Вовремя остановился (+2)', 'Вчасно зупинився (+2)', 'Stopped in time (+2)', 'Rechtzeitig gestoppt (+2)'],
-      'words.signal': ['Записать симптом (+1)', 'Записати симптом (+1)', 'Note a symptom (+1)', 'Symptom notieren (+1)'],
-
       // Прогресс и напоминание о бэкапе
       'progress.title': ['Прогресс', 'Прогрес', 'Progress', 'Fortschritt'],
       'progress.tag': ['12 недель', '12 тижнів', '12 weeks', '12 Wochen'],
@@ -5016,13 +4908,6 @@
       'focus.preset15': ['15 мин', '15 хв', '15 min', '15 Min'],
       'focus.preset30': ['30 мин', '30 хв', '30 min', '30 Min'],
       // Так запись попадёт в дневник: это текст, который человек потом читает
-      'words.stop.kind': ['Вовремя остановился', 'Вчасно зупинився', 'Stopped in time', 'Rechtzeitig gestoppt'],
-      'words.signal.kind': ['Запись состояния', 'Запис стану', 'State note', 'Zustandsnotiz'],
-      'words.tag.minutes.text': ['поучился 5-10 мин', 'позанимався 5-10 хв', 'studied for 5-10 min', '5-10 Min gelernt'],
-      'words.tag.chest.text': ['слабый ком в груди', 'слабкий клубок у грудях', 'slight tightness in the chest', 'leichter Druck in der Brust'],
-      'words.tag.fog.text': ['туман в голове', 'туман у голові', 'fog in the head', 'Nebel im Kopf'],
-      'words.tag.breath.text': ['поверхностное дыхание', 'поверхневе дихання', 'shallow breathing', 'flache Atmung'],
-      'words.tag.stopped.text': ['вовремя остановился', 'вчасно зупинився', 'stopped in time', 'rechtzeitig gestoppt'],
       'lang.label': ['Язык интерфейса', 'Мова інтерфейсу', 'Interface language', 'Sprache'],
       'lang.hint': ['Тексты, которые ты уже написал сам, остаются как есть: переводится только интерфейс.', 'Тексти, які ти вже написав сам, лишаються як є: перекладається лише інтерфейс.', 'Text you have written yourself stays as it is: only the interface is translated.', 'Selbst geschriebene Texte bleiben, wie sie sind: übersetzt wird nur die Oberfläche.'],
       'lang.switched': ['Язык: {name}', 'Мова: {name}', 'Language: {name}', 'Sprache: {name}'],
@@ -5032,7 +4917,8 @@
       'toast.gate': ['Строгий режим: до зачета ещё {n} мин таймера', 'Суворий режим: до заліку ще {n} хв таймера', 'Strict mode: {n} more minutes on the timer before this counts', 'Strenger Modus: noch {n} Minuten Timer, bis es zählt'],
       'log.step': [' — первый шаг: {step}', ' — перший крок: {step}', ' — first step: {step}', ' — erster Schritt: {step}'],
       'log.segment': [' (отрезок {n} мин)', ' (відрізок {n} хв)', ' ({n} min stretch)', ' ({n} Min Abschnitt)'],
-      'toast.awarded': ['+{n} в зачет недели', '+{n} у залік тижня', '+{n} to the week', '+{n} auf die Woche'],
+      'toast.awarded': ['+{n} в зачёт недели', '+{n} у залік тижня', '+{n} to the week', '+{n} auf die Woche'],
+      'toast.short': ['Записано. Меньше {n} минут — без очков', 'Записано. Менше {n} хвилин — без очок', 'Logged. Under {n} minutes — no points', 'Notiert. Unter {n} Minuten — keine Punkte'],
       'toast.capped': ['День закрыт ({cap} очков). Отрезок записан без очков', 'День закрито ({cap} очок). Відрізок записано без очок', 'Day is capped ({cap} points). The stretch is logged without points', 'Tag ist voll ({cap} Punkte). Der Abschnitt wurde ohne Punkte notiert'],
       'timer.hint.running': ['Идет отсчет', 'Іде відлік', 'Running', 'Läuft'],
       'timer.hint.done': ['Готово!', 'Готово!', 'Done!', 'Fertig!'],
@@ -5112,11 +4998,15 @@
       'diary.export': ['Скачать .md (Obsidian)', 'Завантажити .md (Obsidian)', 'Download .md (Obsidian)', '.md laden (Obsidian)'],
       'diary.quick.title': ['Быстрая пометка в дневник (можно в 1 клик или парой слов)', 'Швидка позначка в щоденник (можна в 1 клік або парою слів)', 'A quick note in the diary (one tap, or a couple of words)', 'Schnelle Notiz ins Tagebuch (ein Klick oder zwei Worte)'],
       'diary.chip.work': ['⚡ Рабочий шаг', '⚡ Робочий крок', '⚡ A work step', '⚡ Ein Arbeitsschritt'],
-      'diary.chip.work.text': ['Без текста: рабочий шаг', 'Без тексту: робочий крок', 'No text: a work step', 'Ohne Text: ein Arbeitsschritt'],
-      'diary.chip.pause': ['⏸ Вовремя пауза', '⏸ Вчасно пауза', '⏸ Paused in time', '⏸ Rechtzeitig Pause'],
-      'diary.chip.pause.text': ['Вовремя сделал паузу', 'Вчасно зробив паузу', 'Paused in time', 'Rechtzeitig Pause gemacht'],
-      'diary.chip.fog': ['🌫 Туман / усталость', '🌫 Туман / втома', '🌫 Fog / fatigue', '🌫 Nebel / Müdigkeit'],
+      'diary.chip.work.text': ['Рабочий шаг', 'Робочий крок', 'A work step', 'Ein Arbeitsschritt'],
+      'diary.chip.pause': ['⏸️ Вовремя остановился', '⏸️ Вчасно зупинився', '⏸️ Stopped in time', '⏸️ Rechtzeitig gestoppt'],
+      'diary.chip.pause.text': ['Вовремя остановился', 'Вчасно зупинився', 'Stopped in time', 'Rechtzeitig gestoppt'],
+      'diary.chip.fog': ['💤 Туман / усталость', '💤 Туман / втома', '💤 Fog / fatigue', '💤 Nebel / Müdigkeit'],
       'diary.chip.fog.text': ['Легкий туман / усталость', 'Легкий туман / втома', 'Slight fog / fatigue', 'Leichter Nebel / Müdigkeit'],
+      'diary.chip.chest': ['💢 Ком в груди', '💢 Клубок у грудях', '💢 Tightness in the chest', '💢 Druck in der Brust'],
+      'diary.chip.chest.text': ['слабый ком в груди', 'слабкий клубок у грудях', 'slight tightness in the chest', 'leichter Druck in der Brust'],
+      'diary.chip.breath': ['🌬️ Поверхн. дыхание', '🌬️ Поверхн. дихання', '🌬️ Shallow breathing', '🌬️ Flache Atmung'],
+      'diary.chip.breath.text': ['поверхностное дыхание', 'поверхневе дихання', 'shallow breathing', 'flache Atmung'],
       'diary.chip.focus': ['🟢 Хороший фокус', '🟢 Гарний фокус', '🟢 Good focus', '🟢 Guter Fokus'],
       'diary.chip.focus.text': ['Хороший фокус', 'Гарний фокус', 'Good focus', 'Guter Fokus'],
       'diary.quick.placeholder': ['Короткая пометка в дневник (необязательно писать полный текст)...', 'Коротка позначка в щоденник (не обов’язково писати повний текст)...', 'A short diary note (no need to write the whole story)...', 'Kurze Tagebuchnotiz (kein ganzer Text nötig)...'],
@@ -5132,6 +5022,10 @@
       'diary.undo.restored': ['Запись восстановлена', 'Запис відновлено', 'Entry restored', 'Eintrag wiederhergestellt'],
       'diary.note.default': ['Короткая отметка в дневнике', 'Коротка позначка в щоденнику', 'A short diary note', 'Kurze Tagebuchnotiz'],
       'diary.note.kind': ['Заметка', 'Нотатка', 'Note', 'Notiz'],
+      'log.kind.action': ['Шаг', 'Крок', 'Step', 'Schritt'],
+      'log.kind.signal': ['Сигнал', 'Сигнал', 'Signal', 'Signal'],
+      'log.kind.stop': ['Остановка', 'Зупинка', 'Stop', 'Stopp'],
+      'log.kind.note': ['Заметка', 'Нотатка', 'Note', 'Notiz'],
       'diary.note.added': ['Добавлено в дневник (+1)', 'Додано в щоденник (+1)', 'Added to the diary (+1)', 'Ins Tagebuch aufgenommen (+1)'],
       'diary.note.capped': ['Добавлено. День закрыт — без очков', 'Додано. День закрито — без очок', 'Added. The day is capped — no points', 'Hinzugefügt. Tag voll — ohne Punkte'],
       'diary.edit.prompt': ['Добавить или изменить комментарий к записи:', 'Додати або змінити коментар до запису:', 'Add or edit a comment on the entry:', 'Kommentar zum Eintrag ergänzen oder ändern:'],
@@ -5474,9 +5368,6 @@
       'toast.week.rolled': ['Новая неделя: счет с нуля, прошлая ушла в архив', 'Новий тиждень: рахунок з нуля, минулий пішов в архів', 'A new week: the count starts from zero, the last one went to the archive', 'Eine neue Woche: der Zähler beginnt bei null, die letzte ging ins Archiv'],
       'toast.rest.charge': ['Заряд отдыха: +1', 'Заряд відпочинку: +1', 'Rest charge: +1', 'Erholungsladung: +1'],
       'toast.save.failed': ['Сохранить не удалось: хранилище браузера заполнено или недоступно', 'Зберегти не вдалося: сховище браузера заповнене або недоступне', 'Could not save: browser storage is full or unavailable', 'Speichern fehlgeschlagen: der Browser-Speicher ist voll oder nicht verfügbar'],
-      'words.emptySuffix': ['{kind} (быстрая отметка без текста)', '{kind} (швидка позначка без тексту)', '{kind} (a quick note without text)', '{kind} (eine schnelle Notiz ohne Text)'],
-      'words.saved': ['Записано (+{n})', 'Записано (+{n})', 'Logged (+{n})', 'Notiert (+{n})'],
-      'words.saved.capped': ['Записано. День закрыт: {cap} очков уже есть', 'Записано. День закрито: {cap} очок уже є', 'Logged. The day is capped: {cap} points already there', 'Notiert. Tag voll: {cap} Punkte stehen schon'],
     };
     let uiLang = detectLang();
 
