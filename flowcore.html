@@ -2865,6 +2865,7 @@
       const step = state.firstStep ? t('log.step', { step: state.firstStep }) : '';
       const text = sp.tasks[state.mode] + step + (spentMin >= 1 ? t('log.segment', { n: spentMin }) : '');
       state.timer.ranMs = 0;
+      state.timer.finished = false;
       state.firstStep = '';
       const awarded = addLogEntry(sp.name, text, pts, 'action', spentMs);
       state.lastStop = { sphere: sp.name, mode: state.mode, text: sp.tasks[state.mode], ts: Date.now(), resumed: false };
@@ -3036,11 +3037,31 @@
       const applied = Math.round(state.timer.totalMs / 60000);
       flashMessage(t('toast.timer.set', { n: applied }));
     }
+    // Завершённый отрезок — это работа: перед продолжением или сбросом он сам
+    // ложится в дневник, чтобы отработанные минуты не пропадали. Возвращает
+    // начисленные очки или null, если записывать нечего.
+    function logFinishedSegment() {
+      const timer = state && state.timer;
+      if (!timer || !timer.finished) return null;
+      const spentMs = Number(timer.ranMs) || 0;
+      if (spentMs < SESSION_MIN_MINUTES * 60000) return null;
+      const sp = currentSphere();
+      const spentMin = Math.round(spentMs / 60000);
+      const text = sp.tasks[state.mode] + t('log.segment', { n: spentMin });
+      timer.ranMs = 0;
+      timer.finished = false;
+      return addLogEntry(sp.name, text, pointsForSession(spentMs), 'action', spentMs);
+    }
+    function carriedToast(awarded, minutes) {
+      if (awarded === null) return t('toast.more', { n: minutes });
+      return awarded ? t('toast.carried.more', { pts: awarded, n: minutes }) : t('toast.capped', { cap: DAILY_CAP });
+    }
     // Продолжение отрезка: после сигнала — ещё один, без решений и настроек
     function continueTimer(minutes) {
+      const carried = logFinishedSegment();
       setTimerMinutes(minutes);
       toggleTimer();
-      flashMessage(t('toast.more', { n: minutes }));
+      flashMessage(carriedToast(carried, minutes));
     }
     function toggleTimer() {
       const t = state.timer;
@@ -3065,7 +3086,11 @@
       renderTimer();
     }
     function resetTimer() {
+      const carried = logFinishedSegment();
       setTimerMinutes(modeTimers[state.mode]);
+      if (carried !== null) {
+        flashMessage(carried ? t('toast.carried', { pts: carried }) : t('toast.capped', { cap: DAILY_CAP }));
+      }
     }
     function tickTimers() {
       const t = state.timer;
@@ -4953,6 +4978,8 @@
       'toast.minutes.invalid': ['Введи минуты числом, например 25', 'Введи хвилини числом, наприклад 25', 'Enter the minutes as a number, for example 25', 'Gib die Minuten als Zahl ein, zum Beispiel 25'],
       'toast.timer.set': ['Таймер: {n} мин', 'Таймер: {n} хв', 'Timer: {n} min', 'Timer: {n} Min'],
       'toast.more': ['Ещё {n} мин. Отрезок в копилку, задача не закрыта.', 'Ще {n} хв. Відрізок у скарбничку, задача не закрита.', '{n} more minutes. Another stretch banked, the task stays open.', 'Noch {n} Minuten. Ein weiterer Abschnitt zählt, die Aufgabe bleibt offen.'],
+      'toast.carried': ['Отрезок записан: +{pts} в зачёт', 'Відрізок записано: +{pts} у залік', 'Stretch logged: +{pts} to the week', 'Abschnitt notiert: +{pts} auf die Woche'],
+      'toast.carried.more': ['Отрезок записан: +{pts}. Дальше {n} мин, задача не закрыта', 'Відрізок записано: +{pts}. Далі {n} хв, задача не закрита', 'Stretch logged: +{pts}. {n} more minutes, the task stays open', 'Abschnitt notiert: +{pts}. Noch {n} Minuten, die Aufgabe bleibt offen'],
       'notify.timer.title': ['Таймер завершён', 'Таймер завершено', 'Timer finished', 'Timer abgelaufen'],
       'notify.timer.body': ['Отрезок закончен: можно встать из-за стола.', 'Відрізок закінчено: можна встати з-за столу.', 'The stretch is over: you can step away from the desk.', 'Der Abschnitt ist vorbei: du darfst vom Schreibtisch aufstehen.'],
       'toast.timer.done': ['Таймер завершен 🔔', 'Таймер завершено 🔔', 'Timer finished 🔔', 'Timer abgelaufen 🔔'],

@@ -352,11 +352,44 @@ const MULTI_SPHERE_PROFILE = { version: 6, points: 0, goal: 12, logs: [], weeks:
   check('очки за отрезок', q('state.points'), 2);
   check('сегодня: одна отметка', q('todayStats().count'), 1);
   check('сегодня: 15 минут', q('todayStats().ms'), 900000);
+  check('после зачёта строка продолжения скрыта', q("(() => { renderContinueRow(); return document.getElementById('continueRow').classList.contains('hidden'); })()"), true);
   q('continueTimer(30)');
   check('продолжение ставит 30 минут', q('Math.round(state.timer.totalMs / 60000)'), 30);
   check('продолжение сразу идёт', q('state.timer.running'), true);
   q('resetTimer()');
   check('сброс гасит таймер', q('state.timer.running'), false);
+}
+
+// --- 13b. Завершённый отрезок сам ложится в дневник при продолжении и сбросе ---
+{
+  const { ctx } = makeContext(NOW);
+  const q = expr => vm.runInContext(expr, ctx);
+  q("state.mode = 'wave'; state.logs = []; state.points = 0; state.timer = defaultTimer(30 * 60000); state.timer.finished = true; state.timer.ranMs = 30 * 60000; state.timer.remainingMs = 0;");
+  q('continueTimer(15);');
+  check('продолжение: отрезок записан', q('state.logs.length'), 1);
+  check('продолжение: очки за 30 минут', q('state.logs[0].pts'), 3);
+  check('продолжение: минуты в тексте', q("state.logs[0].text.includes('30 мин')"), true);
+  check('продолжение: тип шага', q('state.logs[0].type'), 'action');
+  check('продолжение: новый таймер 15 минут', q('Math.round(state.timer.totalMs / 60000)'), 15);
+  check('продолжение: новый таймер идёт', q('state.timer.running'), true);
+  check('продолжение: отрезок не остался висеть', q('state.timer.finished'), false);
+
+  q("state.logs = []; state.points = 0; state.timer.running = false; state.timer.finished = true; state.timer.ranMs = 15 * 60000;");
+  q('resetTimer();');
+  check('сброс: отрезок записан', q('state.logs.length'), 1);
+  check('сброс: очки за 15 минут', q('state.logs[0].pts'), 2);
+  check('сброс: длина вернулась к режиму', q('Math.round(state.timer.totalMs / 60000)'), 30);
+  q('resetTimer();');
+  check('сброс: второй раз ничего не пишет', q('state.logs.length'), 1);
+
+  q("state.logs = []; state.points = 0; state.timer = defaultTimer(4 * 60000); state.timer.finished = true; state.timer.ranMs = 4 * 60000;");
+  q('resetTimer();');
+  check('короткий отрезок не пишется', q('state.logs.length'), 0);
+
+  q("state.logs = []; state.points = 0; state.timer.running = false; state.timer.finished = true; state.timer.ranMs = 30 * 60000;");
+  q('continueTimer(15);');
+  q('continueTimer(15);');
+  check('двойное продолжение пишет один отрезок', q('state.logs.length'), 1);
 }
 
 // --- 14. Сессия истекла, пока вкладка была закрыта ---
